@@ -47,7 +47,7 @@ create trigger users_updated_at
 
 -- Provider profiles
 create table public.provider_profiles (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid not null unique references public.users(id) on delete cascade,
   bio text,
   id_document_url text,
@@ -69,7 +69,7 @@ create trigger provider_profiles_updated_at
 
 -- Customer profiles
 create table public.customer_profiles (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid not null unique references public.users(id) on delete cascade,
   cancellation_rate numeric(5,2) not null default 0,
   dispute_abuse_score numeric(5,2) not null default 0,

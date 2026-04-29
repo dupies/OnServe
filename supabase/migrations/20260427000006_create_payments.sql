@@ -1,6 +1,6 @@
 -- Payments
 create table public.payments (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   booking_id uuid not null unique references public.bookings(id),
   customer_id uuid not null references public.users(id),
   amount numeric(10,2) not null,
@@ -22,7 +22,7 @@ create trigger payments_updated_at
 
 -- Disputes
 create table public.disputes (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   booking_id uuid not null references public.bookings(id),
   payment_id uuid not null references public.payments(id),
   raised_by_user_id uuid not null references public.users(id),
@@ -38,7 +38,7 @@ create table public.disputes (
 
 -- Notifications
 create table public.notifications (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.users(id) on delete cascade,
   title text not null,
   body text not null,

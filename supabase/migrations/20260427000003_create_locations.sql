@@ -1,6 +1,6 @@
 -- Saved locations
 create table public.saved_locations (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.users(id) on delete cascade,
   label location_label not null default 'Home',
   custom_name text,
@@ -30,7 +30,7 @@ create trigger saved_locations_set_point
 
 -- Location events (captured at time of booking)
 create table public.location_events (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.users(id) on delete cascade,
   booking_id uuid, -- FK added after bookings table exists
   latitude numeric(10,7) not null,

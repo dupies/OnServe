@@ -1,6 +1,6 @@
 -- Service categories
 create table public.service_categories (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   name text not null unique,
   slug text not null unique,
   icon_url text,
@@ -11,7 +11,7 @@ create table public.service_categories (
 
 -- Service types
 create table public.service_types (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   category_id uuid not null references public.service_categories(id) on delete cascade,
   name text not null,
   description text not null default '',
@@ -27,7 +27,7 @@ create table public.service_types (
 
 -- Provider services (what each provider offers)
 create table public.provider_services (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   provider_id uuid not null references public.provider_profiles(id) on delete cascade,
   service_type_id uuid not null references public.service_types(id) on delete cascade,
   custom_price numeric(10,2),

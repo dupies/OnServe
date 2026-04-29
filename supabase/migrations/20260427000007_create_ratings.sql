@@ -1,6 +1,6 @@
 -- Ratings (dual — both sides rate each other)
 create table public.ratings (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   booking_id uuid not null references public.bookings(id),
   rated_by_user_id uuid not null references public.users(id),
   rated_user_id uuid not null references public.users(id),

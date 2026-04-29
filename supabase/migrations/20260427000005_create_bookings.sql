@@ -1,6 +1,6 @@
 -- Bookings
 create table public.bookings (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   customer_id uuid not null references public.users(id),
   provider_id uuid references public.provider_profiles(id),
   service_type_id uuid not null references public.service_types(id),
@@ -26,7 +26,7 @@ create trigger bookings_updated_at
 
 -- Quote requests
 create table public.quote_requests (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   booking_id uuid references public.bookings(id),
   customer_id uuid not null references public.users(id),
   service_type_id uuid not null references public.service_types(id),
@@ -40,7 +40,7 @@ create table public.quote_requests (
 
 -- Quotes (provider responses to quote requests)
 create table public.quotes (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   quote_request_id uuid not null references public.quote_requests(id) on delete cascade,
   provider_id uuid not null references public.provider_profiles(id),
   quoted_price numeric(10,2) not null,
