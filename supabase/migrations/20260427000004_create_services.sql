@@ -90,10 +90,10 @@ as $$
     pp.reputation_score,
     pp.rating_average,
     round(
-      st_distance(
+      (st_distance(
         sl.point,
         st_setsrid(st_makepoint(lng, lat), 4326)::geography
-      ) / 1000, 2
+      ) / 1000)::numeric, 2
     ) as distance_km
   from public.provider_profiles pp
   join public.saved_locations sl on sl.user_id = pp.user_id
