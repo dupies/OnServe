@@ -32,6 +32,14 @@ export async function signOut(): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
+export async function signInWithGoogle(): Promise<void> {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin },
+  });
+  if (error) throw new Error(error.message);
+}
+
 export async function setUserRole(role: UserRole): Promise<void> {
   const { error } = await supabase.auth.updateUser({
     data: { role },

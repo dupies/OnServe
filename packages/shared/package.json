@@ -5,6 +5,7 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "dependencies": {
-    "@onserve/types": "*"
+    "@onserve/types": "*",
+    "zod": "^4.4.1"
   }
 }

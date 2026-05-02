@@ -1,27 +1,93 @@
 @import "tailwindcss";
 
-@theme {
-  --color-accent: #00D97E;
-  --color-accent-hover: #00C470;
-  --color-bg: #0A0A0F;
-  --color-surface: #13131A;
-  --color-card: #1C1C26;
-  --color-border: #2A2A38;
-  --color-text: #F0EFE8;
-  --color-muted: #888898;
-  --color-amber: #F5A623;
-  --color-danger: #E8453C;
-  --color-purple: #7B6EF6;
-  --font-family-sans: Inter, system-ui, sans-serif;
+/* ============================================================
+   OnServe Design Tokens
+   Change --primary here to retheme the entire app.
+   ============================================================ */
+:root {
+  /* Brand — one value to rule them all */
+  --primary: #00D97E;
+  --primary-hover: #00C470;
+  --primary-foreground: #0A0A0F;
+
+  /* Surface scale */
+  --background: #0A0A0F;
+  --surface: #13131A;
+  --card: #1C1C26;
+  --border: #2A2A38;
+  --input: #2A2A38;
+
+  /* Text */
+  --foreground: #F0EFE8;
+  --muted: #13131A;
+  --muted-foreground: #888898;
+
+  /* shadcn/ui semantic aliases */
+  --popover: #13131A;
+  --popover-foreground: #F0EFE8;
+  --secondary: #1C1C26;
+  --secondary-foreground: #F0EFE8;
+  --accent: #1C1C26;
+  --accent-foreground: #F0EFE8;
+  --destructive: #E8453C;
+  --ring: #00D97E;
+
+  /* Status colors */
+  --warning: #F5A623;
+  --purple: #7B6EF6;
+
+  /* Radius scale */
+  --radius: 0.625rem;
 }
 
-body {
-  background-color: #0A0A0F;
-  color: #F0EFE8;
-  font-family: Inter, system-ui, sans-serif;
-  margin: 0;
+/* Map CSS vars to Tailwind utilities */
+@theme inline {
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-card-foreground: var(--foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-ring: var(--ring);
+  --color-warning: var(--warning);
+  --color-purple: var(--purple);
+
+  --font-sans: Inter, system-ui, sans-serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 8px);
 }
 
-#root {
-  min-height: 100svh;
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: Inter, system-ui, sans-serif;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    min-height: 100svh;
+  }
 }

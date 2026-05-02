@@ -1,252 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OnServe — Screen Mockups</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#0A0A0F;--surf:#13131A;--card:#1C1C26;--bdr:#2A2A38;--acc:#00D97E;--amb:#F5A623;--red:#E8453C;--txt:#F0EFE8;--mut:#888898;--fnt:#3A3A4A;--rs:8px;--r:14px}
-.wrap{display:flex;gap:12px;align-items:flex-start}
-.nav{display:flex;flex-direction:column;gap:5px;width:148px;flex-shrink:0}
-.ns{font-size:9px;color:var(--mut);padding:6px 8px 2px;letter-spacing:.05em;text-transform:uppercase}
-.nb{background:none;border:0.5px solid var(--bdr);border-radius:6px;padding:7px 9px;text-align:left;cursor:pointer;font-size:11px;color:var(--mut);line-height:1.4;width:100%}
-.nb:hover{border-color:var(--acc);color:var(--txt)}
-.nb.on{border-color:var(--acc);background:#00D97E14;color:var(--acc);font-weight:500}
-.new-badge{display:inline-block;background:#00D97E;color:#0A0A0F;font-size:8px;font-weight:500;padding:1px 5px;border-radius:4px;margin-left:4px;vertical-align:middle}
-.phone{width:218px;min-width:218px;height:468px;background:var(--bg);border:1.5px solid var(--bdr);border-radius:28px;overflow:hidden;position:relative;flex-shrink:0}
-.sc{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;display:none;flex-direction:column}
-.sc.on{display:flex}
-.sc::-webkit-scrollbar{display:none}
-.sb{display:flex;justify-content:space-between;align-items:center;padding:12px 14px 4px;flex-shrink:0}
-.st{font-size:10px;font-weight:500;color:var(--txt)}
-.p{padding:0 13px}
-.pb{padding-bottom:13px}
-.pt{padding-top:7px}
-.h2{font-size:14px;font-weight:500;color:var(--txt)}
-.h3{font-size:12px;font-weight:500;color:var(--txt)}
-.body{font-size:12px;color:var(--mut);line-height:1.5}
-.small{font-size:10px;color:var(--mut)}
-.card{background:var(--card);border:0.5px solid var(--bdr);border-radius:var(--r);padding:12px}
-.csm{background:var(--card);border:0.5px solid var(--bdr);border-radius:var(--rs);padding:9px}
-.btn{background:var(--acc);color:#0A0A0F;border:none;border-radius:var(--rs);padding:10px;font-size:12px;font-weight:500;width:100%;cursor:pointer;text-align:center}
-.btno{background:none;color:var(--txt);border:0.5px solid var(--bdr);border-radius:var(--rs);padding:9px;font-size:12px;width:100%;cursor:pointer;text-align:center}
-.div{height:0.5px;background:var(--bdr);margin:9px 0}
-.row{display:flex;align-items:center;gap:7px}
+:root{
+  --bg:#0A0A0F;--surf:#13131A;--card:#1C1C26;--bdr:#2A2A38;
+  --acc:#00D97E;--pur:#7B6EF6;--amb:#F5A623;--red:#E8453C;
+  --txt:#F0EFE8;--mut:#888898;--fnt:#3A3A4A;
+}
+body{background:#0D0D14;font-family:system-ui,-apple-system,sans-serif;padding:24px 16px;color:var(--txt)}
+h1{font-size:22px;font-weight:500;color:var(--txt);margin-bottom:4px}
+.subtitle{font-size:13px;color:var(--mut);margin-bottom:32px}
+.section-header{
+  font-size:10px;font-weight:500;color:var(--mut);
+  letter-spacing:.08em;text-transform:uppercase;
+  padding:20px 0 10px;border-top:0.5px solid var(--bdr);
+  margin-top:8px;grid-column:1/-1;
+}
+.section-header:first-of-type{border-top:none;padding-top:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;max-width:1200px}
+.frame{border-radius:20px;overflow:hidden;background:var(--bg);border:1.5px solid var(--bdr);display:flex;flex-direction:column;box-shadow:0 0 0 1px rgba(255,255,255,.03)}
+.screen-title{font-size:9px;font-weight:500;color:var(--mut);padding:6px 10px 5px;background:#111118;border-bottom:0.5px solid var(--bdr);text-align:center;letter-spacing:.03em}
+.sc{flex:1;overflow:hidden;padding:9px;display:flex;flex-direction:column;gap:5px;min-height:200px}
+.sb{display:flex;justify-content:space-between;align-items:center;padding:1px 0 4px;flex-shrink:0}
+.st{font-size:9px;font-weight:500;color:var(--txt)}
+.h2{font-size:11px;font-weight:500;color:var(--txt);line-height:1.3}
+.h3{font-size:10px;font-weight:500;color:var(--txt);line-height:1.3}
+.sm{font-size:9px;color:var(--mut);line-height:1.3}
+.card{background:var(--card);border:0.5px solid var(--bdr);border-radius:9px;padding:8px}
+.csm{background:var(--card);border:0.5px solid var(--bdr);border-radius:6px;padding:6px}
+.btn{background:var(--acc);border-radius:6px;padding:6px;font-size:9px;font-weight:500;color:#0A0A0F;text-align:center;width:100%}
+.btn2{background:var(--pur);border-radius:6px;padding:6px;font-size:9px;font-weight:500;color:#fff;text-align:center;width:100%}
+.btno{background:none;border:0.5px solid var(--bdr);border-radius:6px;padding:6px;font-size:9px;color:var(--txt);text-align:center;width:100%}
+.inp{background:var(--surf);border:0.5px solid var(--bdr);border-radius:6px;padding:6px 7px;font-size:9px;color:var(--mut);width:100%}
+.div{height:0.5px;background:var(--bdr);margin:5px 0}
+.row{display:flex;align-items:center;gap:6px}
 .rwb{display:flex;align-items:center;justify-content:space-between}
 .av{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:500;flex-shrink:0}
-.pg{display:inline-flex;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:500}
+.pg{display:inline-flex;padding:2px 6px;border-radius:10px;font-size:8px;font-weight:500}
 .pg-g{background:#00D97E18;color:#00D97E;border:0.5px solid #00D97E33}
 .pg-a{background:#F5A62318;color:#F5A623;border:0.5px solid #F5A62333}
 .pg-r{background:#E8453C18;color:#E8453C;border:0.5px solid #E8453C33}
+.pg-p{background:#7B6EF618;color:#7B6EF6;border:0.5px solid #7B6EF633}
 .pg-gr{background:#3A3A4A;color:#888898}
 .bar{height:3px;border-radius:2px;background:var(--fnt)}
 .barf{height:100%;border-radius:2px;background:var(--acc)}
-.bn{display:flex;justify-content:space-around;border-top:0.5px solid var(--bdr);padding:7px 0;background:var(--bg);flex-shrink:0;margin-top:auto}
-.bni{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:3px 7px}
-.bnd{width:18px;height:3px;border-radius:2px;background:var(--acc)}
-.bnl{font-size:8px;color:var(--mut)}.bnla{color:var(--acc)}
-.star{color:var(--amb);font-size:10px}
+.star{color:var(--amb);font-size:9px}
+.bn{display:flex;justify-content:space-around;border-top:0.5px solid var(--bdr);padding:5px 0;background:var(--bg);flex-shrink:0}
+.bni{display:flex;flex-direction:column;align-items:center;gap:2px}
+.bnd{width:16px;height:2px;border-radius:1px;background:var(--acc)}
+.bnl{font-size:7px;color:var(--mut)}
+.bnla{color:var(--acc)}
+.map{background:#1A2A1A;border-radius:6px;height:48px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.otp{width:24px;height:29px;background:var(--surf);border:0.5px solid var(--bdr);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:var(--txt)}
+.acc-c{color:var(--acc)} .pur-c{color:var(--pur)} .amb-c{color:var(--amb)} .red-c{color:var(--red)}
 </style>
-<h2 class="sr-only">OnServe — 2 missing screens: saved locations and dispute status</h2>
-<div class="wrap">
-<div class="nav">
-  <div class="ns">Missing screens</div>
-  <button class="nb on" onclick="sw('savedloc',this)">Saved locations <span class="new-badge">new</span></button>
-  <button class="nb" onclick="sw('dispstatus',this)">Dispute status <span class="new-badge">new</span></button>
+</head>
+<body>
+<h1>OnServe</h1>
+<p class="subtitle">Complete screen mockups — 45 screens across all user journeys</p>
 
-  <div class="ns">Quick reference</div>
-  <div class="ns" style="padding-top:2px;color:var(--txt);font-size:10px;text-transform:none;letter-spacing:0;line-height:1.6">
-    All 42 screens across 3 widgets:<br>
-    <span style="color:#00D97E">Widget 1</span> — Customer (25)<br>
-    <span style="color:#7B6EF6">Widget 2</span> — Provider + Admin (18)<br>
-    <span style="color:#00D97E">Widget 3</span> — These 2 (missing)<br>
-    <span style="color:#888898">Total: 45 screens ✓</span>
+<div class="grid">
+
+<div class="section-header">Auth</div>
+
+<!-- SPLASH -->
+<div class="frame"><div class="screen-title">Splash</div><div class="sc" style="align-items:center;justify-content:center;gap:10px">
+  <div style="width:48px;height:48px;border-radius:13px;background:#00D97E18;border:1px solid #00D97E33;display:flex;align-items:center;justify-content:center"><svg width="24" height="24" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="9" r="5" fill="#00D97E"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" stroke="#00D97E" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg></div>
+  <div style="text-align:center"><div style="font-size:18px;font-weight:500;color:var(--txt)">OnServe</div><div class="sm" style="margin-top:3px">Services at your door</div></div>
+  <div style="width:100%;display:flex;flex-direction:column;gap:5px"><div class="btn">Get started</div><div class="btno">Sign in</div></div>
+  <div style="display:flex;gap:5px"><div style="width:6px;height:6px;border-radius:3px;background:var(--acc)"></div><div style="width:6px;height:6px;border-radius:3px;background:var(--fnt)"></div><div style="width:6px;height:6px;border-radius:3px;background:var(--fnt)"></div></div>
+</div></div>
+
+<!-- PHONE ENTRY -->
+<div class="frame"><div class="screen-title">Phone entry</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span></div>
+  <div class="sm acc-c">Step 1 of 2</div>
+  <div class="h2">Enter your number</div>
+  <div style="background:var(--card);border:0.5px solid var(--bdr);border-radius:6px;padding:7px 9px;display:flex;gap:7px;align-items:center"><span class="sm" style="border-right:0.5px solid var(--bdr);padding-right:7px">+27</span><span style="font-size:11px;color:var(--txt);font-weight:500">82 000 0000</span></div>
+  <div class="sm">Or continue with</div>
+  <div class="btno">Google</div>
+  <div style="margin-top:auto"><div class="btn">Send OTP</div></div>
+</div></div>
+
+<!-- OTP VERIFY -->
+<div class="frame"><div class="screen-title">OTP verify</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span></div>
+  <div class="sm acc-c">Step 2 of 2</div>
+  <div class="h2">Verify code</div>
+  <div class="sm">Sent to +27 82 *** 4521</div>
+  <div style="display:flex;gap:5px;justify-content:center;margin:5px 0">
+    <div class="otp">3</div><div class="otp">7</div><div class="otp">4</div>
+    <div class="otp" style="border-color:var(--acc)">_</div>
+    <div class="otp"></div><div class="otp"></div>
   </div>
+  <div style="text-align:center"><span class="sm">Resend in </span><span style="font-size:9px;color:var(--acc)">0:44</span></div>
+  <div style="margin-top:auto"><div class="btn">Verify</div></div>
+</div></div>
 
-  <div class="ns" style="margin-top:8px">Coverage check</div>
-  <div style="padding:0 8px;display:flex;flex-direction:column;gap:4px">
-    <div style="font-size:9px;color:#00D97E">✓ Auth (4)</div>
-    <div style="font-size:9px;color:#00D97E">✓ Discover (4)</div>
-    <div style="font-size:9px;color:#00D97E">✓ Location (3)</div>
-    <div style="font-size:9px;color:#00D97E">✓ Book (4)</div>
-    <div style="font-size:9px;color:#00D97E">✓ Track (3)</div>
-    <div style="font-size:9px;color:#00D97E">✓ Manage (5)</div>
-    <div style="font-size:9px;color:#00D97E">✓ Resolve (3)</div>
-    <div style="font-size:9px;color:#00D97E">✓ Provider (15)</div>
-    <div style="font-size:9px;color:#00D97E">✓ Admin (4)</div>
+<!-- ROLE SELECTION -->
+<div class="frame"><div class="screen-title">Role selection</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span></div>
+  <div class="h2">How will you use OnServe?</div>
+  <div class="card" style="border-color:#00D97E33;background:#00D97E08"><div class="row" style="gap:8px"><div style="width:26px;height:26px;background:#00D97E18;border-radius:6px;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" fill="none" viewBox="0 0 14 14"><circle cx="7" cy="5" r="3" stroke="#00D97E" stroke-width="1"/><path d="M2 12c0-2.5 2.2-4 5-4s5 1.5 5 4" stroke="#00D97E" stroke-width="1" stroke-linecap="round" fill="none"/></svg></div><div><div class="h3">I need services</div><div class="sm">Book providers</div></div></div></div>
+  <div class="card"><div class="h3">I provide services</div><div class="sm">Earn money</div></div>
+  <div class="card"><div class="h3">Both</div></div>
+  <div class="btn" style="margin-top:auto">Continue</div>
+</div></div>
+
+<div class="section-header">Customer — Discover</div>
+
+<!-- HOME -->
+<div class="frame"><div class="screen-title">Home</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span><div class="av" style="width:22px;height:22px;background:#7B6EF618;color:#7B6EF6;font-size:8px">TN</div></div>
+  <div class="h2">Good morning, Thabo</div>
+  <div style="background:var(--card);border:0.5px solid var(--bdr);border-radius:6px;padding:6px 8px;display:flex;gap:6px;align-items:center"><svg width="10" height="10" fill="none" viewBox="0 0 12 12"><circle cx="5" cy="5" r="4" stroke="#888898" stroke-width="1"/><line x1="8" y1="8" x2="11" y2="11" stroke="#888898" stroke-width="1" stroke-linecap="round"/></svg><span class="sm">Search any service...</span></div>
+  <div class="row" style="gap:5px"><div class="sm acc-c">Sandton</div><div class="pg pg-g" style="font-size:8px">Trusted</div></div>
+  <div class="h3">What do you need?</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px">
+    <div class="csm" style="text-align:center"><div class="sm acc-c" style="font-size:8px">Cleaning</div></div>
+    <div class="csm" style="text-align:center"><div class="sm pur-c" style="font-size:8px">Beauty</div></div>
+    <div class="csm" style="text-align:center"><div class="sm amb-c" style="font-size:8px">Plumbing</div></div>
+    <div class="csm" style="text-align:center"><div class="sm" style="font-size:8px">Electrical</div></div>
+    <div class="csm" style="text-align:center"><div class="sm acc-c" style="font-size:8px">Gardening</div></div>
+    <div class="csm" style="text-align:center;background:none"><div class="sm" style="font-size:8px">More...</div></div>
   </div>
-</div>
+  <div class="bn"><div class="bni"><div class="bnd"></div><div class="bnl bnla">Home</div></div><div class="bni"><div style="width:16px;height:2px"></div><div class="bnl">Book</div></div><div class="bni"><div style="width:16px;height:2px"></div><div class="bnl">Chat</div></div><div class="bni"><div style="width:16px;height:2px"></div><div class="bnl">Profile</div></div></div>
+</div></div>
 
-<div class="phone">
+<!-- SEARCH RESULTS -->
+<div class="frame"><div class="screen-title">Search results</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span></div>
+  <div style="background:var(--card);border:0.5px solid #00D97E33;border-radius:6px;padding:6px 8px;display:flex;gap:6px;align-items:center"><svg width="10" height="10" fill="none" viewBox="0 0 12 12"><circle cx="5" cy="5" r="4" stroke="#00D97E" stroke-width="1"/><line x1="8" y1="8" x2="11" y2="11" stroke="#00D97E" stroke-width="1" stroke-linecap="round"/></svg><span style="font-size:10px;color:var(--txt)">Cleaning</span></div>
+  <div class="row" style="gap:4px;flex-wrap:wrap"><div class="pg pg-g" style="font-size:8px">Available now</div><div class="pg pg-gr" style="font-size:8px">Rating 4.5+</div><div class="pg pg-gr" style="font-size:8px">Under 2km</div></div>
+  <div class="sm">12 providers near Sandton</div>
+  <div class="card" style="padding:8px"><div class="rwb"><div class="row" style="gap:6px"><div class="av" style="width:26px;height:26px;background:#00D97E18;color:#00D97E;font-size:8px">ZM</div><div><div class="h3">Zanele M.</div><div class="sm">1.2km away</div></div></div><div><div class="star">★ 4.9</div><div class="pg pg-g" style="font-size:8px">Now</div></div></div><div class="btn" style="margin-top:6px">Book now</div></div>
+  <div class="card" style="padding:8px;opacity:.7"><div class="rwb"><div class="row" style="gap:6px"><div class="av" style="width:26px;height:26px;background:#7B6EF618;color:#7B6EF6;font-size:8px">NM</div><div><div class="h3">Nomsa M.</div><div class="sm">1.8km</div></div></div><div class="star">★ 4.7</div></div></div>
+  <div class="bn"><div class="bni"><div style="width:16px;height:2px"></div><div class="bnl">Home</div></div><div class="bni"><div class="bnd"></div><div class="bnl bnla">Search</div></div><div class="bni"><div style="width:16px;height:2px"></div><div class="bnl">Book</div></div><div class="bni"><div style="width:16px;height:2px"></div><div class="bnl">Profile</div></div></div>
+</div></div>
+
+<!-- PROVIDER PROFILE -->
+<div class="frame"><div class="screen-title">Provider profile</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span></div>
+  <div class="row" style="gap:9px"><div class="av" style="width:38px;height:38px;background:#00D97E18;color:#00D97E;font-size:12px;border:1.5px solid #00D97E33">ZM</div><div><div class="h2">Zanele Mokoena</div><div class="sm">Cleaning specialist</div><div class="row" style="gap:5px;margin-top:3px"><div class="pg pg-g" style="font-size:8px">Verified</div><div class="star">★ 4.9</div></div></div></div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px"><div class="csm" style="text-align:center"><div class="sm">Jobs</div><div class="h3">234</div></div><div class="csm" style="text-align:center"><div class="sm">Done</div><div class="h3 acc-c">98%</div></div><div class="csm" style="text-align:center"><div class="sm">Trust</div><div class="h3 acc-c">92</div></div></div>
+  <div><div class="sm" style="margin-bottom:3px">Trust score</div><div class="bar"><div class="barf" style="width:92%"></div></div></div>
+  <div class="row" style="flex-wrap:wrap;gap:4px"><div class="pg pg-g" style="font-size:8px">Deep clean R450</div><div class="pg pg-g" style="font-size:8px">Standard R250</div></div>
+  <div class="btn">Book Zanele</div>
+  <div class="btno">Request quote</div>
+</div></div>
+
+<!-- AI STYLE PREVIEW -->
+<div class="frame"><div class="screen-title">AI style preview</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span></div>
+  <div class="h2">AI style preview</div>
+  <div style="background:var(--card);border:1px dashed var(--bdr);border-radius:7px;height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px"><svg width="16" height="16" fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" stroke="#888898" stroke-width="1"/><path d="M8 5v6M5 8h6" stroke="#888898" stroke-width="1" stroke-linecap="round"/></svg><span class="sm">Upload your photo</span></div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px"><div class="csm" style="border-color:#00D97E33;background:#00D97E08;text-align:center"><div style="height:28px;background:var(--surf);border-radius:4px;margin-bottom:3px"></div><div class="sm acc-c" style="font-size:8px">Box braids</div></div><div class="csm" style="text-align:center"><div style="height:28px;background:var(--surf);border-radius:4px;margin-bottom:3px"></div><div class="sm" style="font-size:8px">Locs</div></div><div class="csm" style="text-align:center"><div style="height:28px;background:var(--surf);border-radius:4px;margin-bottom:3px"></div><div class="sm" style="font-size:8px">Natural</div></div></div>
+  <div class="card" style="background:#00D97E08;border-color:#00D97E33;padding:6px"><div class="sm acc-c">Recommended: Khanyi D. — R380</div></div>
+  <div class="btn">Book this style</div>
+</div></div>
+
+<div class="section-header">Customer — Location</div>
+
+<!-- LOCATION PICKER -->
+<div class="frame"><div class="screen-title">Location picker</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span></div>
+  <div class="h2">Where should they come?</div>
+  <div class="map"><svg width="100%" height="48" viewBox="0 0 180 48"><line x1="0" y1="12" x2="180" y2="12" stroke="#2A2A38" stroke-width="0.5"/><line x1="0" y1="24" x2="180" y2="24" stroke="#2A2A38" stroke-width="0.5"/><line x1="0" y1="36" x2="180" y2="36" stroke="#2A2A38" stroke-width="0.5"/><line x1="45" y1="0" x2="45" y2="48" stroke="#2A2A38" stroke-width="0.5"/><line x1="90" y1="0" x2="90" y2="48" stroke="#2A2A38" stroke-width="0.5"/><line x1="135" y1="0" x2="135" y2="48" stroke="#2A2A38" stroke-width="0.5"/><circle cx="90" cy="24" r="12" fill="#00D97E0C" stroke="#00D97E33" stroke-width="1"/><circle cx="90" cy="24" r="4" fill="#00D97E"/></svg></div>
+  <div class="h3">Saved locations</div>
+  <div class="csm rwb" style="margin-bottom:5px"><div class="h3" style="font-size:9px">Home</div><div class="pg pg-g" style="font-size:8px">Trusted</div></div>
+  <div class="csm rwb"><div class="h3" style="font-size:9px">Work</div><div class="pg pg-gr" style="font-size:8px">New</div></div>
+  <div class="csm" style="border-style:dashed;background:none;text-align:center;margin-top:2px"><span class="sm">+ Add new</span></div>
+  <div class="btn" style="margin-top:auto">Confirm location</div>
+</div></div>
 
 <!-- SAVED LOCATIONS -->
-<div class="sc on" id="s-savedloc" style="background:#0A0A0F">
+<div class="frame"><div class="screen-title">Saved locations</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span><span style="font-size:9px;color:var(--acc)">+ Add</span></div>
+  <div class="h2">Saved locations</div>
+  <div class="card" style="border-color:#00D97E33"><div class="rwb" style="margin-bottom:5px"><div class="h3">Home</div><div class="pg pg-g" style="font-size:8px">Default</div></div><div class="sm" style="margin-bottom:5px">14 Maple Crescent, Sandton</div><div><div class="rwb" style="margin-bottom:2px"><span class="sm">Trust</span><span style="font-size:9px;color:var(--acc)">High · 84/100</span></div><div class="bar"><div class="barf" style="width:84%"></div></div></div></div>
+  <div class="card"><div class="rwb" style="margin-bottom:5px"><div class="h3">Work</div><div class="pg pg-a" style="font-size:8px">Building</div></div><div class="sm" style="margin-bottom:5px">Rosebank Mall</div><div><div class="rwb" style="margin-bottom:2px"><span class="sm">Trust</span><span style="font-size:9px;color:var(--amb)">Medium · 42/100</span></div><div class="bar"><div class="barf" style="width:42%;background:var(--amb)"></div></div></div></div>
+  <div class="csm" style="border-style:dashed;background:none;text-align:center"><span class="sm">+ Add new location</span></div>
+</div></div>
+
+<!-- ADD NEW LOCATION -->
+<div class="frame"><div class="screen-title">Add new location</div><div class="sc">
   <div class="sb"><span class="st">9:41</span></div>
-  <div class="p pt" style="flex-shrink:0">
-    <div class="rwb" style="margin-bottom:4px">
-      <div class="h2">Saved locations</div>
-      <div style="font-size:10px;color:#00D97E;cursor:pointer">+ Add new</div>
-    </div>
-    <div class="body" style="margin-bottom:10px">Used for all bookings. Trust builds with each visit.</div>
-  </div>
-  <div class="p pb" style="display:flex;flex-direction:column;gap:8px;flex-shrink:0">
-    <div class="card" style="padding:11px;border-color:#00D97E33">
-      <div class="rwb" style="margin-bottom:8px">
-        <div class="row" style="gap:9px">
-          <div style="width:34px;height:34px;background:#00D97E18;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <svg width="14" height="16" fill="none" viewBox="0 0 14 16"><path d="M7 0C4.2 0 2 2.2 2 5c0 4.2 5 11 5 11s5-6.8 5-11C12 2.2 9.8 0 7 0z" fill="#00D97E"/><circle cx="7" cy="5" r="2" fill="#0A0A0F"/></svg>
-          </div>
-          <div>
-            <div class="h3">Home</div>
-            <div class="small" style="margin-top:2px">14 Maple Crescent, Sandton</div>
-          </div>
-        </div>
-        <div class="pg pg-g" style="font-size:9px">Default</div>
-      </div>
-      <div style="margin-bottom:8px">
-        <div class="rwb" style="margin-bottom:3px">
-          <span class="small" style="font-size:9px">Trust score</span>
-          <span style="font-size:9px;color:#00D97E;font-weight:500">High · 84/100</span>
-        </div>
-        <div class="bar"><div class="barf" style="width:84%"></div></div>
-      </div>
-      <div class="row" style="gap:5px;flex-wrap:wrap">
-        <div class="pg pg-g" style="font-size:9px">12 bookings</div>
-        <div class="small" style="font-size:9px">Last used today</div>
-      </div>
-    </div>
+  <div class="h2">New location</div>
+  <div class="map" style="height:44px"><svg width="100%" height="44" viewBox="0 0 180 44"><line x1="0" y1="22" x2="180" y2="22" stroke="#2A2A38" stroke-width="0.5"/><line x1="90" y1="0" x2="90" y2="44" stroke="#2A2A38" stroke-width="0.5"/><circle cx="90" cy="22" r="10" fill="#00D97E0A" stroke="#00D97E22" stroke-width="1"/><circle cx="90" cy="22" r="4" fill="#00D97E"/></svg></div>
+  <div class="inp">14 Maple Crescent, Sandton</div>
+  <div class="h3" style="margin-bottom:4px">Label</div>
+  <div style="display:flex;gap:5px"><div class="pg pg-g" style="padding:4px 9px;font-size:8px">Home</div><div class="pg pg-gr" style="padding:4px 9px;font-size:8px">Work</div><div class="pg pg-gr" style="padding:4px 9px;font-size:8px">Other</div></div>
+  <div class="csm" style="background:#00D97E08;border-color:#00D97E33"><div class="sm acc-c" style="font-size:8px">GPS captured · trust builds over time</div></div>
+  <div class="btn" style="margin-top:auto">Save location</div>
+</div></div>
 
-    <div class="card" style="padding:11px">
-      <div class="rwb" style="margin-bottom:8px">
-        <div class="row" style="gap:9px">
-          <div style="width:34px;height:34px;background:#7B6EF618;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <svg width="16" height="13" fill="none" viewBox="0 0 16 13"><rect x="1" y="4" width="14" height="8" rx="1.5" stroke="#7B6EF6" stroke-width="1.2"/><path d="M4 4V3.5a3.5 3.5 0 017 0V4" stroke="#7B6EF6" stroke-width="1.2"/></svg>
-          </div>
-          <div>
-            <div class="h3">Work</div>
-            <div class="small" style="margin-top:2px">Rosebank Mall, Johannesburg</div>
-          </div>
-        </div>
-        <div class="pg pg-a" style="font-size:9px">Building</div>
-      </div>
-      <div style="margin-bottom:8px">
-        <div class="rwb" style="margin-bottom:3px">
-          <span class="small" style="font-size:9px">Trust score</span>
-          <span style="font-size:9px;color:#F5A623;font-weight:500">Medium · 42/100</span>
-        </div>
-        <div class="bar"><div class="barf" style="width:42%;background:#F5A623"></div></div>
-      </div>
-      <div class="row" style="gap:5px">
-        <div class="pg pg-a" style="font-size:9px">3 bookings</div>
-        <div class="small" style="font-size:9px">Last used Mon</div>
-      </div>
-    </div>
+<div class="section-header">Customer — Book</div>
 
-    <div class="card" style="padding:11px">
-      <div class="rwb" style="margin-bottom:8px">
-        <div class="row" style="gap:9px">
-          <div style="width:34px;height:34px;background:#3A3A4A;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <svg width="14" height="16" fill="none" viewBox="0 0 14 16"><path d="M7 0C4.2 0 2 2.2 2 5c0 4.2 5 11 5 11s5-6.8 5-11C12 2.2 9.8 0 7 0z" stroke="#888898" stroke-width="1.2" fill="none"/></svg>
-          </div>
-          <div>
-            <div class="h3">Mom's house</div>
-            <div class="small" style="margin-top:2px">22 Protea Ave, Pretoria</div>
-          </div>
-        </div>
-        <div class="pg pg-gr" style="font-size:9px">New</div>
-      </div>
-      <div style="margin-bottom:8px">
-        <div class="rwb" style="margin-bottom:3px">
-          <span class="small" style="font-size:9px">Trust score</span>
-          <span style="font-size:9px;color:#888898;font-weight:500">Unverified · 0/100</span>
-        </div>
-        <div class="bar"><div class="barf" style="width:2%"></div></div>
-      </div>
-      <div class="csm" style="background:#F5A62310;border-color:#F5A62330;padding:6px">
-        <div style="font-size:9px;color:#F5A623;line-height:1.4">First booking here will be flagged. Trust builds after 3+ completed bookings.</div>
-      </div>
-    </div>
+<!-- BOOKING WIZARD -->
+<div class="frame"><div class="screen-title">Booking wizard</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span><span class="sm">Step 2/3</span></div>
+  <div style="display:flex;gap:4px"><div style="flex:1;height:2px;border-radius:1px;background:var(--acc)"></div><div style="flex:1;height:2px;border-radius:1px;background:var(--acc)"></div><div style="flex:1;height:2px;border-radius:1px;background:var(--fnt)"></div></div>
+  <div class="h2">Book Zanele</div>
+  <div class="csm rwb" style="border-color:#00D97E33;background:#00D97E08"><span class="h3" style="font-size:9px">Deep clean · 3 bed</span><span style="font-size:10px;color:var(--acc);font-weight:500">R 450</span></div>
+  <div class="csm rwb"><span class="h3" style="font-size:9px">Standard clean</span><span class="sm">R 250</span></div>
+  <div class="h3" style="margin-top:3px">Date &amp; time</div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px"><div class="csm" style="text-align:center;font-size:8px;padding:4px">Mon<br>28</div><div class="csm" style="text-align:center;font-size:8px;padding:4px">Tue<br>29</div><div class="csm" style="text-align:center;font-size:8px;padding:4px;border-color:#00D97E33;background:#00D97E08;color:var(--acc)">Fri<br>2</div><div class="csm" style="text-align:center;font-size:8px;padding:4px">Sat<br>3</div></div>
+  <div class="btn" style="margin-top:auto">Next: confirm location</div>
+</div></div>
 
-    <div class="csm" style="border-style:dashed;background:none;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;padding:12px">
-      <span style="font-size:16px;color:#3A3A4A">+</span>
-      <span class="small" style="font-size:11px">Add new location</span>
-    </div>
+<!-- QUOTE REQUEST -->
+<div class="frame"><div class="screen-title">Quote request</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span></div>
+  <div class="h2">Request a quote</div>
+  <div class="sm">Providers will bid on your job</div>
+  <div class="inp" style="font-size:8px;color:#555">Plumbing — Leak repair</div>
+  <div style="background:var(--surf);border:0.5px solid var(--bdr);border-radius:6px;padding:6px;font-size:8px;color:#555;height:40px">Describe the problem...</div>
+  <div class="h3">Closes in</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px"><div class="csm" style="text-align:center;border-color:#00D97E33;background:#00D97E08"><div class="sm" style="font-size:8px">24 hrs</div><div class="h3 acc-c">●</div></div><div class="csm" style="text-align:center"><div class="sm" style="font-size:8px">48 hrs</div></div><div class="csm" style="text-align:center"><div class="sm" style="font-size:8px">72 hrs</div></div></div>
+  <div class="btn" style="margin-top:auto">Post job request</div>
+</div></div>
+
+<!-- QUOTE REVIEW -->
+<div class="frame"><div class="screen-title">Quote review</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span><div class="pg pg-a" style="font-size:8px">Closes 18h</div></div>
+  <div class="h2">3 quotes received</div>
+  <div class="card" style="padding:8px;border-color:#00D97E33;background:#00D97E08">
+    <div class="rwb" style="margin-bottom:5px"><div class="row" style="gap:5px"><div class="av" style="width:22px;height:22px;background:#00D97E18;color:#00D97E;font-size:7px">SN</div><div><div class="h3" style="font-size:9px">Sipho N.</div><div class="star" style="font-size:8px">★ 4.8</div></div></div><div style="font-size:12px;font-weight:500;color:var(--acc)">R 320</div></div>
+    <div class="sm" style="margin-bottom:5px;font-size:8px">Replace washer + check pipes. 1.5 hrs.</div>
+    <div class="btn" style="font-size:8px">Accept this quote</div>
   </div>
-  <div class="bn">
-    <div class="bni"><div style="width:18px;height:3px"></div><div class="bnl">Home</div></div>
-    <div class="bni"><div style="width:18px;height:3px"></div><div class="bnl">Bookings</div></div>
-    <div class="bni"><div class="bnd"></div><div class="bnl bnla">Profile</div></div>
-  </div>
-</div>
+  <div class="card" style="padding:8px;opacity:.75"><div class="rwb"><div class="row" style="gap:5px"><div class="av" style="width:22px;height:22px;background:var(--fnt);color:var(--mut);font-size:7px">MK</div><div class="h3" style="font-size:9px">Mandla K.</div></div><div style="font-size:12px;font-weight:500">R 280</div></div></div>
+  <div class="card" style="padding:8px;opacity:.5"><div class="rwb"><div class="row" style="gap:5px"><div class="av" style="width:22px;height:22px;background:var(--fnt);color:var(--mut);font-size:7px">LD</div><div class="h3" style="font-size:9px">Lucky D.</div></div><div style="font-size:12px;font-weight:500">R 400</div></div></div>
+</div></div>
+
+<!-- PAYMENT -->
+<div class="frame"><div class="screen-title">Payment / escrow</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span></div>
+  <div class="h2">Confirm &amp; pay</div>
+  <div class="card"><div class="rwb" style="margin-bottom:4px"><span class="sm">Service</span><span class="sm">Deep clean · 3 bed</span></div><div class="rwb" style="margin-bottom:4px"><span class="sm">Provider</span><span class="sm">Zanele M.</span></div><div class="rwb" style="margin-bottom:4px"><span class="sm">Date</span><span class="sm">Fri 2 May · 10:00</span></div><div class="rwb"><span class="sm">Location</span><div><span class="sm">14 Maple</span><div class="pg pg-g" style="font-size:7px;margin-top:2px">Trusted</div></div></div></div>
+  <div class="card"><div class="rwb" style="margin-bottom:4px"><span class="sm">Service fee</span><span class="sm">R 450</span></div><div class="rwb" style="margin-bottom:4px"><span class="sm">Platform fee</span><span class="sm">R 22.50</span></div><div class="div"></div><div class="rwb"><div class="h3">Total</div><div style="font-size:13px;font-weight:500;color:var(--acc)">R 472.50</div></div></div>
+  <div class="csm" style="background:#F5A62310;border-color:#F5A62330"><div class="sm amb-c" style="font-size:8px">Funds held in escrow until job approved</div></div>
+  <div class="btn">Pay R 472.50</div>
+</div></div>
+
+<div class="section-header">Customer — Track</div>
+
+<!-- LIVE TRACKING -->
+<div class="frame"><div class="screen-title">Live tracking</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span><div class="pg pg-g" style="font-size:8px">Live</div></div>
+  <div class="h2">Job in progress</div>
+  <div class="map"><svg width="100%" height="48" viewBox="0 0 180 48"><line x1="0" y1="24" x2="180" y2="24" stroke="#2A2A38" stroke-width="0.5"/><line x1="90" y1="0" x2="90" y2="48" stroke="#2A2A38" stroke-width="0.5"/><path d="M30 40 Q60 18 90 22 Q115 26 130 8" stroke="#00D97E" stroke-width="1.5" stroke-dasharray="4 3" fill="none"/><circle cx="122" cy="11" r="6" fill="#00D97E18" stroke="#00D97E" stroke-width="1"/><circle cx="30" cy="40" r="5" fill="#7B6EF6"/></svg></div>
+  <div class="card" style="padding:8px"><div class="rwb"><div class="row" style="gap:6px"><div class="av" style="width:24px;height:24px;background:#00D97E18;color:#00D97E;font-size:8px">ZM</div><div><div class="h3" style="font-size:9px">Zanele M.</div><div class="sm" style="font-size:8px">Checked in · 10:04</div></div></div><div class="csm" style="font-size:8px;padding:4px 7px">Call</div></div></div>
+  <div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;gap:7px"><div style="width:8px;height:8px;border-radius:50%;background:var(--acc);flex-shrink:0;margin-top:1px"></div><div class="h3" style="font-size:9px">Confirmed 09:47</div></div><div style="display:flex;gap:7px"><div style="width:8px;height:8px;border-radius:50%;background:var(--acc);flex-shrink:0;margin-top:1px"></div><div class="h3" style="font-size:9px">Checked in 10:04</div></div><div style="display:flex;gap:7px"><div style="width:8px;height:8px;border-radius:50%;background:var(--fnt);flex-shrink:0;margin-top:1px"></div><div class="sm">Complete — pending</div></div></div>
+  <div class="btno" style="color:var(--red);border-color:#E8453C33">Raise an issue</div>
+</div></div>
+
+<!-- JOB COMPLETE -->
+<div class="frame"><div class="screen-title">Job complete</div><div class="sc" style="align-items:center">
+  <div class="sb" style="width:100%"><span class="st">9:41</span></div>
+  <div style="width:52px;height:52px;background:#00D97E18;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid #00D97E33;margin:8px 0"><svg width="24" height="24" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="#00D97E" stroke-width="1.5"/><path d="M7 12l3.5 3.5L17 9" stroke="#00D97E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+  <div class="h2" style="text-align:center">Job complete!</div>
+  <div class="sm" style="text-align:center;margin-bottom:8px">Zanele · 2h 15m</div>
+  <div class="card" style="width:100%"><div class="rwb"><div class="h3">Total escrowed</div><div style="font-size:13px;font-weight:500;color:var(--acc)">R 472.50</div></div></div>
+  <div class="csm" style="background:#00D97E08;border-color:#00D97E33;width:100%;margin-top:5px"><div class="sm acc-c" style="font-size:8px">Approve to release funds</div></div>
+  <div style="width:100%;margin-top:6px;display:flex;flex-direction:column;gap:5px"><div class="btn">Approve &amp; release</div><div class="btno">Raise a dispute</div></div>
+</div></div>
+
+<!-- RATE & REVIEW -->
+<div class="frame"><div class="screen-title">Rate &amp; review</div><div class="sc" style="align-items:center">
+  <div class="sb" style="width:100%"><span class="st">9:41</span></div>
+  <div class="av" style="width:42px;height:42px;background:#00D97E18;color:#00D97E;font-size:13px;border:1.5px solid #00D97E33;margin:5px 0">ZM</div>
+  <div class="h2">Rate Zanele</div>
+  <div class="sm" style="margin-bottom:6px">Deep clean · R450</div>
+  <div style="display:flex;gap:6px;margin-bottom:8px"><span style="font-size:20px;color:var(--amb)">★</span><span style="font-size:20px;color:var(--amb)">★</span><span style="font-size:20px;color:var(--amb)">★</span><span style="font-size:20px;color:var(--amb)">★</span><span style="font-size:20px;color:var(--fnt)">★</span></div>
+  <div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;width:100%;margin-bottom:6px"><div class="pg pg-g" style="font-size:8px">On time</div><div class="pg pg-gr" style="font-size:8px">Professional</div><div class="pg pg-gr" style="font-size:8px">Friendly</div></div>
+  <div class="csm" style="background:#00D97E08;border-color:#00D97E33;width:100%;margin-bottom:6px"><div class="sm acc-c" style="font-size:8px">Submitting releases R472.50</div></div>
+  <div class="btn" style="width:100%">Submit &amp; release</div>
+</div></div>
+
+<div class="section-header">Customer — Manage</div>
+
+<!-- BOOKINGS LIST -->
+<div class="frame"><div class="screen-title">Bookings list</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span><div style="display:flex;gap:4px"><div class="pg pg-g" style="font-size:8px">Active</div><div class="pg pg-gr" style="font-size:8px">Past</div></div></div>
+  <div class="h2">My bookings</div>
+  <div class="card" style="padding:8px"><div class="rwb" style="margin-bottom:4px"><div class="pg pg-g" style="font-size:8px">In progress</div><span class="sm">Today</span></div><div class="rwb"><div class="row" style="gap:5px"><div class="av" style="width:22px;height:22px;background:#00D97E18;color:#00D97E;font-size:7px">ZM</div><div><div class="h3" style="font-size:9px">Deep clean</div><div class="sm" style="font-size:8px">Zanele M.</div></div></div><span style="font-size:10px;font-weight:500;color:var(--acc)">R450</span></div></div>
+  <div class="card" style="padding:8px"><div class="rwb" style="margin-bottom:4px"><div class="pg pg-a" style="font-size:8px">Pending</div><span class="sm">Tomorrow</span></div><div class="rwb"><div class="row" style="gap:5px"><div class="av" style="width:22px;height:22px;background:#7B6EF618;color:#7B6EF6;font-size:7px">KD</div><div><div class="h3" style="font-size:9px">Box braids</div><div class="sm" style="font-size:8px">Khanyi D.</div></div></div><span style="font-size:10px;font-weight:500">R380</span></div></div>
+  <div class="card" style="padding:8px;opacity:.6"><div class="pg pg-r" style="font-size:8px;margin-bottom:4px">Disputed</div><div class="rwb"><div class="h3" style="font-size:9px">Electrical</div><span style="font-size:10px;font-weight:500;color:var(--red)">R600</span></div></div>
+  <div class="bn"><div class="bni"><div style="width:16px;height:2px"></div><div class="bnl">Home</div></div><div class="bni"><div class="bnd"></div><div class="bnl bnla">Bookings</div></div><div class="bni"><div style="width:16px;height:2px"></div><div class="bnl">Chat</div></div><div class="bni"><div style="width:16px;height:2px"></div><div class="bnl">Profile</div></div></div>
+</div></div>
+
+<!-- BOOKING DETAIL -->
+<div class="frame"><div class="screen-title">Booking detail</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span><div class="pg pg-g" style="font-size:8px">Confirmed</div></div>
+  <div class="h2">Booking detail</div>
+  <div class="card"><div class="row" style="gap:7px;margin-bottom:7px"><div class="av" style="width:28px;height:28px;background:#00D97E18;color:#00D97E;font-size:9px">ZM</div><div><div class="h3">Zanele M.</div><div class="star">★ 4.9</div></div></div><div class="div"></div><div class="rwb" style="margin-bottom:3px"><span class="sm">Service</span><span class="sm">Deep clean</span></div><div class="rwb" style="margin-bottom:3px"><span class="sm">Date</span><span class="sm">Fri 2 May · 10:00</span></div><div class="rwb" style="margin-bottom:3px"><span class="sm">Location</span><span class="sm">14 Maple Cres.</span></div><div class="rwb"><span class="sm">Amount</span><span style="font-size:10px;font-weight:500;color:var(--acc)">R 472.50</span></div></div>
+  <div style="display:flex;gap:5px"><div class="btn" style="flex:1">Message</div><div class="btno" style="flex:1">Cancel</div></div>
+</div></div>
+
+<!-- USER PROFILE -->
+<div class="frame"><div class="screen-title">User profile</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span></div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:5px 0"><div class="av" style="width:44px;height:44px;font-size:14px;background:#7B6EF618;color:#7B6EF6;border:1.5px solid #7B6EF633">TN</div><div style="text-align:center"><div class="h2">Thabo Nkosi</div><div class="sm">+27 82 456 7890</div></div><div class="row" style="gap:5px"><div class="pg pg-g" style="font-size:8px">Verified</div><div class="pg pg-gr" style="font-size:8px">Since 2024</div></div></div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px"><div class="csm" style="text-align:center"><div class="sm">Bookings</div><div class="h3">14</div></div><div class="csm" style="text-align:center"><div class="sm">Rep</div><div class="h3 acc-c">87</div></div><div class="csm" style="text-align:center"><div class="sm">Cancels</div><div class="h3">1</div></div></div>
+  <div><div class="bar" style="margin-bottom:3px"><div class="barf" style="width:87%"></div></div><div class="rwb"><span class="sm" style="font-size:8px">Good standing</span><span style="font-size:8px;color:var(--acc)">87/100</span></div></div>
+  <div style="display:flex;flex-direction:column;gap:4px"><div class="csm rwb"><span class="sm">Edit profile</span><span class="sm">›</span></div><div class="csm rwb"><span class="sm">Payment methods</span><span class="sm">›</span></div><div class="csm rwb"><span class="sm" style="color:var(--red)">Sign out</span><span class="sm">›</span></div></div>
+  <div class="bn"><div class="bni"><div style="width:16px;height:2px"></div><div class="bnl">Home</div></div><div class="bni"><div style="width:16px;height:2px"></div><div class="bnl">Bookings</div></div><div class="bni"><div class="bnd"></div><div class="bnl bnla">Profile</div></div></div>
+</div></div>
+
+<!-- EDIT PROFILE -->
+<div class="frame"><div class="screen-title">Edit profile</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span></div>
+  <div class="h2">Edit profile</div>
+  <div style="display:flex;justify-content:center;padding:5px 0"><div class="av" style="width:44px;height:44px;font-size:14px;background:#7B6EF618;color:#7B6EF6;border:1.5px solid #7B6EF633">TN</div></div>
+  <div><div class="sm" style="margin-bottom:3px">Full name</div><div class="inp">Thabo Nkosi</div></div>
+  <div><div class="sm" style="margin-bottom:3px">Phone</div><div class="inp" style="color:#444">+27 82 456 7890</div></div>
+  <div><div class="sm" style="margin-bottom:3px">Email</div><div class="inp" style="color:#444">Optional</div></div>
+  <div class="csm" style="background:#00D97E08;border-color:#00D97E33"><div class="sm acc-c" style="font-size:8px">ID encrypted, never shared</div></div>
+  <div class="btn" style="margin-top:auto">Save changes</div>
+</div></div>
+
+<!-- NOTIFICATIONS -->
+<div class="frame"><div class="screen-title">Notifications</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span><span style="font-size:9px;color:var(--acc)">Mark all read</span></div>
+  <div class="h2">Notifications</div>
+  <div class="csm" style="border-color:#00D97E33;background:#00D97E08;margin-bottom:4px"><div class="rwb" style="margin-bottom:2px"><div class="row" style="gap:4px"><div style="width:5px;height:5px;border-radius:50%;background:var(--acc)"></div><div class="h3" style="font-size:9px">Zanele checked in</div></div><span class="sm" style="font-size:8px">10:04</span></div><div class="sm" style="font-size:8px">Your deep clean has started.</div></div>
+  <div class="csm" style="border-color:#00D97E33;background:#00D97E08;margin-bottom:4px"><div class="rwb" style="margin-bottom:2px"><div class="row" style="gap:4px"><div style="width:5px;height:5px;border-radius:50%;background:var(--acc)"></div><div class="h3" style="font-size:9px">Booking confirmed</div></div><span class="sm" style="font-size:8px">09:47</span></div><div class="sm" style="font-size:8px">Zanele confirmed Fri 2 May.</div></div>
+  <div class="csm" style="margin-bottom:4px"><div class="rwb" style="margin-bottom:2px"><span class="h3" style="font-size:9px">Quote received</span><span class="sm" style="font-size:8px">Yesterday</span></div><div class="sm" style="font-size:8px">Sipho submitted R320.</div></div>
+  <div class="csm"><div class="rwb" style="margin-bottom:2px"><span class="h3" style="font-size:9px">Payment released</span><span class="sm" style="font-size:8px">Mon</span></div><div class="sm" style="font-size:8px">R250 released to Zanele.</div></div>
+</div></div>
+
+<div class="section-header">Customer — Resolve</div>
+
+<!-- DISPUTE FORM -->
+<div class="frame"><div class="screen-title">Dispute form</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span></div>
+  <div class="h2" style="color:var(--red)">Raise a dispute</div>
+  <div class="card" style="padding:8px"><div class="rwb" style="margin-bottom:3px"><span class="sm">Booking</span><span class="sm">Deep clean · 2 May</span></div><div class="rwb"><span class="sm">Amount held</span><span style="font-size:9px;font-weight:500;color:var(--red)">R 472.50</span></div></div>
+  <div class="h3" style="margin-bottom:4px">Reason</div>
+  <div style="display:flex;flex-direction:column;gap:4px"><div class="csm" style="border-color:#E8453C33;background:#E8453C08"><div class="row" style="gap:5px"><div style="width:10px;height:10px;border-radius:50%;border:1.5px solid var(--red);display:flex;align-items:center;justify-content:center"><div style="width:5px;height:5px;border-radius:50%;background:var(--red)"></div></div><span class="h3" style="font-size:9px">Work not completed</span></div></div><div class="csm"><div class="row" style="gap:5px"><div style="width:10px;height:10px;border-radius:50%;border:0.5px solid var(--bdr)"></div><span class="sm">Quality not acceptable</span></div></div><div class="csm"><div class="row" style="gap:5px"><div style="width:10px;height:10px;border-radius:50%;border:0.5px solid var(--bdr)"></div><span class="sm">Provider no-show</span></div></div></div>
+  <div style="background:var(--surf);border:0.5px solid var(--bdr);border-radius:6px;padding:6px;font-size:8px;color:#555;height:32px">Describe what happened...</div>
+  <div class="btn" style="background:var(--red)">Submit dispute</div>
+</div></div>
 
 <!-- DISPUTE STATUS -->
-<div class="sc" id="s-dispstatus" style="background:#0A0A0F">
+<div class="frame"><div class="screen-title">Dispute status</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span><div class="pg pg-a" style="font-size:8px">Under review</div></div>
+  <div class="h2">Dispute #1092</div>
+  <div class="card" style="padding:8px"><div class="rwb" style="margin-bottom:3px"><span class="sm">Booking</span><span class="sm">Deep clean · 2 May</span></div><div class="rwb"><span class="sm">Amount held</span><span style="font-size:9px;font-weight:500;color:var(--red)">R 472.50</span></div></div>
+  <div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;gap:7px"><div style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:1px"></div><div class="h3" style="font-size:9px">Dispute raised · 2 May</div></div><div style="display:flex;gap:7px"><div style="width:8px;height:8px;border-radius:50%;background:var(--amb);flex-shrink:0;margin-top:1px"></div><div class="h3" style="font-size:9px">Funds frozen</div></div><div style="display:flex;gap:7px"><div style="width:8px;height:8px;border-radius:50%;background:var(--amb);flex-shrink:0;margin-top:1px"></div><div class="h3" style="font-size:9px">Admin reviewing</div></div><div style="display:flex;gap:7px"><div style="width:8px;height:8px;border-radius:50%;background:var(--fnt);flex-shrink:0;margin-top:1px"></div><div class="sm">Resolution · est. 24–48h</div></div></div>
+  <div class="csm" style="background:#F5A62310;border-color:#F5A62330"><div class="sm amb-c" style="font-size:8px">Funds frozen until resolved</div></div>
+  <div style="display:flex;flex-direction:column;gap:4px"><div class="btno">Add more evidence</div><div class="btno" style="color:var(--red);border-color:#E8453C33">Withdraw dispute</div></div>
+</div></div>
+
+<!-- CHAT -->
+<div class="frame"><div class="screen-title">Chat / messages</div><div class="sc">
   <div class="sb"><span class="st">9:41</span></div>
-  <div class="p pt pb" style="display:flex;flex-direction:column;gap:9px;flex-shrink:0">
-    <div class="rwb">
-      <div class="h2">Dispute #1092</div>
-      <div class="pg pg-a" style="font-size:9px">Under review</div>
-    </div>
+  <div class="row" style="gap:7px;margin-bottom:7px"><div class="av" style="width:28px;height:28px;background:#00D97E18;color:#00D97E;font-size:9px">ZM</div><div><div class="h3">Zanele M.</div><div class="row" style="gap:4px"><div style="width:6px;height:6px;border-radius:50%;background:var(--acc)"></div><span class="sm" style="font-size:8px">Online</span></div></div></div>
+  <div style="display:flex;justify-content:flex-end;margin-bottom:5px"><div style="background:var(--acc);border-radius:9px 9px 2px 9px;padding:6px 8px;max-width:78%"><span style="font-size:8px;color:#0A0A0F;line-height:1.4">Hi Zanele, do you need back garden access?</span></div></div>
+  <div style="display:flex;margin-bottom:5px"><div style="background:var(--card);border:0.5px solid var(--bdr);border-radius:9px 9px 9px 2px;padding:6px 8px;max-width:78%"><span style="font-size:8px;color:var(--txt);line-height:1.4">Yes! Any cleaning products?</span></div></div>
+  <div style="display:flex;justify-content:flex-end"><div style="background:var(--acc);border-radius:9px 9px 2px 9px;padding:6px 8px;max-width:78%"><span style="font-size:8px;color:#0A0A0F">I'll leave some under the sink</span></div></div>
+  <div style="display:flex;gap:6px;margin-top:auto"><div class="inp" style="flex:1;padding:6px;font-size:8px;color:#555">Message...</div><div style="width:28px;height:28px;background:var(--acc);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M11 6H1M11 6L7 2M11 6L7 10" stroke="#0A0A0F" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+</div></div>
 
-    <div class="card" style="padding:11px">
-      <div class="rwb" style="margin-bottom:6px"><span class="small">Booking</span><span class="small">Deep clean · 2 May</span></div>
-      <div class="rwb" style="margin-bottom:6px"><span class="small">Provider</span><span class="small">Zanele Mokoena</span></div>
-      <div class="rwb"><span class="small">Amount held</span><span style="font-size:11px;font-weight:500;color:#E8453C">R 472.50</span></div>
-    </div>
+<div class="section-header">Provider — Onboarding &amp; work</div>
 
-    <div>
-      <div class="h3" style="margin-bottom:7px">Timeline</div>
-      <div style="display:flex;flex-direction:column;gap:2px">
-        <div style="display:flex;gap:9px;padding:5px 0">
-          <div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0"><div style="width:8px;height:8px;border-radius:50%;background:#E8453C"></div><div style="width:1px;height:18px;background:#3A3A4A"></div></div>
-          <div><div class="h3" style="font-size:11px">Dispute raised</div><div class="small" style="font-size:9px">2 May · 14:22 · by you</div></div>
-        </div>
-        <div style="display:flex;gap:9px;padding:5px 0">
-          <div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0"><div style="width:8px;height:8px;border-radius:50%;background:#F5A623"></div><div style="width:1px;height:18px;background:#3A3A4A"></div></div>
-          <div><div class="h3" style="font-size:11px">Funds frozen</div><div class="small" style="font-size:9px">2 May · 14:22 · automatic</div></div>
-        </div>
-        <div style="display:flex;gap:9px;padding:5px 0">
-          <div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0"><div style="width:8px;height:8px;border-radius:50%;background:#F5A623"></div><div style="width:1px;height:18px;background:#3A3A4A"></div></div>
-          <div><div class="h3" style="font-size:11px">Admin assigned</div><div class="small" style="font-size:9px">2 May · 15:10 · reviewing</div></div>
-        </div>
-        <div style="display:flex;gap:9px;padding:5px 0">
-          <div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0"><div style="width:8px;height:8px;border-radius:50%;background:#3A3A4A"></div></div>
-          <div><div class="h3" style="font-size:11px;color:#888898">Resolution</div><div class="small" style="font-size:9px">Pending · est. 24–48h</div></div>
-        </div>
-      </div>
-    </div>
+<!-- PROVIDER ONBOARDING -->
+<div class="frame"><div class="screen-title">Provider onboarding</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span></div>
+  <div class="sm pur-c">Step 1 of 4</div>
+  <div style="display:flex;gap:4px"><div style="flex:1;height:2px;border-radius:1px;background:#7B6EF6"></div><div style="flex:1;height:2px;border-radius:1px;background:var(--fnt)"></div><div style="flex:1;height:2px;border-radius:1px;background:var(--fnt)"></div><div style="flex:1;height:2px;border-radius:1px;background:var(--fnt)"></div></div>
+  <div class="h2">Set up your profile</div>
+  <div style="display:flex;justify-content:center;padding:5px 0"><div class="av" style="width:44px;height:44px;background:#7B6EF618;border-radius:50%;border:1px dashed #7B6EF633;color:#7B6EF6;font-size:9px">Photo</div></div>
+  <div class="inp">Zanele Mokoena</div>
+  <div style="background:var(--surf);border:0.5px solid var(--bdr);border-radius:6px;padding:6px;font-size:8px;color:#555;height:32px">Bio...</div>
+  <div style="display:flex;flex-wrap:wrap;gap:4px"><div class="pg" style="background:#7B6EF618;color:#7B6EF6;border:0.5px solid #7B6EF633;font-size:8px;padding:3px 8px">Cleaning</div><div class="pg pg-gr" style="font-size:8px;padding:3px 8px">Beauty</div><div class="pg pg-gr" style="font-size:8px;padding:3px 8px">Plumbing</div></div>
+  <div class="btn2" style="margin-top:auto">Next: verify identity</div>
+</div></div>
 
-    <div>
-      <div class="h3" style="margin-bottom:6px">Your reason</div>
-      <div class="csm" style="font-size:10px;color:#888898;line-height:1.5">Work not completed — bathroom was not cleaned despite being listed in the service scope.</div>
-    </div>
+<!-- ID VERIFICATION -->
+<div class="frame"><div class="screen-title">ID verification</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span></div>
+  <div class="sm pur-c">Step 2 of 4</div>
+  <div class="h2">Verify your identity</div>
+  <div class="card"><div class="rwb" style="margin-bottom:5px"><div class="h3">SA ID document</div><div class="pg pg-a" style="font-size:8px">Required</div></div><div style="background:var(--surf);border:1px dashed var(--bdr);border-radius:6px;height:36px;display:flex;align-items:center;justify-content:center"><span class="sm" style="font-size:8px">Upload front of ID</span></div></div>
+  <div class="card"><div class="rwb" style="margin-bottom:5px"><div class="h3">Selfie with ID</div><div class="pg pg-a" style="font-size:8px">Required</div></div><div style="background:var(--surf);border:1px dashed var(--bdr);border-radius:6px;height:36px;display:flex;align-items:center;justify-content:center"><span class="sm" style="font-size:8px">Take selfie</span></div></div>
+  <div class="csm" style="background:#7B6EF608;border-color:#7B6EF633"><div class="sm pur-c" style="font-size:8px">Verification takes 2–24 hours</div></div>
+  <div class="btn2">Submit for verification</div>
+</div></div>
 
-    <div>
-      <div class="h3" style="margin-bottom:6px">Evidence submitted</div>
-      <div style="display:flex;gap:6px">
-        <div style="width:48px;height:48px;background:#1C1C26;border-radius:7px;border:0.5px solid #2A2A38;display:flex;align-items:center;justify-content:center">
-          <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><rect x="1" y="1" width="14" height="14" rx="2" stroke="#888898" stroke-width="1"/><circle cx="5.5" cy="5.5" r="1.5" stroke="#888898" stroke-width="1"/><path d="M1 11l4-3 3 3 2-2 4 4" stroke="#888898" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <div style="width:48px;height:48px;background:#1C1C26;border-radius:7px;border:0.5px solid #2A2A38;display:flex;align-items:center;justify-content:center">
-          <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><rect x="1" y="1" width="14" height="14" rx="2" stroke="#888898" stroke-width="1"/><circle cx="5.5" cy="5.5" r="1.5" stroke="#888898" stroke-width="1"/><path d="M1 11l4-3 3 3 2-2 4 4" stroke="#888898" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-      </div>
-    </div>
+<!-- JOB BOARD -->
+<div class="frame"><div class="screen-title">Job board</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span><div class="pg pg-g" style="font-size:8px">Online</div></div>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px"><div class="csm" style="text-align:center"><div class="sm">Today</div><div class="h2">3 jobs</div></div><div class="csm" style="text-align:center"><div class="sm">Earnings</div><div class="h2 acc-c">R 1,350</div></div></div>
+  <div class="h3">New requests</div>
+  <div class="card" style="padding:8px"><div class="rwb" style="margin-bottom:4px"><div class="h3">Deep clean · 3 bed</div><div style="font-size:11px;font-weight:500;color:var(--acc)">R 450</div></div><div class="row" style="gap:4px;margin-bottom:5px"><div class="pg pg-g" style="font-size:8px">Trusted area</div><span class="sm">1.4km</span></div><div style="display:flex;gap:5px"><div class="btn" style="flex:1">Accept</div><div class="btno" style="flex:1">Decline</div></div></div>
+  <div class="card" style="padding:8px;opacity:.7"><div class="rwb" style="margin-bottom:4px"><div class="h3">Standard clean</div><div style="font-size:11px;font-weight:500">R 250</div></div><div class="pg pg-a" style="font-size:8px">New area · 3km</div></div>
+  <div class="bn"><div class="bni"><div style="width:16px;height:2px"></div><div class="bnl">Overview</div></div><div class="bni"><div style="width:16px;height:2px;background:#7B6EF6"></div><div class="bnl pur-c">Jobs</div></div><div class="bni"><div style="width:16px;height:2px"></div><div class="bnl">Earn</div></div><div class="bni"><div style="width:16px;height:2px"></div><div class="bnl">Profile</div></div></div>
+</div></div>
 
-    <div class="csm" style="background:#F5A62310;border-color:#F5A62330">
-      <div style="font-size:10px;color:#F5A623;line-height:1.4">R 472.50 is frozen until this dispute is resolved. You will be notified when admin reaches a decision.</div>
-    </div>
+<!-- JOB DETAIL -->
+<div class="frame"><div class="screen-title">Job detail</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span><div class="pg pg-g" style="font-size:8px">Trusted area</div></div>
+  <div class="h2">Job detail</div>
+  <div class="card"><div class="rwb" style="margin-bottom:5px"><div class="h3">Deep clean · 3 bed</div><div style="font-size:11px;font-weight:500;color:var(--acc)">R 450</div></div><div class="div"></div><div class="rwb" style="margin-bottom:3px"><span class="sm">Date</span><span class="sm">Fri 2 May · 10:00</span></div><div class="rwb" style="margin-bottom:3px"><span class="sm">Location</span><span class="sm">Sandton · 1.4km</span></div><div class="rwb"><span class="sm">Duration</span><span class="sm">2–3 hours</span></div></div>
+  <div class="card" style="padding:8px"><div class="h3" style="margin-bottom:4px">Area safety</div><div class="bar"><div class="barf" style="width:80%"></div></div><div class="sm" style="margin-top:3px;font-size:8px">Risk score: 80/100 (Low)</div></div>
+  <div style="display:flex;gap:5px"><div class="btn" style="flex:1">Accept</div><div class="btno" style="flex:1">Decline</div></div>
+</div></div>
 
-    <div style="display:flex;flex-direction:column;gap:6px">
-      <div class="btno" style="font-size:11px;padding:9px">Add more evidence</div>
-      <div class="btno" style="font-size:11px;padding:9px;color:#E8453C;border-color:#E8453C33">Withdraw dispute</div>
-    </div>
-  </div>
+<!-- ACTIVE JOB -->
+<div class="frame"><div class="screen-title">Active job</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span><div class="pg pg-g" style="font-size:8px">In progress</div></div>
+  <div class="map" style="height:44px"><svg width="100%" height="44" viewBox="0 0 180 44"><line x1="0" y1="22" x2="180" y2="22" stroke="#2A2A38" stroke-width="0.5"/><line x1="90" y1="0" x2="90" y2="44" stroke="#2A2A38" stroke-width="0.5"/><circle cx="90" cy="22" r="16" fill="#7B6EF618" stroke="#7B6EF633" stroke-width="1"/><circle cx="90" cy="22" r="5" fill="#7B6EF6"/></svg><div style="position:absolute;top:5px;left:8px;font-size:9px;color:var(--acc)">● Checked in · 10:04</div></div>
+  <div class="card"><div class="rwb" style="margin-bottom:3px"><span class="sm">Customer</span><span class="sm">Thabo N.</span></div><div class="rwb" style="margin-bottom:3px"><span class="sm">Service</span><span class="sm">Deep clean</span></div><div class="rwb" style="margin-bottom:3px"><span class="sm">Started</span><span class="sm">10:04</span></div><div class="rwb"><span class="sm">Elapsed</span><span style="font-size:10px;font-weight:500;color:var(--acc)">1h 24m</span></div></div>
+  <div class="csm" style="background:#F5A62310;border-color:#F5A62330"><div class="sm amb-c" style="font-size:8px">R472.50 escrowed · releases on completion</div></div>
+  <div style="display:flex;gap:5px"><div style="flex:1;background:#E8453C18;border:0.5px solid #E8453C33;border-radius:6px;padding:7px;text-align:center;font-size:9px;color:var(--red)">Emergency</div><div class="btn" style="flex:2">Complete job</div></div>
+</div></div>
+
+<!-- CHECK IN/OUT -->
+<div class="frame"><div class="screen-title">Check-in / out</div><div class="sc" style="align-items:center">
+  <div class="sb" style="width:100%"><span class="st">9:41</span></div>
+  <div style="text-align:center;margin:5px 0"><div class="h2">Check out</div><div class="sm">Confirm job complete</div></div>
+  <div style="width:64px;height:64px;border-radius:50%;background:#00D97E18;border:2px solid #00D97E33;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;margin:6px 0"><svg width="26" height="26" fill="none" viewBox="0 0 26 26"><circle cx="13" cy="13" r="10" stroke="#00D97E" stroke-width="1.5"/><path d="M8 13l3.5 3.5L18 9" stroke="#00D97E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font-size:8px;color:var(--acc)">Hold to confirm</span></div>
+  <div class="card" style="width:100%"><div class="rwb" style="margin-bottom:4px"><span class="sm">Duration</span><span style="font-size:11px;font-weight:500;color:var(--acc)">2h 15m</span></div><div class="rwb"><span class="sm">Payment</span><span style="font-size:11px;font-weight:500;color:var(--acc)">R 472.50</span></div></div>
+  <div class="btn" style="width:100%;margin-top:8px">Confirm check-out</div>
+</div></div>
+
+<div class="section-header">Provider — Quote &amp; setup</div>
+
+<!-- QUOTE REQUESTS -->
+<div class="frame"><div class="screen-title">Quote requests</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span><div class="pg pg-a" style="font-size:8px">3 open</div></div>
+  <div class="h2">Quote requests</div>
+  <div class="card" style="padding:8px"><div class="rwb" style="margin-bottom:4px"><div class="h3">Plumbing — Leak repair</div><div class="pg pg-a" style="font-size:8px">18h left</div></div><div class="sm" style="margin-bottom:5px;font-size:8px">Kitchen tap leaking. 1 photo.</div><div class="row" style="gap:4px;margin-bottom:5px"><div class="pg pg-g" style="font-size:8px">Sandton · 1.4km</div><span class="sm">★ 4.8</span></div><div class="btn2">Submit a quote</div></div>
+  <div class="card" style="padding:8px;opacity:.8"><div class="rwb" style="margin-bottom:4px"><div class="h3">Electrical — Circuit check</div><div class="pg pg-a" style="font-size:8px">6h left</div></div><div class="sm" style="font-size:8px">Tripping breaker in office.</div></div>
+</div></div>
+
+<!-- SUBMIT QUOTE -->
+<div class="frame"><div class="screen-title">Submit quote</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span></div>
+  <div class="h2">Submit quote</div>
+  <div class="sm" style="margin-bottom:5px">Plumbing — Leak repair · Sandton</div>
+  <div><div class="sm" style="margin-bottom:3px">Your price (R)</div><div style="background:var(--surf);border:0.5px solid var(--bdr);border-radius:6px;padding:8px 10px;font-size:16px;font-weight:500;color:var(--acc)">320</div></div>
+  <div class="h3" style="margin-bottom:4px">Estimated duration</div>
+  <div style="display:flex;gap:4px"><div class="pg pg-gr" style="padding:4px 9px;font-size:8px">30 min</div><div class="pg" style="background:#7B6EF618;color:#7B6EF6;border:0.5px solid #7B6EF633;padding:4px 9px;font-size:8px">1–2 hrs</div><div class="pg pg-gr" style="padding:4px 9px;font-size:8px">Half day</div></div>
+  <div style="background:var(--surf);border:0.5px solid var(--bdr);border-radius:6px;padding:6px;font-size:8px;color:#555;height:34px">Your note...</div>
+  <div class="csm" style="background:#7B6EF608;border-color:#7B6EF633"><div class="sm pur-c" style="font-size:8px">20% deposit (R64) collected if accepted</div></div>
+  <div class="btn2">Submit quote · R 320</div>
+</div></div>
+
+<!-- SERVICE SETUP -->
+<div class="frame"><div class="screen-title">Service setup</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span></div>
+  <div class="h2">My services</div>
+  <div class="card" style="padding:8px"><div class="rwb" style="margin-bottom:4px"><div class="h3">Deep clean</div><div class="pg pg-g" style="font-size:8px">Active</div></div><div class="rwb"><span class="sm">Fixed price</span><span style="font-size:10px;font-weight:500;color:var(--acc)">R 450</span></div></div>
+  <div class="card" style="padding:8px"><div class="rwb" style="margin-bottom:4px"><div class="h3">Standard clean</div><div class="pg pg-g" style="font-size:8px">Active</div></div><div class="rwb"><span class="sm">Fixed price</span><span style="font-size:10px;font-weight:500;color:var(--acc)">R 250</span></div></div>
+  <div class="csm" style="border-style:dashed;background:none;text-align:center"><span class="sm">+ Add a service</span></div>
+  <div class="btn2" style="margin-top:auto">Save services</div>
+</div></div>
+
+<!-- AVAILABILITY -->
+<div class="frame"><div class="screen-title">Availability / radius</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span></div>
+  <div class="h2">Availability &amp; radius</div>
+  <div class="map" style="height:52px"><svg width="100%" height="52" viewBox="0 0 180 52"><line x1="0" y1="26" x2="180" y2="26" stroke="#2A2A38" stroke-width="0.5"/><line x1="90" y1="0" x2="90" y2="52" stroke="#2A2A38" stroke-width="0.5"/><circle cx="90" cy="26" r="22" fill="#7B6EF608" stroke="#7B6EF633" stroke-width="1" stroke-dasharray="3 2"/><circle cx="90" cy="26" r="5" fill="#7B6EF6"/></svg><div style="position:absolute;bottom:5px;right:8px;font-size:9px;color:#7B6EF6">5 km</div></div>
+  <div class="h3" style="margin-bottom:4px">Working hours</div>
+  <div style="display:flex;flex-direction:column;gap:4px"><div class="csm rwb"><span class="sm">Mon – Fri</span><div style="width:24px;height:13px;background:var(--acc);border-radius:7px"></div></div><div class="csm rwb"><span class="sm">Saturday</span><div style="width:24px;height:13px;background:var(--acc);border-radius:7px"></div></div><div class="csm rwb"><span class="sm">Sunday</span><div style="width:24px;height:13px;background:var(--fnt);border-radius:7px"></div></div></div>
+  <div class="btn2">Save settings</div>
+</div></div>
+
+<div class="section-header">Provider — Earn &amp; profile</div>
+
+<!-- EARNINGS -->
+<div class="frame"><div class="screen-title">Earnings</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span></div>
+  <div class="h2">Earnings</div>
+  <div class="card" style="text-align:center;padding:12px"><div class="sm">This month</div><div style="font-size:22px;font-weight:500;color:var(--acc);margin:3px 0">R 8,450</div><div class="row" style="justify-content:center;gap:5px"><div class="pg pg-g" style="font-size:8px">+12%</div><div class="pg pg-gr" style="font-size:8px">18 jobs</div></div></div>
+  <div style="display:flex;flex-direction:column;gap:5px"><div><div class="rwb" style="margin-bottom:2px"><span class="sm">Mon</span><span style="font-size:9px;color:var(--acc);font-weight:500">R 950</span></div><div class="bar"><div class="barf" style="width:90%"></div></div></div><div><div class="rwb" style="margin-bottom:2px"><span class="sm">Wed</span><span style="font-size:9px;color:var(--acc);font-weight:500">R 1,200</span></div><div class="bar"><div class="barf" style="width:100%"></div></div></div><div><div class="rwb" style="margin-bottom:2px"><span class="sm">Fri</span><span style="font-size:9px;color:var(--acc);font-weight:500">R 1,150</span></div><div class="bar"><div class="barf" style="width:96%"></div></div></div></div>
+  <div class="btn" style="background:var(--card);color:var(--txt);border:0.5px solid var(--bdr)">Request payout · R 6,200</div>
+  <div class="bn"><div class="bni"><div style="width:16px;height:2px"></div><div class="bnl">Jobs</div></div><div class="bni"><div style="width:16px;height:2px;background:#7B6EF6"></div><div class="bnl pur-c">Earn</div></div><div class="bni"><div style="width:16px;height:2px"></div><div class="bnl">Profile</div></div></div>
+</div></div>
+
+<!-- PAYOUT -->
+<div class="frame"><div class="screen-title">Payout request</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span></div>
+  <div class="h2">Request payout</div>
+  <div class="sm" style="margin-bottom:6px">Available: <span style="color:var(--acc);font-weight:500">R 6,200</span></div>
+  <div style="background:var(--surf);border:0.5px solid var(--bdr);border-radius:6px;padding:9px 11px;font-size:18px;font-weight:500;color:var(--acc)">R 6,200</div>
+  <div class="h3" style="margin-bottom:4px">Pay to</div>
+  <div class="csm rwb" style="border-color:#00D97E33;background:#00D97E08"><div class="row" style="gap:7px"><div style="width:28px;height:18px;background:var(--surf);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--mut);border:0.5px solid var(--bdr)">FNB</div><div><div class="h3" style="font-size:9px">FNB Current</div><div class="sm" style="font-size:8px">•••• 8821</div></div></div><div class="pg pg-g" style="font-size:8px">Default</div></div>
+  <div class="csm" style="background:#F5A62310;border-color:#F5A62330"><div class="sm amb-c" style="font-size:8px">Processed within 1–2 business days</div></div>
+  <div class="btn" style="margin-top:auto">Request payout</div>
+</div></div>
+
+<!-- PROVIDER PROFILE -->
+<div class="frame"><div class="screen-title">Provider profile</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span></div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:5px 0"><div class="av" style="width:44px;height:44px;font-size:14px;background:#00D97E18;color:#00D97E;border:1.5px solid #00D97E33">ZM</div><div style="text-align:center"><div class="h2">Zanele Mokoena</div><div class="sm">Cleaning specialist</div></div><div class="row" style="gap:5px"><div class="pg pg-g" style="font-size:8px">Verified</div><div class="star">★ 4.9</div></div></div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px"><div class="csm" style="text-align:center"><div class="sm">Jobs</div><div class="h3">234</div></div><div class="csm" style="text-align:center"><div class="sm">Rating</div><div class="h3 amb-c">4.9</div></div><div class="csm" style="text-align:center"><div class="sm">Trust</div><div class="h3 acc-c">92</div></div></div>
+  <div style="display:flex;flex-direction:column;gap:4px"><div class="csm rwb"><span class="sm">Edit profile</span><span class="sm">›</span></div><div class="csm rwb"><span class="sm">My services</span><span class="sm">›</span></div><div class="csm rwb"><span class="sm">Availability</span><span class="sm">›</span></div><div class="csm rwb"><span class="sm">Bank account</span><span class="sm">›</span></div></div>
+  <div class="bn"><div class="bni"><div style="width:16px;height:2px"></div><div class="bnl">Jobs</div></div><div class="bni"><div style="width:16px;height:2px"></div><div class="bnl">Earn</div></div><div class="bni"><div style="width:16px;height:2px;background:#7B6EF6"></div><div class="bnl pur-c">Profile</div></div></div>
+</div></div>
+
+<!-- REPUTATION -->
+<div class="frame"><div class="screen-title">Reputation score</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span></div>
+  <div class="h2">Reputation score</div>
+  <div class="card" style="text-align:center;padding:12px"><div class="sm">Overall score</div><div style="font-size:26px;font-weight:500;color:var(--acc);margin:3px 0">92</div><div class="sm" style="font-size:8px">out of 100 · Excellent</div><div class="bar" style="margin-top:6px"><div class="barf" style="width:92%"></div></div></div>
+  <div style="display:flex;flex-direction:column;gap:5px"><div><div class="rwb" style="margin-bottom:2px"><span class="sm">Average rating</span><span style="font-size:9px;color:var(--amb);font-weight:500">★ 4.9</span></div><div class="bar"><div class="barf" style="width:98%"></div></div></div><div><div class="rwb" style="margin-bottom:2px"><span class="sm">Completion rate</span><span style="font-size:9px;color:var(--acc);font-weight:500">98%</span></div><div class="bar"><div class="barf" style="width:98%"></div></div></div><div><div class="rwb" style="margin-bottom:2px"><span class="sm">No-show rate</span><span style="font-size:9px;color:var(--acc);font-weight:500">0%</span></div><div class="bar"><div class="barf" style="width:100%"></div></div></div><div><div class="rwb" style="margin-bottom:2px"><span class="sm">Dispute rate</span><span style="font-size:9px;color:var(--acc);font-weight:500">0.4%</span></div><div class="bar"><div class="barf" style="width:96%"></div></div></div></div>
+  <div class="csm" style="background:#00D97E08;border-color:#00D97E33"><div class="sm acc-c" style="font-size:8px">High scores unlock featured placement</div></div>
+</div></div>
+
+<div class="section-header">Admin</div>
+
+<!-- ADMIN DASHBOARD -->
+<div class="frame"><div class="screen-title">Admin dashboard</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span><div class="pg pg-p" style="font-size:8px">Admin</div></div>
+  <div class="h2">Platform overview</div>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px"><div class="csm" style="text-align:center"><div class="sm">Active bookings</div><div class="h2">47</div></div><div class="csm" style="text-align:center"><div class="sm">Today GMV</div><div class="h2 acc-c">R 21,450</div></div><div class="csm" style="text-align:center"><div class="sm">Open disputes</div><div class="h2 red-c">3</div></div><div class="csm" style="text-align:center"><div class="sm">Pending IDs</div><div class="h2 amb-c">8</div></div></div>
+  <div class="h3" style="margin-bottom:4px">Requires action</div>
+  <div class="csm" style="border-color:#E8453C33;background:#E8453C08;margin-bottom:4px"><div class="row" style="gap:4px"><div style="width:5px;height:5px;border-radius:50%;background:var(--red)"></div><span style="font-size:9px;color:var(--txt)">Dispute #1092 escalated</span></div></div>
+  <div class="csm" style="border-color:#F5A62333;background:#F5A62308;margin-bottom:4px"><div class="row" style="gap:4px"><div style="width:5px;height:5px;border-radius:50%;background:var(--amb)"></div><span style="font-size:9px;color:var(--txt)">8 provider IDs pending</span></div></div>
+  <div class="csm"><div class="row" style="gap:4px"><div style="width:5px;height:5px;border-radius:50%;background:var(--mut)"></div><span style="font-size:9px;color:var(--txt)">Suspicious location flagged</span></div></div>
+</div></div>
+
+<!-- DISPUTE REVIEW -->
+<div class="frame"><div class="screen-title">Dispute review</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span><div class="pg pg-r" style="font-size:8px">Escalated</div></div>
+  <div class="h2">Dispute #1092</div>
+  <div class="card" style="padding:8px"><div class="rwb" style="margin-bottom:3px"><span class="sm">Raised by</span><span style="font-size:9px;color:var(--red)">Customer</span></div><div class="rwb" style="margin-bottom:3px"><span class="sm">Reason</span><span class="sm">Work not completed</span></div><div class="rwb"><span class="sm">Amount held</span><span style="font-size:9px;font-weight:500;color:var(--red)">R 472.50</span></div></div>
+  <div class="h3" style="margin-bottom:4px">Resolution</div>
+  <div style="display:flex;flex-direction:column;gap:4px"><div class="csm" style="border-color:#00D97E33;background:#00D97E08"><div class="row" style="gap:5px"><div style="width:10px;height:10px;border-radius:50%;border:1.5px solid var(--acc);display:flex;align-items:center;justify-content:center"><div style="width:5px;height:5px;border-radius:50%;background:var(--acc)"></div></div><span style="font-size:9px;color:var(--acc)">Refund customer</span></div></div><div class="csm"><div class="row" style="gap:5px"><div style="width:10px;height:10px;border-radius:50%;border:0.5px solid var(--bdr)"></div><span class="sm">Release to provider</span></div></div><div class="csm"><div class="row" style="gap:5px"><div style="width:10px;height:10px;border-radius:50%;border:0.5px solid var(--bdr)"></div><span class="sm">Split (partial)</span></div></div></div>
+  <div class="btn2">Resolve dispute</div>
+</div></div>
+
+<!-- USER MANAGEMENT -->
+<div class="frame"><div class="screen-title">User management</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span><div class="pg pg-p" style="font-size:8px">Admin</div></div>
+  <div style="background:var(--card);border:0.5px solid var(--bdr);border-radius:6px;padding:6px 8px;display:flex;gap:6px;align-items:center;margin-bottom:7px"><svg width="10" height="10" fill="none" viewBox="0 0 12 12"><circle cx="5" cy="5" r="4" stroke="#888898" stroke-width="1"/><line x1="8" y1="8" x2="11" y2="11" stroke="#888898" stroke-width="1" stroke-linecap="round"/></svg><span class="sm">Search users...</span></div>
+  <div class="csm rwb" style="margin-bottom:4px"><div class="row" style="gap:6px"><div class="av" style="width:22px;height:22px;background:#00D97E18;color:#00D97E;font-size:7px">ZM</div><div><div class="h3" style="font-size:9px">Zanele M.</div><div class="sm" style="font-size:8px">Provider · 234 jobs</div></div></div><div class="pg pg-g" style="font-size:8px">Active</div></div>
+  <div class="csm rwb" style="margin-bottom:4px"><div class="row" style="gap:6px"><div class="av" style="width:22px;height:22px;background:#7B6EF618;color:#7B6EF6;font-size:7px">TN</div><div><div class="h3" style="font-size:9px">Thabo N.</div><div class="sm" style="font-size:8px">Customer · 14 bookings</div></div></div><div class="pg pg-g" style="font-size:8px">Active</div></div>
+  <div class="csm rwb" style="margin-bottom:4px"><div class="row" style="gap:6px"><div class="av" style="width:22px;height:22px;background:#F5A62318;color:#F5A623;font-size:7px">SK</div><div><div class="h3" style="font-size:9px">Sipho K.</div><div class="sm" style="font-size:8px">Provider · Pending ID</div></div></div><div class="pg pg-a" style="font-size:8px">Pending</div></div>
+  <div class="csm rwb"><div class="row" style="gap:6px"><div class="av" style="width:22px;height:22px;background:#E8453C18;color:#E8453C;font-size:7px">LB</div><div><div class="h3" style="font-size:9px">Lucky B.</div><div class="sm" style="font-size:8px">Customer · 2 disputes</div></div></div><div class="pg pg-r" style="font-size:8px">Flagged</div></div>
+</div></div>
+
+<!-- SETTINGS -->
+<div class="frame"><div class="screen-title">Settings</div><div class="sc">
+  <div class="sb"><span class="st">9:41</span></div>
+  <div class="h2">Settings</div>
+  <div style="font-size:9px;color:var(--mut);padding:5px 0 4px;text-transform:uppercase;letter-spacing:.06em">Account</div>
+  <div style="display:flex;flex-direction:column;gap:4px"><div class="csm rwb"><span class="sm">Edit profile</span><span class="sm">›</span></div><div class="csm rwb"><span class="sm">Phone number</span><span class="sm">›</span></div><div class="csm rwb"><span class="sm">Payment methods</span><span class="sm">›</span></div></div>
+  <div style="font-size:9px;color:var(--mut);padding:7px 0 4px;text-transform:uppercase;letter-spacing:.06em">Notifications</div>
+  <div style="display:flex;flex-direction:column;gap:4px"><div class="csm rwb"><span class="sm">Booking updates</span><div style="width:24px;height:13px;background:var(--acc);border-radius:7px"></div></div><div class="csm rwb"><span class="sm">Promotions</span><div style="width:24px;height:13px;background:var(--fnt);border-radius:7px"></div></div></div>
+  <div style="font-size:9px;color:var(--mut);padding:7px 0 4px;text-transform:uppercase;letter-spacing:.06em">Privacy</div>
+  <div style="display:flex;flex-direction:column;gap:4px"><div class="csm rwb"><span class="sm">Location data</span><span class="sm">›</span></div><div class="csm rwb"><span class="sm" style="color:var(--red)">Delete account</span><span class="sm">›</span></div></div>
+</div></div>
+
 </div>
-
-</div>
-</div>
-<script>
-function sw(id,btn){
-  document.querySelectorAll('.sc').forEach(s=>s.classList.remove('on'));
-  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
-  const s=document.getElementById('s-'+id);
-  if(s){s.classList.add('on');s.scrollTop=0;}
-  if(btn)btn.classList.add('on');
-}
-</script>
+</body>
+</html>
