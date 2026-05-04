@@ -29,6 +29,7 @@ export function Sidebar() {
   const items = role === 'provider' ? providerNav : customerNav;
   const fullName = (user?.user_metadata?.['full_name'] as string | undefined) ?? 'User';
   const initials = fullName.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase();
+  const avatarUrl = user?.user_metadata?.['avatar_url'] as string | undefined;
 
   return (
     <aside className="w-56 flex-shrink-0 bg-surface border-r border-border flex flex-col sticky top-0 h-svh">
@@ -70,8 +71,10 @@ export function Sidebar() {
       {/* User footer */}
       <div className="px-3 pb-4 border-t border-border pt-4 flex flex-col gap-1">
         <div className="flex items-center gap-3 px-3 py-2 rounded-lg">
-          <div className="w-7 h-7 rounded-full bg-purple/20 flex items-center justify-center flex-shrink-0">
-            <span className="text-[10px] font-semibold text-purple">{initials}</span>
+          <div className="w-7 h-7 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center flex-shrink-0">
+            {avatarUrl
+              ? <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
+              : <span className="text-[10px] font-semibold text-primary">{initials}</span>}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-medium text-foreground truncate">{fullName.split(' ')[0]}</p>

@@ -32,6 +32,7 @@ export function ProfilePage() {
   const initials = fullName.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase();
   const phone = user?.phone ?? (user?.user_metadata?.['phone'] as string | undefined) ?? '';
   const email = user?.email ?? '';
+  const avatarUrl = user?.user_metadata?.['avatar_url'] as string | undefined;
 
   return (
     <PageLayout>
@@ -42,8 +43,10 @@ export function ProfilePage() {
           {/* Left: identity card */}
           <div className="flex flex-col gap-4">
             <div className="bg-card border border-border rounded-xl p-6 flex flex-col items-center text-center gap-4">
-              <div className="w-20 h-20 rounded-full bg-purple/10 border-2 border-purple/20 flex items-center justify-center">
-                <span className="text-2xl font-semibold text-purple">{initials}</span>
+              <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-primary/20 flex items-center justify-center bg-primary/10 flex-shrink-0">
+                {avatarUrl
+                  ? <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
+                  : <span className="text-2xl font-semibold text-primary">{initials}</span>}
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-foreground">{fullName}</h2>
