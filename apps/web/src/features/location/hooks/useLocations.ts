@@ -1,5 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getSavedLocations, saveLocation, deleteLocation } from '../services/locationService';
+import {
+  getSavedLocations,
+  saveLocation,
+  updateLocation,
+  setDefaultLocation,
+  deleteLocation,
+} from '../services/locationService';
 import type { SavedLocation } from '@onserve/types';
 
 export function useSavedLocations() {
@@ -14,6 +20,23 @@ export function useSaveLocation() {
   return useMutation({
     mutationFn: (location: Omit<SavedLocation, 'id' | 'visitCount' | 'trustScore' | 'createdAt'>) =>
       saveLocation(location),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['saved-locations'] }),
+  });
+}
+
+export function useUpdateLocation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: { label?: 'Home' | 'Work' | 'Other'; customName?: string | null } }) =>
+      updateLocation(id, updates),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['saved-locations'] }),
+  });
+}
+
+export function useSetDefaultLocation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: setDefaultLocation,
     onSuccess: () => qc.invalidateQueries({ queryKey: ['saved-locations'] }),
   });
 }

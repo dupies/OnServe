@@ -1,32 +1,20 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Search, MapPin } from 'lucide-react';
+import { Search, MapPin, Navigation, Loader2, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { useSearchProviders } from '@/features/providers/hooks/useProviders';
+import { geocodeAddress } from '@/lib/geocoding';
+import type { GeocodeResult } from '@/lib/geocoding';
 import { cn } from '@/lib/utils';
 
-type Coords = { lat: number; lng: number } | null;
+// Sandton, JHB fallback
+const FALLBACK = { lat: -26.1076, lng: 28.0567, label: 'Sandton, Johannesburg' };
 
-function useCurrentPosition() {
-  const [coords, setCoords] = useState<Coords>(null);
-
-  useEffect(() => {
-    if (!navigator.geolocation) {
-      setCoords({ lat: -26.1076, lng: 28.0567 });
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => setCoords({ lat: -26.1076, lng: 28.0567 }),
-      { timeout: 5000 },
-    );
-  }, []);
-
-  return { coords };
-}
+type LocationMode = 'gps' | 'manual';
+type Coords = { lat: number; lng: number; label: string } | null;
 
 const RADIUS_OPTIONS = [5, 10, 20, 50];
 const RATING_OPTIONS = [
@@ -36,61 +24,208 @@ const RATING_OPTIONS = [
   { label: '3.5+', min: 3.5 },
 ];
 
+// ── GPS hook ──────────────────────────────────────────────────────────────────
+function useGPSCoords() {
+  const [coords, setCoords] = useState<Coords>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setCoords(FALLBACK);
+      setLoading(false);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude, label: 'Your location' });
+        setLoading(false);
+      },
+      () => {
+        setCoords(FALLBACK);
+        setLoading(false);
+      },
+      { timeout: 6000 },
+    );
+  }, []);
+
+  return { coords, loading };
+}
+
+// ── Address autocomplete ───────────────────────────────────────────────────────
+function AddressSearch({ onSelect }: { onSelect: (r: GeocodeResult) => void }) {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<GeocodeResult[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [selected, setSelected] = useState('');
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  function handleChange(val: string) {
+    setQuery(val);
+    setSelected('');
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (!val.trim() || val.length < 3) { setResults([]); return; }
+    timerRef.current = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const res = await geocodeAddress(val);
+        setResults(res.slice(0, 5));
+      } finally {
+        setSearching(false);
+      }
+    }, 700);
+  }
+
+  function pick(r: GeocodeResult) {
+    setSelected(r.displayName);
+    setQuery(r.displayName);
+    setResults([]);
+    onSelect(r);
+  }
+
+  function clear() {
+    setQuery('');
+    setSelected('');
+    setResults([]);
+  }
+
+  return (
+    <div className="relative flex-1" ref={dropdownRef}>
+      <div className="relative flex items-center">
+        {searching
+          ? <Loader2 className="absolute left-3 w-4 h-4 text-muted-foreground animate-spin pointer-events-none" />
+          : <Search className="absolute left-3 w-4 h-4 text-muted-foreground pointer-events-none" />}
+        <Input
+          value={query}
+          onChange={(e) => handleChange(e.target.value)}
+          placeholder="Enter a city or address…"
+          className="pl-9 pr-8"
+        />
+        {query && (
+          <button onClick={clear} className="absolute right-2.5 text-muted-foreground hover:text-foreground transition-colors">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+      {results.length > 0 && !selected && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl overflow-hidden shadow-lg z-50">
+          {results.map((r, i) => (
+            <button
+              key={i}
+              onClick={() => pick(r)}
+              className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-surface transition-colors text-sm border-b border-border last:border-0"
+            >
+              <MapPin className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
+              <span className="text-foreground leading-snug line-clamp-2">{r.displayName}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 export function SearchPage() {
-  const [params] = useSearchParams();
-  const category = params.get('category') ?? 'services';
+  const [searchParams] = useSearchParams();
+  const category = searchParams.get('category') ?? 'services';
   const navigate = useNavigate();
 
+  const [mode, setMode] = useState<LocationMode>('gps');
+  const [manualCoords, setManualCoords] = useState<Coords>(null);
   const [query, setQuery] = useState('');
   const [radiusKm, setRadiusKm] = useState(10);
   const [minRating, setMinRating] = useState(0);
 
-  const { coords } = useCurrentPosition();
+  const { coords: gpsCoords, loading: gpsLoading } = useGPSCoords();
+  const activeCoords = mode === 'gps' ? gpsCoords : manualCoords;
+
   const { data: providers = [], isLoading } = useSearchProviders(
-    coords?.lat ?? null,
-    coords?.lng ?? null,
+    activeCoords?.lat ?? null,
+    activeCoords?.lng ?? null,
     radiusKm,
   );
 
   const filtered = useMemo(() => {
     let result = providers;
-    if (minRating > 0) {
-      result = result.filter((p) => p.ratingAverage >= minRating);
-    }
+    if (minRating > 0) result = result.filter((p) => p.ratingAverage >= minRating);
     if (query.trim()) {
       const q = query.toLowerCase();
-      result = result.filter((p) =>
-        p.bio?.toLowerCase().includes(q) ||
-        p.userId.toLowerCase().includes(q)
+      result = result.filter(
+        (p) => p.bio?.toLowerCase().includes(q) || p.userId.toLowerCase().includes(q),
       );
     }
     return result;
   }, [providers, minRating, query]);
 
+  const locationLabel = activeCoords?.label ?? (gpsLoading ? 'Locating…' : 'Unknown location');
+
   return (
     <PageLayout>
       <div className="flex flex-col gap-6">
-        {/* Header + search input */}
-        <div className="flex items-center gap-4">
-          <div className="flex-1">
-            <h1 className="text-2xl font-semibold text-foreground capitalize">{category}</h1>
-            <p className="text-muted-foreground text-sm mt-0.5">
-              {coords ? 'Providers near your location' : 'Locating you…'}
-            </p>
+        {/* Header */}
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground capitalize">{category}</h1>
+          <p className="text-muted-foreground text-sm mt-0.5">
+            {activeCoords
+              ? `Searching within ${radiusKm} km of ${locationLabel}`
+              : mode === 'gps' && gpsLoading
+              ? 'Getting your location…'
+              : 'Enter a location to search'}
+          </p>
+        </div>
+
+        {/* Location mode toggle + input */}
+        <div className="flex items-center gap-3">
+          <div className="flex rounded-lg border border-border overflow-hidden flex-shrink-0">
+            <button
+              onClick={() => setMode('gps')}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-2 text-sm transition-colors',
+                mode === 'gps'
+                  ? 'bg-primary/10 text-primary font-medium'
+                  : 'text-muted-foreground hover:text-foreground bg-card',
+              )}
+            >
+              {gpsLoading && mode === 'gps'
+                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                : <Navigation className="w-3.5 h-3.5" />}
+              My location
+            </button>
+            <div className="w-px bg-border" />
+            <button
+              onClick={() => setMode('manual')}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-2 text-sm transition-colors',
+                mode === 'manual'
+                  ? 'bg-primary/10 text-primary font-medium'
+                  : 'text-muted-foreground hover:text-foreground bg-card',
+              )}
+            >
+              <MapPin className="w-3.5 h-3.5" />
+              Enter address
+            </button>
           </div>
-          <div className="relative w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search providers…"
-              className="pl-9"
+
+          {mode === 'manual' ? (
+            <AddressSearch
+              onSelect={(r) => setManualCoords({ lat: r.lat, lng: r.lng, label: r.displayName })}
             />
-          </div>
+          ) : (
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Filter results…"
+                className="pl-9"
+              />
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-[220px_1fr] gap-6">
-          {/* Filters sidebar */}
+          {/* Filters */}
           <aside className="flex flex-col gap-4">
             <div className="bg-card border border-border rounded-xl p-4">
               <h2 className="text-sm font-semibold text-foreground mb-3">Rating</h2>
@@ -131,18 +266,28 @@ export function SearchPage() {
                 ))}
               </div>
               <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border text-xs text-muted-foreground">
-                <MapPin className="w-3.5 h-3.5 text-primary" />
-                <span>{coords ? 'Your location' : 'Sandton, Johannesburg'}</span>
+                <MapPin className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+                <span className="truncate">{locationLabel}</span>
               </div>
             </div>
           </aside>
 
           {/* Results */}
           <div className="flex flex-col gap-4">
-            {isLoading ? (
+            {mode === 'manual' && !manualCoords ? (
+              <div className="flex flex-col items-center justify-center py-24 text-center">
+                <div className="w-12 h-12 rounded-full bg-card border border-border flex items-center justify-center mb-4">
+                  <MapPin className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <p className="text-foreground font-medium">Enter a location to search</p>
+                <p className="text-muted-foreground text-sm mt-1">
+                  Type a city or address above to find providers in that area
+                </p>
+              </div>
+            ) : isLoading || (mode === 'gps' && gpsLoading) ? (
               <div className="grid grid-cols-2 gap-4">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="bg-card border border-border rounded-xl p-5 animate-pulse h-32" />
+                  <div key={i} className="bg-card border border-border rounded-xl p-5 animate-pulse h-36" />
                 ))}
               </div>
             ) : filtered.length === 0 ? (
@@ -151,20 +296,15 @@ export function SearchPage() {
                   <Search className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <p className="text-foreground font-medium">
-                  {providers.length === 0 ? 'No providers found nearby' : 'No providers match your filters'}
+                  {providers.length === 0 ? 'No providers found in this area' : 'No providers match your filters'}
                 </p>
                 <p className="text-muted-foreground text-sm mt-1">
                   {providers.length === 0
-                    ? 'Try increasing the search radius'
-                    : 'Clear your filters or try a different search'}
+                    ? 'Try increasing the search radius or a different location'
+                    : 'Clear your filters to see all results'}
                 </p>
                 {(minRating > 0 || query) && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-4"
-                    onClick={() => { setMinRating(0); setQuery(''); }}
-                  >
+                  <Button variant="outline" size="sm" className="mt-4" onClick={() => { setMinRating(0); setQuery(''); }}>
                     Clear filters
                   </Button>
                 )}
@@ -212,11 +352,7 @@ export function SearchPage() {
                         <span>{Math.round(p.completionRate * 100)}% completion</span>
                       </div>
 
-                      <Button
-                        size="sm"
-                        className="w-full"
-                        onClick={() => navigate(`/providers/${p.userId}`)}
-                      >
+                      <Button size="sm" className="w-full" onClick={() => navigate(`/providers/${p.userId}`)}>
                         View profile
                       </Button>
                     </article>

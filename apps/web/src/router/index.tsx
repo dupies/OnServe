@@ -16,6 +16,8 @@ import { PaymentPage } from '@/pages/customer/PaymentPage';
 import { BookingsListPage } from '@/pages/customer/BookingsListPage';
 import { ProfilePage } from '@/pages/customer/ProfilePage';
 import { ProfileEditPage } from '@/pages/customer/ProfileEditPage';
+import { NotificationsPage } from '@/pages/customer/NotificationsPage';
+import { SavedLocationsPage } from '@/pages/customer/SavedLocationsPage';
 
 // Provider
 import { JobBoardPage } from '@/pages/provider/JobBoardPage';
@@ -43,53 +45,19 @@ export const router = createBrowserRouter([
   { path: '/verify', element: <OTPPage /> },
   { path: '/role', element: <RoleSelectPage /> },
 
-  {
-    path: '/',
-    element: <RequireAuth><HomePage /></RequireAuth>,
-  },
-  {
-    path: '/search',
-    element: <RequireAuth><SearchPage /></RequireAuth>,
-  },
-  {
-    path: '/providers/:id',
-    element: <RequireAuth><ProviderProfilePage /></RequireAuth>,
-  },
-  {
-    path: '/book/:providerId',
-    element: <RequireAuth><BookingPage /></RequireAuth>,
-  },
-  {
-    path: '/payment',
-    element: <RequireAuth><PaymentPage /></RequireAuth>,
-  },
-  {
-    path: '/bookings',
-    element: <RequireAuth><BookingsListPage /></RequireAuth>,
-  },
-  {
-    path: '/profile',
-    element: <RequireAuth><ProfilePage /></RequireAuth>,
-  },
-  {
-    path: '/profile/edit',
-    element: <RequireAuth><ProfileEditPage /></RequireAuth>,
-  },
+  { path: '/', element: <RequireAuth><HomePage /></RequireAuth> },
+  { path: '/search', element: <RequireAuth><SearchPage /></RequireAuth> },
+  { path: '/providers/:id', element: <RequireAuth><ProviderProfilePage /></RequireAuth> },
+  { path: '/book/:providerId', element: <RequireAuth><BookingPage /></RequireAuth> },
+  { path: '/payment', element: <RequireAuth><PaymentPage /></RequireAuth> },
+  { path: '/bookings', element: <RequireAuth><BookingsListPage /></RequireAuth> },
+  { path: '/notifications', element: <RequireAuth><NotificationsPage /></RequireAuth> },
+  { path: '/profile', element: <RequireAuth><ProfilePage /></RequireAuth> },
+  { path: '/profile/edit', element: <RequireAuth><ProfileEditPage /></RequireAuth> },
+  { path: '/profile/locations', element: <RequireAuth><SavedLocationsPage /></RequireAuth> },
 
-  {
-    path: '/provider/jobs',
-    element: <RequireAuth><JobBoardPage /></RequireAuth>,
-  },
-  {
-    path: '/provider/jobs/:id',
-    element: <RequireAuth><JobDetailPage /></RequireAuth>,
-  },
-  {
-    path: '/provider/jobs/:id/active',
-    element: <RequireAuth><ActiveJobPage /></RequireAuth>,
-  },
-  {
-    path: '/provider/jobs/:id/checkout',
-    element: <RequireAuth><CheckOutPage /></RequireAuth>,
-  },
+  { path: '/provider/jobs', element: <RequireAuth><JobBoardPage /></RequireAuth> },
+  { path: '/provider/jobs/:id', element: <RequireAuth><JobDetailPage /></RequireAuth> },
+  { path: '/provider/jobs/:id/active', element: <RequireAuth><ActiveJobPage /></RequireAuth> },
+  { path: '/provider/jobs/:id/checkout', element: <RequireAuth><CheckOutPage /></RequireAuth> },
 ]);

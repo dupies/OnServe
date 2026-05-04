@@ -1,30 +1,35 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, CalendarCheck, User, Briefcase, DollarSign, Search } from 'lucide-react';
+import { Home, CalendarCheck, User, Briefcase, DollarSign, Search, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { useUnreadCount } from '@/features/notifications/hooks/useNotifications';
 
 interface NavItem {
   to: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
+  badge?: boolean;
 }
 
 const customerNav: NavItem[] = [
   { to: '/', label: 'Home', icon: Home },
   { to: '/search', label: 'Search', icon: Search },
   { to: '/bookings', label: 'Bookings', icon: CalendarCheck },
+  { to: '/notifications', label: 'Notifications', icon: Bell, badge: true },
   { to: '/profile', label: 'Profile', icon: User },
 ];
 
 const providerNav: NavItem[] = [
   { to: '/provider/jobs', label: 'Job Board', icon: Briefcase },
   { to: '/provider/earnings', label: 'Earnings', icon: DollarSign },
+  { to: '/notifications', label: 'Notifications', icon: Bell, badge: true },
   { to: '/provider/profile', label: 'Profile', icon: User },
 ];
 
 export function Sidebar() {
   const { pathname } = useLocation();
   const { user, role, signOut } = useAuthStore();
+  const { data: unreadCount = 0 } = useUnreadCount();
 
   const items = role === 'provider' ? providerNav : customerNav;
   const fullName = (user?.user_metadata?.['full_name'] as string | undefined) ?? 'User';
@@ -48,8 +53,9 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav aria-label="Main navigation" className="flex-1 px-3 py-4 flex flex-col gap-0.5">
-        {items.map(({ to, label, icon: Icon }) => {
+        {items.map(({ to, label, icon: Icon, badge }) => {
           const active = to === '/' ? pathname === '/' : pathname.startsWith(to);
+          const showBadge = badge && unreadCount > 0;
           return (
             <Link
               key={to}
@@ -62,7 +68,12 @@ export function Sidebar() {
               )}
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
-              {label}
+              <span className="flex-1">{label}</span>
+              {showBadge && (
+                <span className="flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-primary text-white text-[10px] font-semibold px-1">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
             </Link>
           );
         })}
