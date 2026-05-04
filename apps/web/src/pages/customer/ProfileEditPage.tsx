@@ -32,14 +32,25 @@ export function ProfileEditPage() {
 
   async function onSubmit(values: ProfileFormValues) {
     try {
-      const updates: { data: Record<string, string>; email?: string } = {
+      // Update auth metadata (email in auth.users)
+      const authUpdates: { data: Record<string, string>; email?: string } = {
         data: { full_name: values.fullName },
       };
       if (values.email && values.email !== email) {
-        updates.email = values.email;
+        authUpdates.email = values.email;
       }
-      const { data, error } = await supabase.auth.updateUser(updates);
+      const { data, error } = await supabase.auth.updateUser(authUpdates);
       if (error) throw new Error(error.message);
+
+      // Update full_name in public.users (auth.updateUser only writes metadata)
+      if (user) {
+        const { error: dbError } = await supabase
+          .from('users')
+          .update({ full_name: values.fullName })
+          .eq('id', user.id);
+        if (dbError) throw new Error(dbError.message);
+      }
+
       if (data.user) setUser(data.user);
       toast.success('Profile updated');
       navigate('/profile');
