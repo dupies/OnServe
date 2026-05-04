@@ -1,96 +1,132 @@
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
-import { AppShell } from '@/components/layout/AppShell';
-import { BottomNav } from '@/components/layout/BottomNav';
+import { PageLayout } from '@/components/layout/PageLayout';
 import { useCustomerBookings } from '@/features/bookings/hooks/useBookings';
 import { format } from 'date-fns';
 import type { BookingStatus } from '@onserve/types';
 
 const STATUS_STYLES: Record<BookingStatus, string> = {
-  pending: 'text-warning border-warning/30 bg-warning/10',
-  confirmed: 'text-primary border-primary/30 bg-primary/10',
+  pending:     'text-warning border-warning/30 bg-warning/10',
+  confirmed:   'text-primary border-primary/30 bg-primary/10',
   in_progress: 'text-primary border-primary/30 bg-primary/10',
-  completed: 'text-muted-foreground border-border',
-  cancelled: 'text-muted-foreground border-border',
-  disputed: 'text-destructive border-destructive/30 bg-destructive/10',
+  completed:   'text-muted-foreground border-border',
+  cancelled:   'text-muted-foreground border-border',
+  disputed:    'text-destructive border-destructive/30 bg-destructive/10',
 };
 
 const STATUS_LABELS: Record<BookingStatus, string> = {
-  pending: 'Pending',
-  confirmed: 'Confirmed',
+  pending:     'Pending',
+  confirmed:   'Confirmed',
   in_progress: 'In progress',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
-  disputed: 'Disputed',
+  completed:   'Completed',
+  cancelled:   'Cancelled',
+  disputed:    'Disputed',
 };
 
 export function BookingsListPage() {
   const navigate = useNavigate();
   const { data: bookings = [], isLoading } = useCustomerBookings();
 
+  const active = bookings.filter((b) => ['pending', 'confirmed', 'in_progress'].includes(b.status));
+  const past = bookings.filter((b) => ['completed', 'cancelled', 'disputed'].includes(b.status));
+
   return (
-    <AppShell className="pb-20">
-      <div className="flex flex-col gap-4 px-4 pt-4">
+    <PageLayout>
+      <div className="flex flex-col gap-6">
+        {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-foreground">My bookings</h1>
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground">My bookings</h1>
+            <p className="text-muted-foreground text-sm mt-1">Track and manage your service bookings</p>
+          </div>
           <div className="flex gap-2">
-            <Badge variant="outline" className="text-[10px] h-5 text-primary border-primary/30 bg-primary/10">
-              Active
+            <Badge variant="outline" className="text-primary border-primary/30 bg-primary/10">
+              {active.length} active
             </Badge>
-            <Badge variant="outline" className="text-[10px] h-5 text-muted-foreground border-border">
-              Past
+            <Badge variant="outline" className="text-muted-foreground border-border">
+              {past.length} past
             </Badge>
           </div>
         </div>
 
         {isLoading ? (
-          <div className="flex flex-col gap-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-card border border-border rounded-xl p-4 animate-pulse h-20" />
+          <div className="grid grid-cols-2 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-card border border-border rounded-xl p-5 animate-pulse h-28" />
             ))}
           </div>
         ) : bookings.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground text-sm">No bookings yet</p>
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="w-12 h-12 rounded-full bg-card border border-border flex items-center justify-center mb-4 text-xl">
+              📋
+            </div>
+            <p className="text-foreground font-medium">No bookings yet</p>
+            <p className="text-muted-foreground text-sm mt-1">
+              Book a service to get started
+            </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
-            {bookings.map((b) => (
-              <button
-                key={b.id}
-                onClick={() => navigate(`/bookings/${b.id}`)}
-                className="bg-card border border-border rounded-xl p-4 text-left w-full"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <Badge variant="outline" className={`text-[10px] h-5 ${STATUS_STYLES[b.status]}`}>
-                    {STATUS_LABELS[b.status]}
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">
-                    {format(new Date(b.scheduledAt), 'EEE d MMM')}
-                  </span>
+          <div className="flex flex-col gap-8">
+            {active.length > 0 && (
+              <section>
+                <h2 className="text-sm font-semibold text-foreground mb-3">Active</h2>
+                <div className="grid grid-cols-2 gap-4">
+                  {active.map((b) => (
+                    <BookingCard key={b.id} booking={b} onClick={() => navigate(`/bookings/${b.id}`)} />
+                  ))}
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">
-                      {(b as unknown as Record<string, unknown>)['serviceType']
-                        ? ((b as unknown as Record<string, unknown>)['serviceType'] as Record<string, unknown>)['name'] as string
-                        : 'Service'}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {format(new Date(b.scheduledAt), 'HH:mm')}
-                    </p>
-                  </div>
-                  <span className={`text-sm font-semibold ${b.status === 'disputed' ? 'text-destructive' : 'text-primary'}`}>
-                    R{b.totalAmount}
-                  </span>
+              </section>
+            )}
+            {past.length > 0 && (
+              <section>
+                <h2 className="text-sm font-semibold text-muted-foreground mb-3">Past</h2>
+                <div className="grid grid-cols-2 gap-4 opacity-70">
+                  {past.map((b) => (
+                    <BookingCard key={b.id} booking={b} onClick={() => navigate(`/bookings/${b.id}`)} />
+                  ))}
                 </div>
-              </button>
-            ))}
+              </section>
+            )}
           </div>
         )}
       </div>
+    </PageLayout>
+  );
+}
 
-      <BottomNav />
-    </AppShell>
+function BookingCard({
+  booking,
+  onClick,
+}: {
+  booking: { id: string; status: BookingStatus; scheduledAt: string; totalAmount: number };
+  onClick: () => void;
+}) {
+  const svcName = ((booking as unknown as Record<string, unknown>)['serviceType'] as Record<string, unknown> | undefined)?.['name'] as string | undefined;
+
+  return (
+    <button
+      onClick={onClick}
+      className="bg-card border border-border rounded-xl p-5 text-left w-full hover:border-primary/30 transition-colors"
+    >
+      <div className="flex items-center justify-between mb-3">
+        <Badge variant="outline" className={`text-xs h-5 ${STATUS_STYLES[booking.status]}`}>
+          {STATUS_LABELS[booking.status]}
+        </Badge>
+        <span className="text-xs text-muted-foreground">
+          {format(new Date(booking.scheduledAt), 'EEE d MMM')}
+        </span>
+      </div>
+      <div className="flex items-end justify-between">
+        <div>
+          <p className="text-sm font-medium text-foreground">{svcName ?? 'Service'}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {format(new Date(booking.scheduledAt), 'HH:mm')}
+          </p>
+        </div>
+        <span className={`text-base font-semibold ${booking.status === 'disputed' ? 'text-destructive' : 'text-primary'}`}>
+          R{booking.totalAmount}
+        </span>
+      </div>
+    </button>
   );
 }

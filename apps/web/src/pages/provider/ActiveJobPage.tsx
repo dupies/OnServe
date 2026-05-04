@@ -1,8 +1,10 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
+import { AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AppShell } from '@/components/layout/AppShell';
+import { Separator } from '@/components/ui/separator';
+import { PageLayout } from '@/components/layout/PageLayout';
 import { useBooking, useCheckIn } from '@/features/bookings/hooks/useBookings';
 import { format, formatDistanceStrict } from 'date-fns';
 
@@ -25,9 +27,12 @@ export function ActiveJobPage() {
 
   if (isLoading || !booking) {
     return (
-      <AppShell className="px-4 pt-4 pb-8 gap-5">
-        <div className="animate-pulse h-20 bg-card rounded" />
-      </AppShell>
+      <PageLayout>
+        <div className="max-w-3xl animate-pulse flex flex-col gap-4">
+          <div className="h-40 bg-card rounded-xl" />
+          <div className="h-24 bg-card rounded-xl" />
+        </div>
+      </PageLayout>
     );
   }
 
@@ -44,66 +49,90 @@ export function ActiveJobPage() {
     : null;
 
   return (
-    <AppShell className="px-4 pt-4 pb-8 gap-5">
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">
-          {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-        </span>
-        <Badge variant="outline" className="text-[10px] h-5 text-primary border-primary/30 bg-primary/10">
-          {booking.status === 'in_progress' ? 'In progress' : 'Confirmed'}
-        </Badge>
-      </div>
-
-      {/* Map placeholder */}
-      <div className="relative bg-surface border border-border rounded-xl h-28 flex items-center justify-center overflow-hidden">
-        <svg width="100%" height="112" viewBox="0 0 320 112" aria-hidden>
-          <line x1="0" y1="56" x2="320" y2="56" stroke="#2A2A38" strokeWidth="0.5" />
-          <line x1="160" y1="0" x2="160" y2="112" stroke="#2A2A38" strokeWidth="0.5" />
-          <circle cx="160" cy="56" r="32" fill="rgba(123,110,246,0.1)" stroke="rgba(123,110,246,0.2)" strokeWidth="1" />
-          <circle cx="160" cy="56" r="10" fill="#7B6EF6" />
-        </svg>
-        {checkedInAt && (
-          <div className="absolute top-2 left-3">
-            <span className="text-[10px] text-primary">
-              ● Checked in · {format(checkedInAt, 'HH:mm')}
-            </span>
+    <PageLayout>
+      <div className="max-w-3xl flex flex-col gap-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground">Active job</h1>
+            <p className="text-muted-foreground text-sm mt-1">{svcName}</p>
           </div>
-        )}
-      </div>
+          <Badge variant="outline" className="text-primary border-primary/30 bg-primary/10">
+            {booking.status === 'in_progress' ? 'In progress' : 'Confirmed'}
+          </Badge>
+        </div>
 
-      <div className="bg-card border border-border rounded-xl p-4 flex flex-col gap-2">
-        {[
-          { label: 'Service', value: svcName },
-          { label: 'Scheduled', value: format(new Date(booking.scheduledAt), 'EEE d MMM · HH:mm') },
-          ...(elapsed ? [{ label: 'Elapsed', value: elapsed }] : []),
-        ].map((row) => (
-          <div key={row.label} className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">{row.label}</span>
-            <span className={`text-xs ${row.label === 'Elapsed' ? 'font-semibold text-primary' : 'text-foreground'}`}>
-              {row.value}
-            </span>
+        <div className="grid grid-cols-[1fr_280px] gap-6 items-start">
+          {/* Left: map + job details */}
+          <div className="flex flex-col gap-4">
+            {/* Map placeholder */}
+            <div className="relative bg-surface border border-border rounded-xl overflow-hidden h-64 flex items-center justify-center">
+              <svg width="100%" height="256" viewBox="0 0 600 256" aria-hidden>
+                {Array.from({ length: 8 }, (_, i) => (
+                  <line key={`h${i}`} x1="0" y1={i * 32} x2="600" y2={i * 32} stroke="#2A2A38" strokeWidth="0.5" />
+                ))}
+                {Array.from({ length: 12 }, (_, i) => (
+                  <line key={`v${i}`} x1={i * 50} y1="0" x2={i * 50} y2="256" stroke="#2A2A38" strokeWidth="0.5" />
+                ))}
+                <circle cx="300" cy="128" r="60" fill="rgba(123,110,246,0.08)" stroke="rgba(123,110,246,0.2)" strokeWidth="1" />
+                <circle cx="300" cy="128" r="16" fill="#7B6EF6" />
+                <circle cx="300" cy="128" r="6" fill="white" />
+              </svg>
+              {checkedInAt && (
+                <div className="absolute top-3 left-3 bg-background/90 border border-border rounded-lg px-3 py-1.5">
+                  <span className="text-xs text-primary font-medium">
+                    Checked in · {format(checkedInAt, 'HH:mm')}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-card border border-border rounded-xl p-5 flex flex-col gap-3">
+              {[
+                { label: 'Service', value: svcName },
+                { label: 'Scheduled', value: format(new Date(booking.scheduledAt), 'EEE d MMM · HH:mm') },
+                ...(elapsed ? [{ label: 'Elapsed', value: elapsed }] : []),
+              ].map((row, i, arr) => (
+                <div key={row.label}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">{row.label}</span>
+                    <span className={`text-sm ${row.label === 'Elapsed' ? 'font-semibold text-primary' : 'text-foreground'}`}>
+                      {row.value}
+                    </span>
+                  </div>
+                  {i < arr.length - 1 && <Separator className="mt-3" />}
+                </div>
+              ))}
+            </div>
           </div>
-        ))}
-      </div>
 
-      <div className="bg-warning/10 border border-warning/30 rounded-xl px-4 py-3">
-        <p className="text-xs text-warning">R{booking.totalAmount} escrowed · releases on completion</p>
-      </div>
+          {/* Right: escrow + actions */}
+          <div className="flex flex-col gap-4">
+            <div className="bg-warning/10 border border-warning/30 rounded-xl p-5">
+              <p className="text-xs font-semibold text-warning mb-1">Escrow held</p>
+              <p className="text-2xl font-semibold text-warning">R {booking.totalAmount}</p>
+              <p className="text-xs text-warning/80 mt-1">Released on customer approval</p>
+            </div>
 
-      <div className="flex gap-2 mt-auto">
-        <button className="flex-1 bg-destructive/10 border border-destructive/20 rounded-xl py-3 text-center">
-          <span className="text-xs text-destructive">Emergency</span>
-        </button>
-        {booking.status === 'confirmed' ? (
-          <Button className="flex-[2]" onClick={handleCheckIn} disabled={checkIn.isPending}>
-            {checkIn.isPending ? 'Checking in…' : 'Check in & start'}
-          </Button>
-        ) : (
-          <Button className="flex-[2]" onClick={() => navigate(`/provider/jobs/${id}/checkout`)}>
-            Complete job
-          </Button>
-        )}
+            {booking.status === 'confirmed' ? (
+              <Button className="w-full" size="lg" onClick={handleCheckIn} disabled={checkIn.isPending}>
+                {checkIn.isPending ? 'Checking in…' : 'Check in & start'}
+              </Button>
+            ) : (
+              <Button className="w-full" size="lg" onClick={() => navigate(`/provider/jobs/${id}/checkout`)}>
+                Complete job
+              </Button>
+            )}
+
+            <button
+              className="w-full bg-destructive/10 border border-destructive/20 rounded-xl py-3 px-4 flex items-center justify-center gap-2 hover:bg-destructive/20 transition-colors"
+              onClick={() => toast.error('Emergency contact — feature coming soon')}
+            >
+              <AlertTriangle className="w-4 h-4 text-destructive" />
+              <span className="text-sm text-destructive font-medium">Emergency</span>
+            </button>
+          </div>
+        </div>
       </div>
-    </AppShell>
+    </PageLayout>
   );
 }

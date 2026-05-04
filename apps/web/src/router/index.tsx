@@ -15,6 +15,7 @@ import { BookingPage } from '@/pages/customer/BookingPage';
 import { PaymentPage } from '@/pages/customer/PaymentPage';
 import { BookingsListPage } from '@/pages/customer/BookingsListPage';
 import { ProfilePage } from '@/pages/customer/ProfilePage';
+import { ProfileEditPage } from '@/pages/customer/ProfileEditPage';
 
 // Provider
 import { JobBoardPage } from '@/pages/provider/JobBoardPage';
@@ -69,6 +70,10 @@ export const router = createBrowserRouter([
   {
     path: '/profile',
     element: <RequireAuth><ProfilePage /></RequireAuth>,
+  },
+  {
+    path: '/profile/edit',
+    element: <RequireAuth><ProfileEditPage /></RequireAuth>,
   },
 
   {

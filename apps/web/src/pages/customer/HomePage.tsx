@@ -1,20 +1,24 @@
 import { useNavigate } from 'react-router-dom';
-import { Search } from 'lucide-react';
+import { Search, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { AppShell } from '@/components/layout/AppShell';
-import { BottomNav } from '@/components/layout/BottomNav';
+import { PageLayout } from '@/components/layout/PageLayout';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useServiceCategories } from '@/features/services/hooks/useServices';
 
-const CATEGORY_COLORS: Record<string, string> = {
-  cleaning: 'text-primary',
-  beauty: 'text-purple',
-  plumbing: 'text-warning',
-  electrical: 'text-foreground',
-  gardening: 'text-primary',
-  photography: 'text-purple',
-  catering: 'text-warning',
-  tutoring: 'text-foreground',
+const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
+  cleaning:    { bg: 'bg-primary/10',     text: 'text-primary' },
+  beauty:      { bg: 'bg-purple/10',      text: 'text-purple' },
+  plumbing:    { bg: 'bg-warning/10',     text: 'text-warning' },
+  electrical:  { bg: 'bg-warning/10',     text: 'text-warning' },
+  gardening:   { bg: 'bg-primary/10',     text: 'text-primary' },
+  photography: { bg: 'bg-purple/10',      text: 'text-purple' },
+  catering:    { bg: 'bg-destructive/10', text: 'text-destructive' },
+  tutoring:    { bg: 'bg-primary/10',     text: 'text-primary' },
+};
+
+const CATEGORY_EMOJIS: Record<string, string> = {
+  cleaning: '🧹', beauty: '✂️', plumbing: '🔧', electrical: '⚡',
+  gardening: '🌿', photography: '📷', catering: '🍽️', tutoring: '📚',
 };
 
 export function HomePage() {
@@ -22,80 +26,101 @@ export function HomePage() {
   const navigate = useNavigate();
   const { data: categories = [], isLoading } = useServiceCategories();
 
-  const firstName = user?.user_metadata?.['full_name']?.split(' ')[0] ?? 'there';
+  const firstName = (user?.user_metadata?.['full_name'] as string | undefined)?.split(' ')[0] ?? 'there';
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
-  const displayed = categories.slice(0, 5);
-
   return (
-    <AppShell className="pb-20">
-      <main className="flex flex-col gap-4 px-4 pt-4">
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">
-            {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </span>
-          <div className="w-7 h-7 rounded-full bg-purple/20 flex items-center justify-center">
-            <span className="text-[10px] font-medium text-purple">
-              {firstName.slice(0, 2).toUpperCase()}
-            </span>
+    <PageLayout>
+      <div className="flex flex-col gap-8">
+        {/* Header */}
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold text-foreground">
+              {greeting}, {firstName}
+            </h1>
+            <p className="text-muted-foreground mt-1">What would you like to get done today?</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-primary border-primary/30 bg-primary/10 text-xs h-6 px-3">
+              Sandton · Trusted
+            </Badge>
           </div>
         </div>
 
-        <h1 className="text-xl font-semibold text-foreground">
-          {greeting}, {firstName}
-        </h1>
-
+        {/* Search bar */}
         <button
           onClick={() => navigate('/search')}
-          className="flex items-center gap-2 bg-card border border-border rounded-xl px-4 py-3 w-full text-left"
+          className="flex items-center gap-3 bg-card border border-border rounded-xl px-5 py-4 w-full text-left hover:border-primary/40 transition-colors"
         >
-          <Search className="w-4 h-4 text-muted-foreground" aria-hidden />
-          <span className="text-sm text-muted-foreground">Search any service…</span>
+          <Search className="w-5 h-5 text-muted-foreground flex-shrink-0" aria-hidden />
+          <span className="text-sm text-muted-foreground">Search any service — cleaning, beauty, plumbing…</span>
         </button>
 
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-primary">Sandton</span>
-          <Badge variant="outline" className="text-primary border-primary/30 bg-primary/10 text-[10px] h-5">
-            Trusted
-          </Badge>
-        </div>
-
+        {/* Service categories */}
         <section aria-label="Service categories">
-          <h2 className="text-sm font-medium text-foreground mb-3">What do you need?</h2>
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-lg font-semibold text-foreground">Browse services</h2>
+            <button
+              onClick={() => navigate('/search')}
+              className="flex items-center gap-1 text-sm text-primary hover:opacity-80 transition-opacity"
+            >
+              View all <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
           {isLoading ? (
-            <div className="grid grid-cols-3 gap-2">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="bg-card border border-border rounded-lg py-3 animate-pulse h-10" />
+            <div className="grid grid-cols-4 gap-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="bg-card border border-border rounded-xl h-28 animate-pulse" />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-2">
-              {displayed.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => navigate(`/search?categoryId=${cat.id}&category=${cat.slug}`)}
-                  className="bg-card border border-border rounded-lg py-3 px-2 text-center"
-                >
-                  <span className={`text-xs font-medium ${CATEGORY_COLORS[cat.slug] ?? 'text-foreground'}`}>
-                    {cat.name}
-                  </span>
-                </button>
-              ))}
-              {categories.length > 5 && (
-                <button
-                  onClick={() => navigate('/search')}
-                  className="bg-card border border-border rounded-lg py-3 px-2 text-center"
-                >
-                  <span className="text-xs font-medium text-muted-foreground">More…</span>
-                </button>
-              )}
+            <div className="grid grid-cols-4 gap-4">
+              {categories.map((cat) => {
+                const colors = CATEGORY_COLORS[cat.slug] ?? { bg: 'bg-card', text: 'text-foreground' };
+                const emoji = CATEGORY_EMOJIS[cat.slug] ?? '⚙️';
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => navigate(`/search?categoryId=${cat.id}&category=${cat.slug}`)}
+                    className="bg-card border border-border rounded-xl p-5 text-left hover:border-primary/40 transition-all hover:shadow-sm group"
+                  >
+                    <div className={`w-10 h-10 rounded-xl ${colors.bg} flex items-center justify-center mb-3 text-xl`}>
+                      {emoji}
+                    </div>
+                    <p className={`text-sm font-medium ${colors.text}`}>{cat.name}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 group-hover:text-foreground transition-colors">
+                      Find providers →
+                    </p>
+                  </button>
+                );
+              })}
             </div>
           )}
         </section>
-      </main>
 
-      <BottomNav />
-    </AppShell>
+        {/* Quick actions */}
+        <section>
+          <h2 className="text-lg font-semibold text-foreground mb-4">Quick actions</h2>
+          <div className="grid grid-cols-3 gap-4">
+            {[
+              { label: 'My bookings', description: 'View and manage your bookings', to: '/bookings', color: 'border-primary/20 bg-primary/5' },
+              { label: 'Saved locations', description: 'Manage your service addresses', to: '/profile', color: 'border-purple/20 bg-purple/5' },
+              { label: 'Profile', description: 'Update your account details', to: '/profile', color: 'border-border bg-card' },
+            ].map((action) => (
+              <button
+                key={action.label}
+                onClick={() => navigate(action.to)}
+                className={`border rounded-xl p-5 text-left hover:opacity-80 transition-opacity ${action.color}`}
+              >
+                <p className="text-sm font-medium text-foreground">{action.label}</p>
+                <p className="text-xs text-muted-foreground mt-1">{action.description}</p>
+              </button>
+            ))}
+          </div>
+        </section>
+      </div>
+    </PageLayout>
   );
 }
