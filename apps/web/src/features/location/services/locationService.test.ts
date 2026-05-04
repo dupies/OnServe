@@ -11,7 +11,23 @@ vi.mock('@/lib/supabase', () => ({
 
 const { getSavedLocations, saveLocation, deleteLocation } = await import('./locationService');
 
-const SAVED_LOCATION = {
+// Raw DB row — snake_case as Supabase returns it
+const DB_ROW = {
+  id: 'loc-1',
+  user_id: 'user-1',
+  label: 'Home' as const,
+  custom_name: null,
+  formatted_address: '14 Maple Crescent, Sandton',
+  latitude: -26.1076,
+  longitude: 28.0567,
+  visit_count: 12,
+  trust_score: 84,
+  is_default: true,
+  created_at: '2026-01-01T00:00:00Z',
+};
+
+// Expected camelCase shape after service mapping
+const MAPPED = {
   id: 'loc-1',
   userId: 'user-1',
   label: 'Home' as const,
@@ -31,12 +47,12 @@ beforeEach(() => {
 });
 
 describe('getSavedLocations', () => {
-  it('returns saved locations ordered default-first', async () => {
-    mock._setTable('saved_locations', [SAVED_LOCATION]);
+  it('returns saved locations mapped to camelCase', async () => {
+    mock._setTable('saved_locations', [DB_ROW]);
     const result = await getSavedLocations();
 
     expect(result).toHaveLength(1);
-    expect(result[0]).toEqual(SAVED_LOCATION);
+    expect(result[0]).toEqual(MAPPED);
   });
 
   it('orders by is_default descending', async () => {
@@ -60,8 +76,8 @@ describe('getSavedLocations', () => {
 });
 
 describe('saveLocation', () => {
-  it('inserts a new location and returns it', async () => {
-    mock._setTable('saved_locations', SAVED_LOCATION);
+  it('inserts with snake_case keys and returns mapped location', async () => {
+    mock._setTable('saved_locations', DB_ROW);
     const input = {
       userId: 'user-1',
       label: 'Home' as const,
@@ -73,10 +89,19 @@ describe('saveLocation', () => {
     };
 
     const result = await saveLocation(input);
-    expect(result).toEqual(SAVED_LOCATION);
+    expect(result).toEqual(MAPPED);
 
+    // Service must translate camelCase → snake_case before inserting
     const handler = mock.from('saved_locations');
-    expect(handler.insert).toHaveBeenCalledWith(input);
+    expect(handler.insert).toHaveBeenCalledWith({
+      user_id: 'user-1',
+      label: 'Home',
+      custom_name: null,
+      formatted_address: '14 Maple Crescent, Sandton',
+      latitude: -26.1076,
+      longitude: 28.0567,
+      is_default: true,
+    });
     expect(handler.select).toHaveBeenCalled();
     expect(handler.single).toHaveBeenCalled();
   });
