@@ -20,8 +20,12 @@ export default function Index() {
     return <Redirect href="/(auth)/splash" />;
   }
 
+  if (!role) {
+    return <Redirect href="/(auth)/role" />;
+  }
+
   if (role === 'provider') {
-    return <Redirect href="/(provider)/jobs" />;
+    return <Redirect href="/(provider)/(tabs)/jobs" />;
   }
 
   return <Redirect href="/(customer)/" />;

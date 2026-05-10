@@ -37,7 +37,7 @@ export default function SearchScreen() {
     hasNextPage,
     fetchNextPage,
   } = useInfiniteQuery({
-    queryKey: ['providers', 'all', coords.lat, coords.lng],
+    queryKey: ['providers', 'all', coords.lat, coords.lng, category],
     queryFn: ({ pageParam }) =>
       listAllProviders(coords.lat, coords.lng, PAGE_SIZE, pageParam as number),
     initialPageParam: 0,
@@ -53,8 +53,12 @@ export default function SearchScreen() {
       const q = query.toLowerCase();
       result = result.filter((p) => p.bio?.toLowerCase().includes(q));
     }
+    if (category && category !== 'more') {
+      const cat = category.toLowerCase();
+      result = result.filter((p) => p.bio?.toLowerCase().includes(cat));
+    }
     return result;
-  }, [data, minRating, query]);
+  }, [data, minRating, query, category]);
 
   const locationLabel = gpsLoading ? 'Locating…' : coords.label;
 

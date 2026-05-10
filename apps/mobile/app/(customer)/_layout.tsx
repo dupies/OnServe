@@ -10,13 +10,14 @@ function TabIcon({ label }: { label: string }) {
 
 export default function CustomerLayout() {
   const user = useAuthStore((s) => s.user);
+  const isLoading = useAuthStore((s) => s.isLoading);
   const router = useRouter();
 
   useEffect(() => {
-    if (!user) {
+    if (!isLoading && !user) {
       router.replace('/(auth)/splash');
     }
-  }, [user]);
+  }, [user, isLoading]);
 
   return (
     <Tabs

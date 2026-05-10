@@ -28,8 +28,9 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { user, signOut } = useAuthStore();
 
-  const displayName = 'User'; // TODO: from user profile
-  const phone = user ? '+27 XX XXX XXXX' : '';
+  const rawUser = user as unknown as Record<string, unknown> | null;
+  const displayName = (rawUser?.['full_name'] as string | null) ?? user?.fullName ?? 'User';
+  const phone = (rawUser?.['phone'] as string | null) ?? user?.phone ?? '';
 
   const handleSignOut = () => {
     Alert.alert('Sign out', 'Are you sure you want to sign out?', [

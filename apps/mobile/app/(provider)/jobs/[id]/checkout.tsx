@@ -23,7 +23,7 @@ export default function CheckoutScreen() {
     setLoading(true);
     try {
       // TODO: mark job complete in supabase, trigger escrow release request
-      router.replace('/(provider)/jobs');
+      router.replace('/(provider)/(tabs)/jobs');
     } finally {
       setLoading(false);
     }

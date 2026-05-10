@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -40,7 +40,18 @@ export default function RoleScreen() {
   const router = useRouter();
   const [selected, setSelected] = useState<Role | null>(null);
   const [loading, setLoading] = useState(false);
-  const setRole = useAuthStore((s) => s.setRole);
+  const { role: existingRole, isLoading: authLoading, setRole } = useAuthStore((s) => ({
+    role: s.role,
+    isLoading: s.isLoading,
+    setRole: s.setRole,
+  }));
+
+  // Redirect users who already have a role (returning users after OTP)
+  useEffect(() => {
+    if (authLoading) return;
+    if (existingRole === 'provider') router.replace('/(provider)/(tabs)/jobs');
+    else if (existingRole === 'customer' || existingRole === 'admin') router.replace('/(customer)/');
+  }, [existingRole, authLoading]);
 
   const handleContinue = async () => {
     if (!selected) return;
@@ -48,18 +59,20 @@ export default function RoleScreen() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // TODO: upsert role into `users` table
-        // await supabase.from('users').upsert({ id: user.id, role: selected });
-      }
-      const effectiveRole = selected === 'both' ? 'customer' : selected;
-      setRole(effectiveRole);
-      if (selected === 'provider') {
-        router.replace('/(provider)/onboarding');
-      } else {
-        router.replace('/(customer)/');
+        const effectiveRole = selected === 'both' ? 'customer' : selected;
+        await supabase.from('users').upsert(
+          { id: user.id, role: effectiveRole, phone: user.phone ?? null },
+          { onConflict: 'id' },
+        );
+        setRole(effectiveRole);
+        if (selected === 'provider') {
+          router.replace('/(provider)/onboarding');
+        } else {
+          router.replace('/(customer)/');
+        }
       }
     } catch {
-      // handle error
+      // handle error silently — user can retry
     } finally {
       setLoading(false);
     }

@@ -18,7 +18,8 @@ const OTP_LENGTH = 6;
 
 export default function VerifyScreen() {
   const router = useRouter();
-  const { phone } = useLocalSearchParams<{ phone: string }>();
+  const { phone: phoneParam } = useLocalSearchParams<{ phone: string }>();
+  const phone = Array.isArray(phoneParam) ? phoneParam[0] : (phoneParam ?? '');
   const [digits, setDigits] = useState<string[]>(Array(OTP_LENGTH).fill(''));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -61,7 +62,8 @@ export default function VerifyScreen() {
       if (err) {
         setError(err.message);
       } else {
-        router.replace('/(auth)/role');
+        // Let index.tsx decide routing based on existing role
+        router.replace('/');
       }
     } catch {
       setError('Verification failed. Please try again.');
@@ -73,7 +75,8 @@ export default function VerifyScreen() {
   const handleResend = async () => {
     if (countdown > 0) return;
     setCountdown(60);
-    await supabase.auth.signInWithOtp({ phone: phone ?? '' });
+    const { error: err } = await supabase.auth.signInWithOtp({ phone });
+    if (err) setError(err.message);
   };
 
   const code = digits.join('');

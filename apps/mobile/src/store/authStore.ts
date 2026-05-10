@@ -9,9 +9,12 @@ interface AuthState {
   signOut: () => Promise<void>;
   init: () => Promise<void>;
   setRole: (role: 'customer' | 'provider' | 'admin') => void;
+  refreshUser: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+let _subscription: { unsubscribe: () => void } | null = null;
+
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   role: null,
   isLoading: true,
@@ -21,6 +24,20 @@ export const useAuthStore = create<AuthState>((set) => ({
   signOut: async () => {
     await supabase.auth.signOut();
     set({ user: null, role: null });
+  },
+
+  refreshUser: async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
+    const { data: profile } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', session.user.id)
+      .single();
+    set({
+      user: profile as unknown as User,
+      role: (profile as Record<string, unknown>)?.['role'] as AuthState['role'] ?? null,
+    });
   },
 
   init: async () => {
@@ -34,7 +51,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         .single();
       set({
         user: profile as unknown as User,
-        role: profile?.role ?? null,
+        role: (profile as Record<string, unknown>)?.['role'] as AuthState['role'] ?? null,
         isLoading: false,
       });
     }
@@ -48,13 +65,17 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({ user: null, role: null, isLoading: false });
       }
 
-      supabase.auth.onAuthStateChange(async (_event, session) => {
-        if (session?.user) {
-          await loadUser(session.user);
+      // Unsubscribe any previous listener before registering a new one
+      _subscription?.unsubscribe();
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+        if (newSession?.user) {
+          set({ isLoading: true });
+          await loadUser(newSession.user);
         } else {
           set({ user: null, role: null, isLoading: false });
         }
       });
+      _subscription = subscription;
     } catch {
       set({ isLoading: false });
     }

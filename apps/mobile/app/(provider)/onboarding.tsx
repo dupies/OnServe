@@ -48,7 +48,7 @@ export default function ProviderOnboarding() {
       setStep((s) => s + 1);
     } else {
       // TODO: save provider profile to supabase
-      router.replace('/(provider)/jobs');
+      router.replace('/(provider)/(tabs)/jobs');
     }
   };
 

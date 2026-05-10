@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,23 +16,42 @@ import { C } from '@/lib/colors';
 import { Avatar } from '@/components/Avatar';
 import { Btn } from '@/components/Btn';
 import { useAuthStore } from '@/store/authStore';
+import { supabase } from '@/lib/supabase';
 
 export default function EditProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const user = useAuthStore((s) => s.user);
+  const { user, refreshUser } = useAuthStore((s) => ({ user: s.user, refreshUser: s.refreshUser }));
+  const rawUser = user as unknown as Record<string, unknown> | null;
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
-  const phone = '+27 XX XXX XXXX'; // from auth — readonly
+  const phone = (rawUser?.['phone'] as string | null) ?? user?.phone ?? '';
+
+  useEffect(() => {
+    if (!user) return;
+    setName((rawUser?.['full_name'] as string | null) ?? user.fullName ?? '');
+    setEmail((rawUser?.['email'] as string | null) ?? user.email ?? '');
+  }, [user?.id]);
 
   const handleSave = async () => {
+    setSaveError(null);
     setLoading(true);
     try {
-      // TODO: update user profile in supabase
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) throw new Error('Not authenticated');
+      const { error } = await supabase
+        .from('users')
+        .update({ full_name: name.trim(), email: email.trim() || null })
+        .eq('id', authUser.id);
+      if (error) throw new Error(error.message);
+      await refreshUser();
       router.back();
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : 'Failed to save');
     } finally {
       setLoading(false);
     }
@@ -91,6 +110,9 @@ export default function EditProfileScreen() {
             <Text style={styles.idText}>ID encrypted and stored securely. Verified only, not shared.</Text>
           </View>
 
+          {saveError ? (
+            <Text style={styles.errorText}>{saveError}</Text>
+          ) : null}
           <Btn
             label="Save changes"
             onPress={handleSave}
@@ -152,4 +174,5 @@ const styles = StyleSheet.create({
   },
   idIcon: { fontSize: 16 },
   idText: { flex: 1, fontSize: 13, color: C.muted, lineHeight: 18 },
+  errorText: { color: '#ef4444', fontSize: 13, marginBottom: 8 },
 });

@@ -33,7 +33,7 @@ export async function listAllProviders(
     p_offset: offset,
   });
   if (error) throw new Error(error.message);
-  return (data as Record<string, unknown>[]).map((r) => ({
+  return ((data ?? []) as Record<string, unknown>[]).map((r) => ({
     ...mapProviderProfile(r),
     distance_km: r['distance_km'] != null ? Number(r['distance_km']) : null,
   }));

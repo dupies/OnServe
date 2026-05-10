@@ -27,6 +27,8 @@ export default function ProviderProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user, signOut } = useAuthStore();
+  const rawUser = user as unknown as Record<string, unknown> | null;
+  const displayName = (rawUser?.['full_name'] as string | null) ?? user?.fullName ?? 'Provider';
 
   const handleSignOut = () => {
     Alert.alert('Sign out', 'Are you sure?', [
@@ -43,8 +45,8 @@ export default function ProviderProfileScreen() {
       >
         {/* Profile header */}
         <View style={styles.profileHeader}>
-          <Avatar name="Sipho Dlamini" size={72} color={C.purple} />
-          <Text style={styles.name}>Sipho Dlamini</Text>
+          <Avatar name={displayName} size={72} color={C.purple} />
+          <Text style={styles.name}>{displayName}</Text>
           <Text style={styles.specialty}>Deep Cleaning Specialist</Text>
           <View style={styles.badgeRow}>
             <Badge label="✓ Verified" variant="green" />
