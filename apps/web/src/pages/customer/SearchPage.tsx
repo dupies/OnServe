@@ -5,8 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { useSearchProviders } from '@/features/providers/hooks/useProviders';
-import { geocodeAddress } from '@/lib/geocoding';
+import { useAllProviders } from '@/features/providers/hooks/useProviders';
+import { geocodeAddress, reverseGeocodeShort } from '@/lib/geocoding';
 import type { GeocodeResult } from '@/lib/geocoding';
 import { cn } from '@/lib/utils';
 
@@ -16,7 +16,6 @@ const FALLBACK = { lat: -26.1076, lng: 28.0567, label: 'Sandton, Johannesburg' }
 type LocationMode = 'gps' | 'manual';
 type Coords = { lat: number; lng: number; label: string } | null;
 
-const RADIUS_OPTIONS = [5, 10, 20, 50];
 const RATING_OPTIONS = [
   { label: 'Any rating', min: 0 },
   { label: '4.5+', min: 4.5 },
@@ -36,8 +35,13 @@ function useGPSCoords() {
       return;
     }
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude, label: 'Your location' });
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        let label = 'Your location';
+        try {
+          label = await reverseGeocodeShort(latitude, longitude);
+        } catch { /* keep default */ }
+        setCoords({ lat: latitude, lng: longitude, label });
         setLoading(false);
       },
       () => {
@@ -133,36 +137,35 @@ export function SearchPage() {
   const [mode, setMode] = useState<LocationMode>('gps');
   const [manualCoords, setManualCoords] = useState<Coords>(null);
   const [query, setQuery] = useState('');
-  const [radiusKm, setRadiusKm] = useState(10);
   const [minRating, setMinRating] = useState(0);
 
   const { coords: gpsCoords, loading: gpsLoading } = useGPSCoords();
   const activeCoords = mode === 'gps' ? gpsCoords : manualCoords;
 
-  const { data: providers = [], isLoading } = useSearchProviders(
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useAllProviders(
     activeCoords?.lat ?? null,
     activeCoords?.lng ?? null,
-    radiusKm,
   );
 
+  // Flatten pages and apply client-side filters
   const filtered = useMemo(() => {
-    let result = [...providers];
+    const all = data?.pages.flatMap((p) => p) ?? [];
+    let result = [...all];
     if (minRating > 0) result = result.filter((p) => p.ratingAverage >= minRating);
     if (query.trim()) {
       const q = query.toLowerCase();
-      result = result.filter(
-        (p) => p.bio?.toLowerCase().includes(q),
-      );
+      result = result.filter((p) => p.bio?.toLowerCase().includes(q));
     }
-    // Sort by distance ascending (closest first)
-    result.sort((a, b) => {
-      const da = Number((a as unknown as Record<string, unknown>)['distance_km'] ?? Infinity);
-      const db = Number((b as unknown as Record<string, unknown>)['distance_km'] ?? Infinity);
-      return da - db;
-    });
     return result;
-  }, [providers, minRating, query]);
+  }, [data, minRating, query]);
 
+  const totalLoaded = data?.pages.flatMap((p) => p).length ?? 0;
   const locationLabel = activeCoords?.label ?? (gpsLoading ? 'Locating…' : 'Unknown location');
 
   return (
@@ -173,7 +176,7 @@ export function SearchPage() {
           <h1 className="text-2xl font-semibold text-foreground capitalize">{category}</h1>
           <p className="text-muted-foreground text-sm mt-0.5">
             {activeCoords
-              ? `Searching within ${radiusKm} km of ${locationLabel}`
+              ? `All providers near ${locationLabel}, sorted by distance`
               : mode === 'gps' && gpsLoading
               ? 'Getting your location…'
               : 'Enter a location to search'}
@@ -222,7 +225,7 @@ export function SearchPage() {
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Filter results…"
+                placeholder="Filter by bio or specialty…"
                 className="pl-9"
               />
             </div>
@@ -253,24 +256,7 @@ export function SearchPage() {
             </div>
 
             <div className="bg-card border border-border rounded-xl p-4">
-              <h2 className="text-sm font-semibold text-foreground mb-3">Search radius</h2>
-              <div className="flex flex-col gap-1">
-                {RADIUS_OPTIONS.map((km) => (
-                  <button
-                    key={km}
-                    onClick={() => setRadiusKm(km)}
-                    className={cn(
-                      'text-left text-sm px-2 py-1.5 rounded-lg transition-colors',
-                      radiusKm === km
-                        ? 'bg-primary/10 text-primary font-medium'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-surface',
-                    )}
-                  >
-                    {km} km
-                  </button>
-                ))}
-              </div>
-              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border text-xs text-muted-foreground">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <MapPin className="w-3.5 h-3.5 text-primary flex-shrink-0" />
                 <span className="truncate">{locationLabel}</span>
               </div>
@@ -301,15 +287,15 @@ export function SearchPage() {
                   <Search className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <p className="text-foreground font-medium">
-                  {providers.length === 0 ? 'No providers found in this area' : 'No providers match your filters'}
+                  {totalLoaded === 0 ? 'No providers found near this location' : 'No providers match your filters'}
                 </p>
                 <p className="text-muted-foreground text-sm mt-1">
-                  {providers.length === 0
-                    ? 'Try increasing the search radius or a different location'
+                  {totalLoaded === 0
+                    ? 'Try a different location or check back later'
                     : 'Clear your filters to see all results'}
                 </p>
-                {(minRating > 0 || query) && (
-                  <Button variant="outline" size="sm" className="mt-4" onClick={() => { setMinRating(0); setQuery(''); }}>
+                {minRating > 0 && (
+                  <Button variant="outline" size="sm" className="mt-4" onClick={() => setMinRating(0)}>
                     Clear filters
                   </Button>
                 )}
@@ -317,8 +303,8 @@ export function SearchPage() {
             ) : (
               <>
                 <p className="text-sm text-muted-foreground">
-                  {filtered.length} provider{filtered.length !== 1 ? 's' : ''}
-                  {providers.length !== filtered.length && ` (${providers.length} total within ${radiusKm} km)`}
+                  {filtered.length} provider{filtered.length !== 1 ? 's' : ''} shown
+                  {totalLoaded !== filtered.length && ` (filtered from ${totalLoaded} loaded)`}
                 </p>
                 <div className="grid grid-cols-2 gap-4">
                   {filtered.map((p) => (
@@ -334,9 +320,9 @@ export function SearchPage() {
                           <div>
                             <p className="text-sm font-medium text-foreground">Provider</p>
                             <p className="text-xs text-muted-foreground">
-                              {(p as unknown as Record<string, unknown>)['distance_km'] !== undefined
-                                ? `${Number((p as unknown as Record<string, unknown>)['distance_km']).toFixed(1)} km away`
-                                : `${radiusKm} km radius`}
+                              {p.distance_km !== undefined
+                                ? `${Number(p.distance_km).toFixed(1)} km away`
+                                : 'Distance unknown'}
                             </p>
                           </div>
                         </div>
@@ -363,6 +349,20 @@ export function SearchPage() {
                     </article>
                   ))}
                 </div>
+
+                {hasNextPage && (
+                  <div className="flex justify-center pt-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => fetchNextPage()}
+                      disabled={isFetchingNextPage}
+                    >
+                      {isFetchingNextPage
+                        ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Loading…</>
+                        : 'Load more providers'}
+                    </Button>
+                  </div>
+                )}
               </>
             )}
           </div>

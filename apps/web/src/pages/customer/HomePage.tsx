@@ -1,9 +1,11 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ArrowRight } from 'lucide-react';
+import { Search, ArrowRight, Navigation, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useServiceCategories } from '@/features/services/hooks/useServices';
+import { reverseGeocodeShort } from '@/lib/geocoding';
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
   cleaning:    { bg: 'bg-primary/10',     text: 'text-primary' },
@@ -21,10 +23,36 @@ const CATEGORY_EMOJIS: Record<string, string> = {
   gardening: '🌿', photography: '📷', catering: '🍽️', tutoring: '📚',
 };
 
+function useLocationLabel() {
+  const [label, setLabel] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!navigator.geolocation) { setLoading(false); return; }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const city = await reverseGeocodeShort(pos.coords.latitude, pos.coords.longitude);
+          setLabel(city);
+        } catch {
+          setLabel('Your location');
+        } finally {
+          setLoading(false);
+        }
+      },
+      () => setLoading(false),
+      { timeout: 6000 },
+    );
+  }, []);
+
+  return { label, loading };
+}
+
 export function HomePage() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const { data: categories = [], isLoading } = useServiceCategories();
+  const { label: locationLabel, loading: locationLoading } = useLocationLabel();
 
   const firstName = (user?.user_metadata?.['full_name'] as string | undefined)?.split(' ')[0] ?? 'there';
   const hour = new Date().getHours();
@@ -42,8 +70,10 @@ export function HomePage() {
             <p className="text-muted-foreground mt-1">What would you like to get done today?</p>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-primary border-primary/30 bg-primary/10 text-xs h-6 px-3">
-              Sandton · Trusted
+            <Badge variant="outline" className="text-primary border-primary/30 bg-primary/10 text-xs h-6 px-3 flex items-center gap-1.5">
+              {locationLoading
+                ? <><Loader2 className="w-3 h-3 animate-spin" /> Locating…</>
+                : <><Navigation className="w-3 h-3" /> {locationLabel ?? 'Location unknown'}</>}
             </Badge>
           </div>
         </div>

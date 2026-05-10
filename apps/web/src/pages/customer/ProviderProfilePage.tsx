@@ -139,7 +139,7 @@ export function ProviderProfilePage() {
                 <Button className="w-full" onClick={() => navigate(`/book/${id}`)}>
                   Book now
                 </Button>
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full" onClick={() => navigate(`/quote-request?providerId=${id}`)}>
                   Request quote
                 </Button>
               </div>
