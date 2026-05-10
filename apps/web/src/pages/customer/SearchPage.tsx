@@ -26,12 +26,12 @@ const RATING_OPTIONS = [
 
 // ── GPS hook ──────────────────────────────────────────────────────────────────
 function useGPSCoords() {
-  const [coords, setCoords] = useState<Coords>(null);
+  // Start with fallback so providers load immediately — GPS refines the location
+  const [coords, setCoords] = useState<Coords>(FALLBACK);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!navigator.geolocation) {
-      setCoords(FALLBACK);
       setLoading(false);
       return;
     }
@@ -41,8 +41,7 @@ function useGPSCoords() {
         setLoading(false);
       },
       () => {
-        setCoords(FALLBACK);
-        setLoading(false);
+        setLoading(false); // keep FALLBACK coords
       },
       { timeout: 6000 },
     );
@@ -147,14 +146,20 @@ export function SearchPage() {
   );
 
   const filtered = useMemo(() => {
-    let result = providers;
+    let result = [...providers];
     if (minRating > 0) result = result.filter((p) => p.ratingAverage >= minRating);
     if (query.trim()) {
       const q = query.toLowerCase();
       result = result.filter(
-        (p) => p.bio?.toLowerCase().includes(q) || p.userId.toLowerCase().includes(q),
+        (p) => p.bio?.toLowerCase().includes(q),
       );
     }
+    // Sort by distance ascending (closest first)
+    result.sort((a, b) => {
+      const da = Number((a as unknown as Record<string, unknown>)['distance_km'] ?? Infinity);
+      const db = Number((b as unknown as Record<string, unknown>)['distance_km'] ?? Infinity);
+      return da - db;
+    });
     return result;
   }, [providers, minRating, query]);
 
@@ -284,7 +289,7 @@ export function SearchPage() {
                   Type a city or address above to find providers in that area
                 </p>
               </div>
-            ) : isLoading || (mode === 'gps' && gpsLoading) ? (
+            ) : isLoading ? (
               <div className="grid grid-cols-2 gap-4">
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="bg-card border border-border rounded-xl p-5 animate-pulse h-36" />

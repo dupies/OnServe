@@ -7,23 +7,53 @@ import { LoginPage } from '@/pages/auth/LoginPage';
 import { OTPPage } from '@/pages/auth/OTPPage';
 import { RoleSelectPage } from '@/pages/auth/RoleSelectPage';
 
-// Customer
+// Customer — Discover
 import { HomePage } from '@/pages/customer/HomePage';
 import { SearchPage } from '@/pages/customer/SearchPage';
 import { ProviderProfilePage } from '@/pages/customer/ProviderProfilePage';
+
+// Customer — Location
+import { SavedLocationsPage } from '@/pages/customer/SavedLocationsPage';
+
+// Customer — Book
 import { BookingPage } from '@/pages/customer/BookingPage';
+import { QuoteRequestPage } from '@/pages/customer/QuoteRequestPage';
+import { QuoteReviewPage } from '@/pages/customer/QuoteReviewPage';
 import { PaymentPage } from '@/pages/customer/PaymentPage';
+
+// Customer — Track & Resolve
 import { BookingsListPage } from '@/pages/customer/BookingsListPage';
+import { BookingDetailPage } from '@/pages/customer/BookingDetailPage';
+import { LiveTrackingPage } from '@/pages/customer/LiveTrackingPage';
+import { JobCompletePage } from '@/pages/customer/JobCompletePage';
+import { RateReviewPage } from '@/pages/customer/RateReviewPage';
+import { DisputeFormPage } from '@/pages/customer/DisputeFormPage';
+import { DisputeStatusPage } from '@/pages/customer/DisputeStatusPage';
+
+// Customer — Account
 import { ProfilePage } from '@/pages/customer/ProfilePage';
 import { ProfileEditPage } from '@/pages/customer/ProfileEditPage';
 import { NotificationsPage } from '@/pages/customer/NotificationsPage';
-import { SavedLocationsPage } from '@/pages/customer/SavedLocationsPage';
+
+// Shared
+import { ChatPage } from '@/pages/customer/ChatPage';
 
 // Provider
+import { ProviderOnboardingPage } from '@/pages/provider/ProviderOnboardingPage';
+import { PayoutRequestPage } from '@/pages/provider/PayoutRequestPage';
 import { JobBoardPage } from '@/pages/provider/JobBoardPage';
 import { JobDetailPage } from '@/pages/provider/JobDetailPage';
 import { ActiveJobPage } from '@/pages/provider/ActiveJobPage';
 import { CheckOutPage } from '@/pages/provider/CheckOutPage';
+import { ProviderEarningsPage } from '@/pages/provider/ProviderEarningsPage';
+import { ProviderQuoteRequestsPage } from '@/pages/provider/ProviderQuoteRequestsPage';
+import { SubmitQuotePage } from '@/pages/provider/SubmitQuotePage';
+
+// Shared
+import { SettingsPage } from '@/pages/SettingsPage';
+
+// Admin
+import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, isLoading, role } = useAuthStore();
@@ -39,25 +69,70 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function RequireAdmin({ children }: { children: React.ReactNode }) {
+  const { role } = useAuthStore();
+  if (role !== 'admin') return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
+function auth(element: React.ReactNode) {
+  return <RequireAuth>{element}</RequireAuth>;
+}
+
+function admin(element: React.ReactNode) {
+  return <RequireAuth><RequireAdmin>{element}</RequireAdmin></RequireAuth>;
+}
+
 export const router = createBrowserRouter([
+  // Auth
   { path: '/splash', element: <SplashPage /> },
   { path: '/login', element: <LoginPage /> },
   { path: '/verify', element: <OTPPage /> },
   { path: '/role', element: <RoleSelectPage /> },
 
-  { path: '/', element: <RequireAuth><HomePage /></RequireAuth> },
-  { path: '/search', element: <RequireAuth><SearchPage /></RequireAuth> },
-  { path: '/providers/:id', element: <RequireAuth><ProviderProfilePage /></RequireAuth> },
-  { path: '/book/:providerId', element: <RequireAuth><BookingPage /></RequireAuth> },
-  { path: '/payment', element: <RequireAuth><PaymentPage /></RequireAuth> },
-  { path: '/bookings', element: <RequireAuth><BookingsListPage /></RequireAuth> },
-  { path: '/notifications', element: <RequireAuth><NotificationsPage /></RequireAuth> },
-  { path: '/profile', element: <RequireAuth><ProfilePage /></RequireAuth> },
-  { path: '/profile/edit', element: <RequireAuth><ProfileEditPage /></RequireAuth> },
-  { path: '/profile/locations', element: <RequireAuth><SavedLocationsPage /></RequireAuth> },
+  // Customer — Discover
+  { path: '/', element: auth(<HomePage />) },
+  { path: '/search', element: auth(<SearchPage />) },
+  { path: '/providers/:id', element: auth(<ProviderProfilePage />) },
 
-  { path: '/provider/jobs', element: <RequireAuth><JobBoardPage /></RequireAuth> },
-  { path: '/provider/jobs/:id', element: <RequireAuth><JobDetailPage /></RequireAuth> },
-  { path: '/provider/jobs/:id/active', element: <RequireAuth><ActiveJobPage /></RequireAuth> },
-  { path: '/provider/jobs/:id/checkout', element: <RequireAuth><CheckOutPage /></RequireAuth> },
+  // Customer — Location
+  { path: '/profile/locations', element: auth(<SavedLocationsPage />) },
+
+  // Customer — Book
+  { path: '/book/:providerId', element: auth(<BookingPage />) },
+  { path: '/quote-request', element: auth(<QuoteRequestPage />) },
+  { path: '/quote-requests/:id', element: auth(<QuoteReviewPage />) },
+  { path: '/payment', element: auth(<PaymentPage />) },
+
+  // Customer — Track & Resolve
+  { path: '/bookings', element: auth(<BookingsListPage />) },
+  { path: '/bookings/:id', element: auth(<BookingDetailPage />) },
+  { path: '/tracking/:id', element: auth(<LiveTrackingPage />) },
+  { path: '/complete/:id', element: auth(<JobCompletePage />) },
+  { path: '/rate/:id', element: auth(<RateReviewPage />) },
+  { path: '/disputes/new/:bookingId', element: auth(<DisputeFormPage />) },
+  { path: '/disputes/:id', element: auth(<DisputeStatusPage />) },
+
+  // Customer — Account
+  { path: '/notifications', element: auth(<NotificationsPage />) },
+  { path: '/profile', element: auth(<ProfilePage />) },
+  { path: '/profile/edit', element: auth(<ProfileEditPage />) },
+
+  // Shared
+  { path: '/chat/:bookingId', element: auth(<ChatPage />) },
+  { path: '/settings', element: auth(<SettingsPage />) },
+
+  // Provider
+  { path: '/provider/onboarding', element: auth(<ProviderOnboardingPage />) },
+  { path: '/provider/payout', element: auth(<PayoutRequestPage />) },
+  { path: '/provider/jobs', element: auth(<JobBoardPage />) },
+  { path: '/provider/jobs/:id', element: auth(<JobDetailPage />) },
+  { path: '/provider/jobs/:id/active', element: auth(<ActiveJobPage />) },
+  { path: '/provider/jobs/:id/checkout', element: auth(<CheckOutPage />) },
+  { path: '/provider/earnings', element: auth(<ProviderEarningsPage />) },
+  { path: '/provider/quotes', element: auth(<ProviderQuoteRequestsPage />) },
+  { path: '/provider/quotes/:id', element: auth(<SubmitQuotePage />) },
+
+  // Admin
+  { path: '/admin', element: admin(<AdminDashboardPage />) },
 ]);

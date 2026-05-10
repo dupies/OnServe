@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git config *)",
+      "Bash(npm install *)",
+      "Bash(./node_modules/.bin/tailwindcss init *)",
+      "Bash(supabase --version)",
+      "Bash(supabase link *)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:5173/)",
+      "Bash(curl -s http://localhost:5174/)",
+      "Bash(npx tsc *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "mcp__claude_ai_Supabase__execute_sql"
+    ]
+  },
+  "defaultMode": "bypassPermissions"
+}

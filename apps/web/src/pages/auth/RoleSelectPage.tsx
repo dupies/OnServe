@@ -25,7 +25,7 @@ export function RoleSelectPage() {
     try {
       await setUserRole(selected);
       setRole(selected);
-      navigate(selected === 'provider' ? '/provider/jobs' : '/');
+      navigate(selected === 'provider' ? '/provider/onboarding' : '/');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Something went wrong');
     } finally {

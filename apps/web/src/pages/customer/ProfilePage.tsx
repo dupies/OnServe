@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Edit, MapPin, Bell, CreditCard, LogOut } from 'lucide-react';
+import { Edit, MapPin, Bell, CreditCard, LogOut, FileText, DollarSign, Settings } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -7,7 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { useAuthStore } from '@/features/auth/store/authStore';
 
-const MENU_SECTIONS = [
+const CUSTOMER_MENU = [
   {
     heading: 'Account',
     items: [
@@ -20,13 +20,34 @@ const MENU_SECTIONS = [
     heading: 'Preferences',
     items: [
       { label: 'Notifications', description: 'Booking alerts and updates', to: '/notifications', icon: Bell },
+      { label: 'Settings', description: 'Privacy, account, and data', to: '/settings', icon: Settings },
+    ],
+  },
+];
+
+const PROVIDER_MENU = [
+  {
+    heading: 'Provider',
+    items: [
+      { label: 'Edit profile', description: 'Update your name and bio', to: '/profile/edit', icon: Edit },
+      { label: 'My services', description: 'Manage what you offer', to: '/provider/quotes', icon: FileText },
+      { label: 'Bank account', description: 'Payout settings', to: '/provider/payout', icon: DollarSign },
+    ],
+  },
+  {
+    heading: 'Preferences',
+    items: [
+      { label: 'Notifications', description: 'Job alerts and updates', to: '/notifications', icon: Bell },
+      { label: 'Settings', description: 'Privacy, account, and data', to: '/settings', icon: Settings },
     ],
   },
 ];
 
 export function ProfilePage() {
-  const { user, signOut } = useAuthStore();
+  const { user, role, signOut } = useAuthStore();
   const navigate = useNavigate();
+  const isProvider = role === 'provider';
+  const MENU_SECTIONS = isProvider ? PROVIDER_MENU : CUSTOMER_MENU;
 
   const fullName = (user?.user_metadata?.['full_name'] as string | undefined) ?? 'User';
   const initials = fullName.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase();
@@ -55,7 +76,7 @@ export function ProfilePage() {
               </div>
               <div className="flex gap-2 flex-wrap justify-center">
                 <Badge variant="outline" className="text-xs text-primary border-primary/30 bg-primary/10">
-                  Active
+                  {isProvider ? 'Provider' : 'Active'}
                 </Badge>
               </div>
               <Button

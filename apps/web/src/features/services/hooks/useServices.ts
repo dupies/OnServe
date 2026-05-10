@@ -1,5 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
-import { getServiceCategories, getServiceTypesByCategory } from '../services/serviceService';
+import { getServiceCategories, getServiceTypesByCategory, getAllServiceTypes } from '../services/serviceService';
+
+export function useAllServiceTypes() {
+  return useQuery({
+    queryKey: ['service-types'],
+    queryFn: getAllServiceTypes,
+  });
+}
 
 export function useServiceCategories() {
   return useQuery({

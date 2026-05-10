@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, CalendarCheck, User, Briefcase, DollarSign, Search, Bell } from 'lucide-react';
+import { Home, CalendarCheck, User, Briefcase, DollarSign, Search, Bell, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useUnreadCount } from '@/features/notifications/hooks/useNotifications';
@@ -15,15 +15,17 @@ const customerNav: NavItem[] = [
   { to: '/', label: 'Home', icon: Home },
   { to: '/search', label: 'Search', icon: Search },
   { to: '/bookings', label: 'Bookings', icon: CalendarCheck },
+  { to: '/quote-request', label: 'Get Quote', icon: FileText },
   { to: '/notifications', label: 'Notifications', icon: Bell, badge: true },
   { to: '/profile', label: 'Profile', icon: User },
 ];
 
 const providerNav: NavItem[] = [
   { to: '/provider/jobs', label: 'Job Board', icon: Briefcase },
+  { to: '/provider/quotes', label: 'Quotes', icon: FileText },
   { to: '/provider/earnings', label: 'Earnings', icon: DollarSign },
   { to: '/notifications', label: 'Notifications', icon: Bell, badge: true },
-  { to: '/provider/profile', label: 'Profile', icon: User },
+  { to: '/profile', label: 'Profile', icon: User },
 ];
 
 export function Sidebar() {

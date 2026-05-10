@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowLeft, Home, Briefcase, MapPin, Star, Pencil, Trash2, Locate, Loader2, Check, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -19,35 +19,26 @@ import { reverseGeocode } from '@/lib/geocoding';
 import type { SavedLocation } from '@onserve/types';
 import { cn } from '@/lib/utils';
 
-const LABEL_ICONS = {
-  Home: Home,
-  Work: Briefcase,
-  Other: MapPin,
-};
-
+const LABEL_ICONS = { Home, Work: Briefcase, Other: MapPin };
 const LABELS: Array<SavedLocation['label']> = ['Home', 'Work', 'Other'];
 
-// ── Add-from-GPS form ─────────────────────────────────────────────────────────
-function AddLocationPanel({
-  userId,
-  onDone,
-}: {
-  userId: string;
-  onDone: () => void;
-}) {
-  const [step, setStep] = useState<'idle' | 'locating' | 'confirm'>('idle');
+// ── Add-from-GPS panel (mounted only while adding === true) ───────────────────
+// Starts locating immediately on mount. Calls onDone() on success, cancel, or
+// error — which unmounts this component and resets all internal state.
+function AddLocationPanel({ userId, onDone }: { userId: string; onDone: () => void }) {
+  const [step, setStep] = useState<'locating' | 'confirm'>('locating');
   const [address, setAddress] = useState('');
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [label, setLabel] = useState<SavedLocation['label']>('Home');
   const [customName, setCustomName] = useState('');
   const saveLocation = useSaveLocation();
 
-  async function locate() {
+  useEffect(() => {
     if (!navigator.geolocation) {
       toast.error('Geolocation is not supported by your browser');
+      onDone();
       return;
     }
-    setStep('locating');
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude: lat, longitude: lng } = pos.coords;
@@ -62,11 +53,11 @@ function AddLocationPanel({
       },
       () => {
         toast.error('Could not get your location. Please allow location access.');
-        setStep('idle');
+        onDone();
       },
       { timeout: 10000 },
     );
-  }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function save() {
     if (!coords) return;
@@ -87,36 +78,32 @@ function AddLocationPanel({
     }
   }
 
-  if (step === 'idle') {
-    return (
-      <Button onClick={locate} className="gap-2">
-        <Locate className="w-4 h-4" />
-        Add from current location
-      </Button>
-    );
-  }
-
   if (step === 'locating') {
     return (
-      <div className="bg-card border border-border rounded-xl p-5 flex items-center gap-3">
-        <Loader2 className="w-4 h-4 text-primary animate-spin" />
-        <p className="text-sm text-muted-foreground">Getting your location…</p>
+      <div className="bg-card border border-border rounded-xl p-5 flex items-center justify-between gap-3" data-testid="locating-panel">
+        <div className="flex items-center gap-3">
+          <Loader2 className="w-4 h-4 text-primary animate-spin" />
+          <p className="text-sm text-muted-foreground">Getting your location…</p>
+        </div>
+        <button onClick={onDone} aria-label="Cancel" className="text-muted-foreground hover:text-foreground transition-colors">
+          <X className="w-4 h-4" />
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="bg-card border border-primary/20 rounded-xl p-5 flex flex-col gap-4">
+    <div className="bg-card border border-primary/20 rounded-xl p-5 flex flex-col gap-4" data-testid="confirm-panel">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-foreground">New location</p>
-        <button onClick={onDone} className="text-muted-foreground hover:text-foreground transition-colors">
+        <button onClick={onDone} aria-label="Cancel" className="text-muted-foreground hover:text-foreground transition-colors">
           <X className="w-4 h-4" />
         </button>
       </div>
 
       <div className="flex items-start gap-2 text-sm text-muted-foreground">
         <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-primary" />
-        <span className="leading-relaxed">{address}</span>
+        <span className="leading-relaxed" data-testid="resolved-address">{address}</span>
       </div>
 
       <div className="flex flex-col gap-2">
@@ -128,6 +115,7 @@ function AddLocationPanel({
               <button
                 key={l}
                 onClick={() => setLabel(l)}
+                aria-pressed={label === l}
                 className={cn(
                   'flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm transition-colors',
                   label === l
@@ -148,11 +136,12 @@ function AddLocationPanel({
           value={customName}
           onChange={(e) => setCustomName(e.target.value)}
           placeholder="Custom name (e.g. Gym, Parents)"
+          data-testid="custom-name-input"
         />
       )}
 
       <div className="flex gap-2">
-        <Button size="sm" onClick={save} disabled={saveLocation.isPending} className="gap-1.5">
+        <Button size="sm" onClick={save} disabled={saveLocation.isPending} className="gap-1.5" data-testid="save-location-btn">
           {saveLocation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
           Save location
         </Button>
@@ -163,13 +152,7 @@ function AddLocationPanel({
 }
 
 // ── Inline edit form ──────────────────────────────────────────────────────────
-function EditRow({
-  loc,
-  onDone,
-}: {
-  loc: SavedLocation;
-  onDone: () => void;
-}) {
+function EditRow({ loc, onDone }: { loc: SavedLocation; onDone: () => void }) {
   const [label, setLabel] = useState<SavedLocation['label']>(loc.label);
   const [customName, setCustomName] = useState(loc.customName ?? '');
   const updateLocation = useUpdateLocation();
@@ -188,7 +171,7 @@ function EditRow({
   }
 
   return (
-    <div className="px-5 py-4 flex flex-col gap-3 bg-surface">
+    <div className="px-5 py-4 flex flex-col gap-3 bg-surface" data-testid="edit-row">
       <div className="flex gap-2">
         {LABELS.map((l) => {
           const Icon = LABEL_ICONS[l];
@@ -196,6 +179,7 @@ function EditRow({
             <button
               key={l}
               onClick={() => setLabel(l)}
+              aria-pressed={label === l}
               className={cn(
                 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm transition-colors',
                 label === l
@@ -215,10 +199,11 @@ function EditRow({
           onChange={(e) => setCustomName(e.target.value)}
           placeholder="Custom name"
           className="h-8 text-sm"
+          data-testid="edit-custom-name"
         />
       )}
       <div className="flex gap-2">
-        <Button size="sm" onClick={save} disabled={updateLocation.isPending} className="gap-1.5">
+        <Button size="sm" onClick={save} disabled={updateLocation.isPending} className="gap-1.5" data-testid="edit-save-btn">
           {updateLocation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
           Save
         </Button>
@@ -248,7 +233,7 @@ function LocationCard({ loc }: { loc: SavedLocation }) {
   }
 
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden">
+    <div className="bg-card border border-border rounded-xl overflow-hidden" data-testid={`location-card-${loc.id}`}>
       <div className="flex items-center gap-4 px-5 py-4">
         <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
           <Icon className="w-4 h-4 text-primary" />
@@ -269,6 +254,7 @@ function LocationCard({ loc }: { loc: SavedLocation }) {
             <button
               onClick={() => setDefault.mutate(loc.id)}
               disabled={setDefault.isPending}
+              aria-label="Set as default"
               title="Set as default"
               className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
             >
@@ -277,13 +263,15 @@ function LocationCard({ loc }: { loc: SavedLocation }) {
           )}
           <button
             onClick={() => { setEditing((e) => !e); setConfirmDelete(false); }}
+            aria-label="Edit"
             title="Edit"
             className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-surface transition-colors"
           >
             <Pencil className="w-3.5 h-3.5" />
           </button>
           <button
-            onClick={() => setConfirmDelete((c) => !c)}
+            onClick={() => { setConfirmDelete((c) => !c); setEditing(false); }}
+            aria-label="Delete"
             title="Delete"
             className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
           >
@@ -302,7 +290,7 @@ function LocationCard({ loc }: { loc: SavedLocation }) {
       {confirmDelete && !editing && (
         <>
           <Separator />
-          <div className="px-5 py-3 bg-destructive/5 flex items-center justify-between gap-4">
+          <div className="px-5 py-3 bg-destructive/5 flex items-center justify-between gap-4" data-testid="delete-confirm-row">
             <p className="text-xs text-destructive">Remove this location?</p>
             <div className="flex gap-2">
               <Button
@@ -311,6 +299,7 @@ function LocationCard({ loc }: { loc: SavedLocation }) {
                 onClick={handleDelete}
                 disabled={deleteLocation.isPending}
                 className="h-7 text-xs"
+                data-testid="confirm-delete-btn"
               >
                 {deleteLocation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Remove'}
               </Button>
@@ -351,9 +340,13 @@ export function SavedLocationsPage() {
               <p className="text-muted-foreground text-sm mt-1">Manage your home, work, and other addresses</p>
             </div>
             {!adding && (
-              <AddLocationPanel userId={user?.id ?? ''} onDone={() => setAdding(false)} />
+              <Button onClick={() => setAdding(true)} className="gap-2" data-testid="add-location-btn">
+                <Locate className="w-4 h-4" />
+                Add from current location
+              </Button>
             )}
           </div>
+
           {adding && (
             <div className="mt-4">
               <AddLocationPanel userId={user?.id ?? ''} onDone={() => setAdding(false)} />
@@ -368,31 +361,24 @@ export function SavedLocationsPage() {
             ))}
           </div>
         ) : locations.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
+          <div className="flex flex-col items-center justify-center py-24 text-center" data-testid="empty-state">
             <div className="w-14 h-14 rounded-full bg-card border border-border flex items-center justify-center mb-4">
               <MapPin className="w-6 h-6 text-muted-foreground" />
             </div>
             <p className="text-foreground font-medium">No saved locations</p>
-            <p className="text-muted-foreground text-sm mt-1">
-              Add your current location to get started
-            </p>
+            <p className="text-muted-foreground text-sm mt-1">Add your current location to get started</p>
           </div>
         ) : (
           <div className="flex flex-col gap-5">
             {defaultLoc && (
               <section>
-                <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
-                  Default
-                </h2>
+                <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Default</h2>
                 <LocationCard loc={defaultLoc} />
               </section>
             )}
-
             {others.length > 0 && (
               <section>
-                <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
-                  Other locations
-                </h2>
+                <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Other locations</h2>
                 <div className="flex flex-col gap-3">
                   {others.map((loc) => (
                     <LocationCard key={loc.id} loc={loc} />

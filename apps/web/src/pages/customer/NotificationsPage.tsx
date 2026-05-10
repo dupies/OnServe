@@ -138,7 +138,7 @@ export function NotificationsPage() {
               </div>
             )}
 
-            {groups.map((group, gi) => (
+            {groups.map((group) => (
               <section key={group.label}>
                 <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
                   {group.label}
