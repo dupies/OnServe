@@ -18,6 +18,7 @@ import { SavedLocationsPage } from '@/pages/customer/SavedLocationsPage';
 // Customer — Book
 import { BookingPage } from '@/pages/customer/BookingPage';
 import { QuoteRequestPage } from '@/pages/customer/QuoteRequestPage';
+import { QuoteRequestsListPage } from '@/pages/customer/QuoteRequestsListPage';
 import { QuoteReviewPage } from '@/pages/customer/QuoteReviewPage';
 import { PaymentPage } from '@/pages/customer/PaymentPage';
 
@@ -106,6 +107,7 @@ export const router = createBrowserRouter([
   // Customer — Book
   { path: '/book/:providerId', element: auth(<BookingPage />) },
   { path: '/quote-request', element: auth(<QuoteRequestPage />) },
+  { path: '/quote-requests', element: auth(<QuoteRequestsListPage />) },
   { path: '/quote-requests/:id', element: auth(<QuoteReviewPage />) },
   { path: '/payment', element: auth(<PaymentPage />) },
 

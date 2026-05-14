@@ -2,6 +2,24 @@ import { supabase } from '@/lib/supabase';
 import type { QuoteRequest, Quote } from '@onserve/types';
 import type { QuoteRequestInput } from '@onserve/shared';
 
+export interface QuoteRequestSummary extends QuoteRequest {
+  serviceTypeName: string;
+  quoteCount: number;
+}
+
+export interface ProviderInfo {
+  id: string;
+  ratingAverage: number;
+  totalJobsCompleted: number;
+  verificationStatus: string;
+  fullName: string;
+  avatarUrl: string | null;
+}
+
+export interface QuoteWithProvider extends Quote {
+  provider: ProviderInfo | null;
+}
+
 function mapQuoteRequest(r: Record<string, unknown>): QuoteRequest {
   return {
     id: r['id'] as string,
@@ -31,6 +49,22 @@ function mapQuote(r: Record<string, unknown>): Quote {
   };
 }
 
+function mapQuoteWithProvider(r: Record<string, unknown>): QuoteWithProvider {
+  const profile = r['provider'] as Record<string, unknown> | null;
+  const user = profile?.['user'] as Record<string, unknown> | null;
+  const provider: ProviderInfo | null = profile
+    ? {
+        id: profile['id'] as string,
+        ratingAverage: (profile['rating_average'] as number) ?? 0,
+        totalJobsCompleted: (profile['total_jobs_completed'] as number) ?? 0,
+        verificationStatus: (profile['verification_status'] as string) ?? 'pending',
+        fullName: (user?.['full_name'] as string) ?? 'Provider',
+        avatarUrl: (user?.['avatar_url'] as string | null) ?? null,
+      }
+    : null;
+  return { ...mapQuote(r), provider };
+}
+
 export async function createQuoteRequest(input: QuoteRequestInput): Promise<QuoteRequest> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
@@ -55,24 +89,44 @@ export async function createQuoteRequest(input: QuoteRequestInput): Promise<Quot
   return mapQuoteRequest(data);
 }
 
-export async function getCustomerQuoteRequests(): Promise<QuoteRequest[]> {
+export async function getCustomerQuoteRequests(): Promise<QuoteRequestSummary[]> {
   const { data, error } = await supabase
     .from('quote_requests')
-    .select('*, service_types(*)')
+    .select('*, service_types(name), quotes(id)')
     .order('created_at', { ascending: false });
   if (error) throw new Error(error.message);
-  return (data ?? []).map(mapQuoteRequest);
+  return (data ?? []).map((r) => ({
+    ...mapQuoteRequest(r),
+    serviceTypeName: (r['service_types'] as { name: string } | null)?.name ?? 'Service',
+    quoteCount: ((r['quotes'] as { id: string }[]) ?? []).length,
+  }));
 }
 
-export async function getQuoteRequestById(id: string): Promise<QuoteRequest & { quotes: Quote[] }> {
+export async function getQuoteRequestById(
+  id: string
+): Promise<QuoteRequest & { serviceTypeName: string; quotes: QuoteWithProvider[] }> {
   const { data, error } = await supabase
     .from('quote_requests')
-    .select('*, quotes(*), service_types(*)')
+    .select(`
+      *,
+      service_types(name),
+      quotes(
+        *,
+        provider:provider_profiles(
+          id,
+          rating_average,
+          total_jobs_completed,
+          verification_status,
+          user:users(full_name, avatar_url)
+        )
+      )
+    `)
     .eq('id', id)
     .single();
   if (error) throw new Error(error.message);
-  const quotes = ((data['quotes'] as Record<string, unknown>[]) ?? []).map(mapQuote);
-  return { ...mapQuoteRequest(data), quotes };
+  const quotes = ((data['quotes'] as Record<string, unknown>[]) ?? []).map(mapQuoteWithProvider);
+  const serviceTypeName = (data['service_types'] as { name: string } | null)?.name ?? 'Service';
+  return { ...mapQuoteRequest(data), serviceTypeName, quotes };
 }
 
 export async function getProviderQuoteRequests(): Promise<QuoteRequest[]> {

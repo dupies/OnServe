@@ -15,7 +15,7 @@ const customerNav: NavItem[] = [
   { to: '/', label: 'Home', icon: Home },
   { to: '/search', label: 'Search', icon: Search },
   { to: '/bookings', label: 'Bookings', icon: CalendarCheck },
-  { to: '/quote-request', label: 'Get Quote', icon: FileText },
+  { to: '/quote-requests', label: 'My Quotes', icon: FileText },
   { to: '/notifications', label: 'Notifications', icon: Bell, badge: true },
   { to: '/profile', label: 'Profile', icon: User },
 ];

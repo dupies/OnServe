@@ -7,6 +7,7 @@ import {
   submitQuote,
   acceptQuote,
 } from '../services/quoteService';
+export type { QuoteRequestSummary, QuoteWithProvider, ProviderInfo } from '../services/quoteService';
 import type { QuoteRequestInput } from '@onserve/shared';
 
 export function useCustomerQuoteRequests() {

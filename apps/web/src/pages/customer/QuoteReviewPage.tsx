@@ -1,12 +1,12 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Clock } from 'lucide-react';
+import { ArrowLeft, Clock, Star, Briefcase, ShieldCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { useQuoteRequest, useAcceptQuote } from '@/features/quotes/hooks/useQuotes';
+import type { QuoteWithProvider } from '@/features/quotes/hooks/useQuotes';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
-import type { Quote } from '@onserve/types';
 
 export function QuoteReviewPage() {
   const { id } = useParams<{ id: string }>();
@@ -36,7 +36,7 @@ export function QuoteReviewPage() {
     );
   }
 
-  const quotes: Quote[] = data.quotes ?? [];
+  const quotes: QuoteWithProvider[] = data.quotes ?? [];
   const expiresAt = new Date(data.expiresAt);
   const timeLeft = formatDistanceToNow(expiresAt, { addSuffix: false });
   const isExpired = expiresAt < new Date();
@@ -46,17 +46,18 @@ export function QuoteReviewPage() {
       <div className="max-w-2xl flex flex-col gap-6">
         <div>
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/quote-requests')}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
           >
-            <ArrowLeft className="w-4 h-4" /> Back
+            <ArrowLeft className="w-4 h-4" /> Quote requests
           </button>
           <div className="flex items-center justify-between">
             <div>
+              <p className="text-xs text-muted-foreground font-medium mb-1">{data.serviceTypeName}</p>
               <h1 className="text-2xl font-semibold text-foreground">
                 {quotes.length} quote{quotes.length !== 1 ? 's' : ''} received
               </h1>
-              <p className="text-muted-foreground text-sm mt-1">{data.problemDescription}</p>
+              <p className="text-muted-foreground text-sm mt-1 line-clamp-2">{data.problemDescription}</p>
             </div>
             <Badge variant="outline" className={isExpired ? 'text-destructive border-destructive/30' : 'text-warning border-warning/30 bg-warning/10'}>
               <Clock className="w-3 h-3 mr-1" />
@@ -84,6 +85,7 @@ export function QuoteReviewPage() {
                 featured={i === 0}
                 onAccept={() => handleAccept(q.id)}
                 isPending={acceptQuote.isPending}
+                isAccepted={data.status === 'accepted'}
               />
             ))}
           </div>
@@ -98,12 +100,15 @@ function QuoteCard({
   featured,
   onAccept,
   isPending,
+  isAccepted,
 }: {
-  quote: Quote;
+  quote: QuoteWithProvider;
   featured: boolean;
   onAccept: () => void;
   isPending: boolean;
+  isAccepted: boolean;
 }) {
+  const provider = quote.provider;
   const durationLabel =
     quote.estimatedDurationMins !== null
       ? quote.estimatedDurationMins < 60
@@ -111,46 +116,88 @@ function QuoteCard({
         : `${Math.round(quote.estimatedDurationMins / 60)}h`
       : null;
 
+  const initials = provider
+    ? provider.fullName.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()
+    : 'P';
+
+  const isThisAccepted = quote.status === 'accepted';
+
   return (
     <div
       className={`bg-card border rounded-xl p-5 flex flex-col gap-4 ${
-        featured ? 'border-primary/30 bg-primary/5' : 'border-border'
+        isThisAccepted
+          ? 'border-primary/40 bg-primary/5'
+          : featured
+          ? 'border-primary/20'
+          : 'border-border'
       }`}
     >
-      <div className="flex items-center justify-between">
+      {/* Provider header row */}
+      <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
-            P
-          </div>
-          <div>
-            <p className="text-sm font-medium text-foreground">Provider</p>
-            {durationLabel && (
-              <p className="text-xs text-muted-foreground">Est. {durationLabel}</p>
+          <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center overflow-hidden flex-shrink-0">
+            {provider?.avatarUrl ? (
+              <img src={provider.avatarUrl} alt={provider.fullName} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-xs font-semibold text-primary">{initials}</span>
             )}
           </div>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm font-medium text-foreground">
+                {provider?.fullName ?? 'Provider'}
+              </p>
+              {provider?.verificationStatus === 'verified' && (
+                <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+              )}
+            </div>
+            <div className="flex items-center gap-2 mt-0.5">
+              {provider && provider.ratingAverage > 0 && (
+                <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
+                  <Star className="w-3 h-3 fill-warning text-warning" />
+                  {provider.ratingAverage.toFixed(1)}
+                </span>
+              )}
+              {provider && provider.totalJobsCompleted > 0 && (
+                <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
+                  <Briefcase className="w-3 h-3" />
+                  {provider.totalJobsCompleted} jobs
+                </span>
+              )}
+              {durationLabel && (
+                <span className="text-xs text-muted-foreground">· {durationLabel}</span>
+              )}
+            </div>
+          </div>
         </div>
-        <span className={`text-2xl font-semibold ${featured ? 'text-primary' : 'text-foreground'}`}>
-          R {quote.quotedPrice}
-        </span>
+        <div className="text-right flex-shrink-0">
+          <span className={`text-2xl font-semibold ${isThisAccepted || featured ? 'text-primary' : 'text-foreground'}`}>
+            R{quote.quotedPrice}
+          </span>
+          {isThisAccepted && (
+            <p className="text-xs text-primary mt-0.5">Accepted</p>
+          )}
+        </div>
       </div>
 
       {quote.notes && (
-        <p className="text-sm text-muted-foreground">{quote.notes}</p>
+        <p className="text-sm text-muted-foreground leading-relaxed">{quote.notes}</p>
       )}
 
-      {featured && (
-        <Button className="w-full" onClick={onAccept} disabled={isPending}>
-          {isPending ? 'Accepting…' : 'Accept this quote'}
-        </Button>
-      )}
-      {!featured && (
-        <button
-          className="w-full border border-border rounded-lg py-2 text-sm text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
-          onClick={onAccept}
-          disabled={isPending}
-        >
-          Accept
-        </button>
+      {!isAccepted && (
+        featured ? (
+          <Button className="w-full" onClick={onAccept} disabled={isPending}>
+            {isPending ? 'Accepting…' : 'Accept this quote'}
+          </Button>
+        ) : (
+          <button
+            className="w-full border border-border rounded-lg py-2 text-sm text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
+            onClick={onAccept}
+            disabled={isPending}
+          >
+            Accept
+          </button>
+        )
       )}
     </div>
   );
