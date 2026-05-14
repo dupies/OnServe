@@ -1,4 +1,5 @@
 import { AlertTriangle, Clock, Users, DollarSign } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { PageLayout } from '@/components/layout/PageLayout';
 
@@ -10,9 +11,9 @@ const STAT_CARDS = [
 ];
 
 const ACTION_ITEMS = [
-  { id: '#1092', type: 'dispute', label: 'Dispute #1092 escalated', severity: 'high' as const },
-  { id: 'ids', type: 'id_check', label: '8 provider IDs pending review', severity: 'medium' as const },
-  { id: 'loc', type: 'location', label: 'Suspicious location flagged', severity: 'low' as const },
+  { id: '#1092', type: 'dispute', label: 'Dispute #1092 escalated', severity: 'high' as const, to: '/admin/disputes' },
+  { id: 'ids', type: 'id_check', label: '8 provider IDs pending review', severity: 'medium' as const, to: '/admin/users' },
+  { id: 'loc', type: 'location', label: 'Suspicious location flagged', severity: 'low' as const, to: null },
 ];
 
 const RECENT_ACTIVITY = [
@@ -82,9 +83,13 @@ export function AdminDashboardPage() {
                     }`}
                   />
                   <p className="text-sm text-foreground flex-1">{item.label}</p>
-                  <button className="text-xs text-primary hover:text-primary/80 transition-colors font-medium">
-                    Review →
-                  </button>
+                  {item.to ? (
+                    <Link to={item.to} className="text-xs text-primary hover:text-primary/80 transition-colors font-medium">
+                      Review →
+                    </Link>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">Pending</span>
+                  )}
                 </div>
               ))}
             </div>

@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, CalendarCheck, User, Briefcase, DollarSign, Search, Bell, FileText } from 'lucide-react';
+import { Home, CalendarCheck, User, Briefcase, DollarSign, Search, Bell, FileText, LayoutDashboard, Users, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useUnreadCount } from '@/features/notifications/hooks/useNotifications';
@@ -20,6 +20,13 @@ const customerNav: NavItem[] = [
   { to: '/profile', label: 'Profile', icon: User },
 ];
 
+const adminNav: NavItem[] = [
+  { to: '/admin', label: 'Overview', icon: LayoutDashboard },
+  { to: '/admin/users', label: 'Users', icon: Users },
+  { to: '/admin/disputes', label: 'Disputes', icon: ShieldAlert },
+  { to: '/notifications', label: 'Notifications', icon: Bell, badge: true },
+];
+
 const providerNav: NavItem[] = [
   { to: '/provider/jobs', label: 'Job Board', icon: Briefcase },
   { to: '/provider/quotes', label: 'Quotes', icon: FileText },
@@ -33,7 +40,7 @@ export function Sidebar() {
   const { user, role, signOut } = useAuthStore();
   const { data: unreadCount = 0 } = useUnreadCount();
 
-  const items = role === 'provider' ? providerNav : customerNav;
+  const items = role === 'admin' ? adminNav : role === 'provider' ? providerNav : customerNav;
   const fullName = (user?.user_metadata?.['full_name'] as string | undefined) ?? 'User';
   const initials = fullName.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase();
   const avatarUrl = user?.user_metadata?.['avatar_url'] as string | undefined;

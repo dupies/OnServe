@@ -19,6 +19,7 @@ export function makeQueryMock(data: unknown, error: { message: string } | null =
     in: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnThis(),
     single: vi.fn().mockReturnThis(),
+    maybeSingle: vi.fn().mockReturnThis(),
     // Make the chain itself a Promise so `await chain.<anyMethod>()` resolves
     then: (resolve: (v: Result) => void) => (Promise.resolve(result).then(resolve) as unknown) as Promise<Result>,
     catch: (reject: (e: unknown) => void) => (Promise.resolve(result).catch(reject) as unknown) as Promise<Result>,
@@ -37,6 +38,7 @@ export type ChainMock = {
   in: ReturnType<typeof vi.fn>;
   order: ReturnType<typeof vi.fn>;
   single: ReturnType<typeof vi.fn>;
+  maybeSingle: ReturnType<typeof vi.fn>;
   then: (resolve: (v: Result) => void) => Promise<Result>;
   catch: (reject: (e: unknown) => void) => Promise<Result>;
   finally: (fn: () => void) => Promise<Result>;

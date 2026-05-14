@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Edit, MapPin, Bell, CreditCard, LogOut, FileText, DollarSign, Settings } from 'lucide-react';
+import { Edit, MapPin, Bell, CreditCard, LogOut, FileText, DollarSign, Settings, BarChart2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -31,6 +31,7 @@ const PROVIDER_MENU = [
     items: [
       { label: 'Edit profile', description: 'Update your name and bio', to: '/profile/edit', icon: Edit },
       { label: 'My services', description: 'Manage what you offer', to: '/provider/quotes', icon: FileText },
+      { label: 'Reputation', description: 'Ratings, completion rate and scores', to: '/provider/reputation', icon: BarChart2 },
       { label: 'Bank account', description: 'Payout settings', to: '/provider/payout', icon: DollarSign },
     ],
   },

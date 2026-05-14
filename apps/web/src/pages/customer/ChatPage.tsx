@@ -14,6 +14,15 @@ interface Message {
   createdAt: string;
 }
 
+function rowToMessage(r: Record<string, unknown>): Message {
+  return {
+    id: r['id'] as string,
+    senderId: r['sender_id'] as string,
+    body: r['body'] as string,
+    createdAt: r['created_at'] as string,
+  };
+}
+
 export function ChatPage() {
   const { bookingId } = useParams<{ bookingId: string }>();
   const navigate = useNavigate();
@@ -26,17 +35,36 @@ export function ChatPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
+  // Load message history on mount
+  useEffect(() => {
+    if (!bookingId) return;
+    supabase
+      .from('messages')
+      .select('*')
+      .eq('booking_id', bookingId)
+      .order('created_at', { ascending: true })
+      .then(({ data }) => {
+        if (data) setMessages((data as Record<string, unknown>[]).map(rowToMessage));
+      });
+  }, [bookingId]);
+
+  // Subscribe to new messages via Realtime postgres changes
   useEffect(() => {
     if (!bookingId) return;
 
-    const channel = supabase.channel(`chat:${bookingId}`, {
-      config: { broadcast: { self: true } },
-    });
-
-    channel
-      .on('broadcast', { event: 'message' }, ({ payload }) => {
-        setMessages((prev) => [...prev, payload as Message]);
-      })
+    const channel = supabase
+      .channel(`messages:${bookingId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `booking_id=eq.${bookingId}` },
+        (payload) => {
+          setMessages((prev) => {
+            const incoming = rowToMessage(payload.new as Record<string, unknown>);
+            if (prev.some((m) => m.id === incoming.id)) return prev;
+            return [...prev, incoming];
+          });
+        },
+      )
       .subscribe();
 
     channelRef.current = channel;
@@ -53,18 +81,9 @@ export function ChatPage() {
   async function sendMessage() {
     if (!draft.trim() || !bookingId || !user) return;
     setSending(true);
-    const msg: Message = {
-      id: crypto.randomUUID(),
-      senderId: user.id,
-      body: draft.trim(),
-      createdAt: new Date().toISOString(),
-    };
-    await channelRef.current?.send({
-      type: 'broadcast',
-      event: 'message',
-      payload: msg,
-    });
+    const body = draft.trim();
     setDraft('');
+    await supabase.from('messages').insert({ booking_id: bookingId, sender_id: user.id, body });
     setSending(false);
   }
 

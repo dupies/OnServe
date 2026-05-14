@@ -54,6 +54,11 @@ import { SettingsPage } from '@/pages/SettingsPage';
 
 // Admin
 import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage';
+import { AdminDisputeDetailPage } from '@/pages/admin/AdminDisputeDetailPage';
+import { AdminUsersPage } from '@/pages/admin/AdminUsersPage';
+
+// Provider
+import { ProviderReputationPage } from '@/pages/provider/ProviderReputationPage';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, isLoading, role } = useAuthStore();
@@ -133,6 +138,11 @@ export const router = createBrowserRouter([
   { path: '/provider/quotes', element: auth(<ProviderQuoteRequestsPage />) },
   { path: '/provider/quotes/:id', element: auth(<SubmitQuotePage />) },
 
+  // Provider — reputation
+  { path: '/provider/reputation', element: auth(<ProviderReputationPage />) },
+
   // Admin
   { path: '/admin', element: admin(<AdminDashboardPage />) },
+  { path: '/admin/disputes/:id', element: admin(<AdminDisputeDetailPage />) },
+  { path: '/admin/users', element: admin(<AdminUsersPage />) },
 ]);

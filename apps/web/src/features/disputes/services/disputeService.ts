@@ -20,6 +20,9 @@ function mapRow(r: Record<string, unknown>): Dispute {
 }
 
 export async function createDispute(bookingId: string, input: DisputeInput): Promise<Dispute> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
   const { data: payment, error: pErr } = await supabase
     .from('payments')
     .select('id')
@@ -32,6 +35,7 @@ export async function createDispute(bookingId: string, input: DisputeInput): Pro
     .insert({
       booking_id: bookingId,
       payment_id: payment.id,
+      raised_by_user_id: user.id,
       reason: input.reason,
       description: input.description,
       status: 'open',

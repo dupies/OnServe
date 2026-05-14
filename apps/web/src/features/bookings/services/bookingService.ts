@@ -65,6 +65,9 @@ export async function getBookingById(id: string): Promise<Booking> {
 }
 
 export async function createBooking(input: BookingInput): Promise<Booking> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
   const { data: serviceType, error: stError } = await supabase
     .from('service_types')
     .select('base_price')
@@ -78,6 +81,7 @@ export async function createBooking(input: BookingInput): Promise<Booking> {
   const { data, error } = await supabase
     .from('bookings')
     .insert({
+      customer_id: user.id,
       service_type_id: input.serviceTypeId,
       location_id: input.locationId,
       booking_type: 'instant',
