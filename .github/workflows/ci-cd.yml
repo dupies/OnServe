@@ -10,6 +10,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# ── Shared setup steps used by every job ─────────────────────────────────────
+# actions/setup-node cache: 'npm' is intentionally omitted — it caches ~/.npm
+# which is OS-specific and causes @rollup/rollup-linux-x64-gnu to be missing on
+# Linux runners when the lockfile was generated on macOS (npm/cli#4828).
+# Instead we cache node_modules directly, keyed by OS + lockfile hash.
+
 jobs:
   # ── 1. Tests ────────────────────────────────────────────────────────────────
   test:
@@ -21,11 +27,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+
+      - name: Cache node_modules
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
-        # npm install (not ci) resolves platform-specific optional deps that
-        # a macOS-generated lockfile omits (e.g. @rollup/rollup-linux-x64-gnu)
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm install
 
       - name: Run tests
@@ -42,14 +56,24 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+
+      - name: Cache node_modules
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm install
 
       - name: Audit dependencies
-        # Fails on high/critical CVEs. Set continue-on-error: false once
-        # all current advisories are triaged and resolved.
+        # Fails on high/critical CVEs. Remove continue-on-error once all
+        # current advisories are triaged and resolved.
         run: npm audit --audit-level=high
         continue-on-error: true
 
@@ -64,9 +88,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+
+      - name: Cache node_modules
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm install
 
       - name: Build all apps
@@ -86,9 +120,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+
+      - name: Cache node_modules
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm install
 
       - name: Install Vercel CLI
@@ -129,9 +173,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+
+      - name: Cache node_modules
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm install
 
       - name: Install EAS CLI
