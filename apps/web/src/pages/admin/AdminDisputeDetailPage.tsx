@@ -148,7 +148,7 @@ export function AdminDisputeDetailPage() {
                   <p className="text-xs text-muted-foreground mb-1">Status</p>
                   <p className="text-foreground capitalize">{String(booking['status'] ?? '—').replace(/_/g, ' ')}</p>
                 </div>
-                {booking['scheduled_at'] && (
+                {!!booking['scheduled_at'] && (
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Scheduled</p>
                     <p className="text-foreground">
@@ -156,7 +156,7 @@ export function AdminDisputeDetailPage() {
                     </p>
                   </div>
                 )}
-                {booking['total_amount'] && (
+                {!!booking['total_amount'] && (
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Amount</p>
                     <p className="text-foreground font-semibold">R {Number(booking['total_amount']).toFixed(2)}</p>

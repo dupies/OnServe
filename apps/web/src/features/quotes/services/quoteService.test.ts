@@ -215,7 +215,7 @@ describe('submitQuote', () => {
     });
     let callCount = 0;
     const originalFrom = mock.from.bind(mock);
-    mock.from = vi.fn((table: string) => {
+    mock.from = vi.fn((_table: string) => {
       callCount++;
       if (callCount === 1) return originalFrom('provider_profiles');
       return handler;

@@ -63,7 +63,7 @@ describe('createDispute', () => {
   it('inserts dispute with status open and correct booking_id', async () => {
     let insertArgs: unknown;
     let callCount = 0;
-    mock.from = vi.fn((table: string) => {
+    mock.from = vi.fn((_table: string) => {
       callCount++;
       if (callCount === 1) return makeQueryMock({ id: 'pay-1' }); // payments
       if (callCount === 2) {
@@ -77,7 +77,7 @@ describe('createDispute', () => {
       return makeQueryMock(null); // bookings update
     });
 
-    await createDispute('b-1', { reason: 'damage', description: 'Items broken' });
+    await createDispute('b-1', { reason: 'work_not_completed', description: 'Items broken' });
 
     expect(insertArgs).toMatchObject({ status: 'open', booking_id: 'b-1' });
   });
@@ -85,7 +85,7 @@ describe('createDispute', () => {
   it('updates booking status to disputed', async () => {
     let updateArgs: unknown;
     let callCount = 0;
-    mock.from = vi.fn((table: string) => {
+    mock.from = vi.fn((_table: string) => {
       callCount++;
       if (callCount === 1) return makeQueryMock({ id: 'pay-1' });
       if (callCount === 2) return makeQueryMock(RAW_DISPUTE);

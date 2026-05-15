@@ -62,13 +62,13 @@ describe('createRating', () => {
     });
     let callCount = 0;
     const originalFrom = mock.from.bind(mock);
-    mock.from = vi.fn((table: string) => {
+    mock.from = vi.fn((_table: string) => {
       callCount++;
       if (callCount === 1) return originalFrom('bookings');
       return handler;
     });
 
-    await createRating('b-1', { score: 5, comment: null });
+    await createRating('b-1', { score: 5, comment: undefined });
 
     expect(insertArgs).toMatchObject({
       booking_id: 'b-1',
@@ -82,7 +82,7 @@ describe('createRating', () => {
   it('throws when not authenticated', async () => {
     mock.auth.getUser.mockResolvedValue({ data: { user: null }, error: null });
 
-    await expect(createRating('b-1', { score: 4, comment: null })).rejects.toThrow(
+    await expect(createRating('b-1', { score: 4, comment: undefined })).rejects.toThrow(
       'Not authenticated',
     );
   });
@@ -91,7 +91,7 @@ describe('createRating', () => {
     mock.auth.getUser.mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null });
     mock._setTable('bookings', null, { message: 'Booking not found' });
 
-    await expect(createRating('b-999', { score: 4, comment: null })).rejects.toThrow(
+    await expect(createRating('b-999', { score: 4, comment: undefined })).rejects.toThrow(
       'Booking not found',
     );
   });
@@ -100,7 +100,7 @@ describe('createRating', () => {
     mock.auth.getUser.mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null });
     mock._setTable('bookings', { customer_id: 'user-1', provider_id: null });
 
-    await expect(createRating('b-1', { score: 4, comment: null })).rejects.toThrow(
+    await expect(createRating('b-1', { score: 4, comment: undefined })).rejects.toThrow(
       'No provider on booking',
     );
   });
@@ -110,7 +110,7 @@ describe('createRating', () => {
     mock._setTable('bookings', { customer_id: 'user-1', provider_id: 'provider-user-1' });
     mock._setTable('ratings', null, { message: 'Insert failed' });
 
-    await expect(createRating('b-1', { score: 5, comment: null })).rejects.toThrow(
+    await expect(createRating('b-1', { score: 5, comment: undefined })).rejects.toThrow(
       'Insert failed',
     );
   });
