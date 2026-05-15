@@ -10,12 +10,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# ── Shared setup steps used by every job ─────────────────────────────────────
-# actions/setup-node cache: 'npm' is intentionally omitted — it caches ~/.npm
-# which is OS-specific and causes @rollup/rollup-linux-x64-gnu to be missing on
-# Linux runners when the lockfile was generated on macOS (npm/cli#4828).
-# Instead we cache node_modules directly, keyed by OS + lockfile hash.
-
 jobs:
   # ── 1. Tests ────────────────────────────────────────────────────────────────
   test:
@@ -36,11 +30,18 @@ jobs:
             node_modules
             apps/*/node_modules
             packages/*/node_modules
-          key: ${{ runner.os }}-modules-v2-${{ hashFiles('package-lock.json') }}
+          key: ${{ runner.os }}-modules-v3-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: npm install
+
+      - name: Install rollup Linux binary
+        # The lockfile was generated on macOS so @rollup/rollup-linux-x64-gnu is
+        # not in the packages section. Install it explicitly when missing.
+        run: |
+          test -d node_modules/@rollup/rollup-linux-x64-gnu || \
+          npm install --no-save @rollup/rollup-linux-x64-gnu@$(node -p "require('./node_modules/rollup/package.json').version")
 
       - name: Run tests
         # Only web has tests today; turbo skips apps without a test script
@@ -65,7 +66,7 @@ jobs:
             node_modules
             apps/*/node_modules
             packages/*/node_modules
-          key: ${{ runner.os }}-modules-v2-${{ hashFiles('package-lock.json') }}
+          key: ${{ runner.os }}-modules-v3-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
@@ -97,11 +98,16 @@ jobs:
             node_modules
             apps/*/node_modules
             packages/*/node_modules
-          key: ${{ runner.os }}-modules-v2-${{ hashFiles('package-lock.json') }}
+          key: ${{ runner.os }}-modules-v3-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: npm install
+
+      - name: Install rollup Linux binary
+        run: |
+          test -d node_modules/@rollup/rollup-linux-x64-gnu || \
+          npm install --no-save @rollup/rollup-linux-x64-gnu@$(node -p "require('./node_modules/rollup/package.json').version")
 
       - name: Build all apps
         # Turbo skips apps that don't define a build script (mobile, api today)
@@ -129,11 +135,16 @@ jobs:
             node_modules
             apps/*/node_modules
             packages/*/node_modules
-          key: ${{ runner.os }}-modules-v2-${{ hashFiles('package-lock.json') }}
+          key: ${{ runner.os }}-modules-v3-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: npm install
+
+      - name: Install rollup Linux binary
+        run: |
+          test -d node_modules/@rollup/rollup-linux-x64-gnu || \
+          npm install --no-save @rollup/rollup-linux-x64-gnu@$(node -p "require('./node_modules/rollup/package.json').version")
 
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
@@ -182,7 +193,7 @@ jobs:
             node_modules
             apps/*/node_modules
             packages/*/node_modules
-          key: ${{ runner.os }}-modules-v2-${{ hashFiles('package-lock.json') }}
+          key: ${{ runner.os }}-modules-v3-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
