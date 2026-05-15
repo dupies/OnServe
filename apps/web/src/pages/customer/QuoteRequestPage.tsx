@@ -44,13 +44,18 @@ export function QuoteRequestPage() {
     form.setValue('locationId', defaultLoc.id);
   }, [locations, form]);
 
+  // Wire the targeted provider once the profile loads
+  useEffect(() => {
+    if (provider?.id) form.setValue('targetedProviderProfileId', provider.id);
+  }, [provider, form]);
+
   async function onSubmit(values: QuoteRequestInput) {
     try {
       await createQuote.mutateAsync(values);
       toast.success('Quote request posted — providers will bid on your job');
-      navigate('/bookings');
-    } catch {
-      toast.error('Failed to post quote request');
+      navigate('/quote-requests');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to post quote request');
     }
   }
 
@@ -106,7 +111,7 @@ export function QuoteRequestPage() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Service type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a service..." />

@@ -39,6 +39,7 @@ export interface QuoteRequest {
   status: 'open' | 'in_review' | 'accepted' | 'expired';
   expiresAt: string;
   createdAt: string;
+  targetedProviderId: string | null;
 }
 
 export interface Quote {

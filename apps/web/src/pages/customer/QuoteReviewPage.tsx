@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Clock, Star, Briefcase, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Clock, Star, Briefcase, ShieldCheck, UserCheck, Globe } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PageLayout } from '@/components/layout/PageLayout';
@@ -64,6 +64,25 @@ export function QuoteReviewPage() {
               {isExpired ? 'Expired' : `${timeLeft} left`}
             </Badge>
           </div>
+        </div>
+
+        {/* Audience banner */}
+        <div className={`flex items-center gap-2.5 rounded-xl border px-4 py-3 text-sm ${
+          data.targetedProviderId
+            ? 'border-primary/20 bg-primary/5 text-primary'
+            : 'border-border bg-card text-muted-foreground'
+        }`}>
+          {data.targetedProviderId ? (
+            <>
+              <UserCheck className="w-4 h-4 flex-shrink-0" />
+              <span>Direct request — sent to one specific provider</span>
+            </>
+          ) : (
+            <>
+              <Globe className="w-4 h-4 flex-shrink-0" />
+              <span>Open request — visible to all providers in your area</span>
+            </>
+          )}
         </div>
 
         {quotes.length === 0 ? (

@@ -32,6 +32,7 @@ function mapQuoteRequest(r: Record<string, unknown>): QuoteRequest {
     status: r['status'] as QuoteRequest['status'],
     expiresAt: r['expires_at'] as string,
     createdAt: r['created_at'] as string,
+    targetedProviderId: (r['targeted_provider_id'] as string | null) ?? null,
   };
 }
 
@@ -82,6 +83,7 @@ export async function createQuoteRequest(input: QuoteRequestInput): Promise<Quot
       problem_description: input.problemDescription,
       status: 'open',
       expires_at: expiresAt,
+      targeted_provider_id: input.targetedProviderProfileId ?? null,
     })
     .select()
     .single();

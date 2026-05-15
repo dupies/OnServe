@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Plus, Clock, MessageSquare } from 'lucide-react';
+import { Plus, Clock, MessageSquare, UserCheck, Globe } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PageLayout } from '@/components/layout/PageLayout';
@@ -124,13 +124,22 @@ function QuoteRequestCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1.5">
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             <Badge
               variant="outline"
               className={`text-xs h-5 ${STATUS_STYLES[request.status]}`}
             >
               {STATUS_LABELS[request.status]}
             </Badge>
+            {request.targetedProviderId ? (
+              <Badge variant="outline" className="text-xs h-5 text-primary border-primary/30 bg-primary/5 flex items-center gap-0.5">
+                <UserCheck className="w-3 h-3" /> Direct
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-xs h-5 text-muted-foreground border-border flex items-center gap-0.5">
+                <Globe className="w-3 h-3" /> Open
+              </Badge>
+            )}
             <span className="text-xs text-muted-foreground font-medium">
               {request.serviceTypeName}
             </span>

@@ -26,6 +26,7 @@ export const quoteRequestSchema = z.object({
   locationId: z.string().uuid('Select a location'),
   problemDescription: z.string().min(10, 'Describe the problem (min 10 chars)').max(1000),
   expiresInHours: z.enum(['24', '48', '72']),
+  targetedProviderProfileId: z.string().uuid().optional(),
 });
 
 export const disputeSchema = z.object({
