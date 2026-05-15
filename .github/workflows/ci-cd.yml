@@ -24,7 +24,9 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        # npm install (not ci) resolves platform-specific optional deps that
+        # a macOS-generated lockfile omits (e.g. @rollup/rollup-linux-x64-gnu)
+        run: npm install
 
       - name: Run tests
         # Only web has tests today; turbo skips apps without a test script
@@ -43,7 +45,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Audit dependencies
         # Fails on high/critical CVEs. Set continue-on-error: false once
@@ -65,7 +67,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build all apps
         # Turbo skips apps that don't define a build script (mobile, api today)
@@ -87,7 +89,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
@@ -130,7 +132,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Install EAS CLI
         run: npm install -g eas-cli
