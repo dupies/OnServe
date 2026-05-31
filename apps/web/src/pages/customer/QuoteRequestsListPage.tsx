@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Plus, Clock, MessageSquare, UserCheck, Globe } from 'lucide-react';
+import { Plus, Clock, MessageSquare, UserCheck, Globe, Inbox } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PageLayout } from '@/components/layout/PageLayout';
@@ -55,8 +55,8 @@ export function QuoteRequestsListPage() {
           </div>
         ) : requests.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="w-12 h-12 rounded-full bg-card border border-border flex items-center justify-center mb-4 text-2xl">
-              📋
+            <div className="w-12 h-12 rounded-full bg-card border border-border flex items-center justify-center mb-4">
+              <Inbox className="w-5 h-5 text-muted-foreground" />
             </div>
             <p className="text-foreground font-medium">No quote requests yet</p>
             <p className="text-muted-foreground text-sm mt-1">

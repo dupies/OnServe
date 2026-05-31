@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, CalendarCheck, User, Briefcase, DollarSign, Search, Bell, FileText, LayoutDashboard, Users, ShieldAlert } from 'lucide-react';
+import { Home, CalendarCheck, User, Briefcase, DollarSign, Search, Bell, FileText, LayoutDashboard, Users, ShieldAlert, PanelLeftClose } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useUnreadCount } from '@/features/notifications/hooks/useNotifications';
@@ -35,7 +35,11 @@ const providerNav: NavItem[] = [
   { to: '/profile', label: 'Profile', icon: User },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  onCollapse: () => void;
+}
+
+export function Sidebar({ onCollapse }: SidebarProps) {
   const { pathname } = useLocation();
   const { user, role, signOut } = useAuthStore();
   const { data: unreadCount = 0 } = useUnreadCount();
@@ -48,7 +52,7 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex w-56 flex-shrink-0 bg-surface border-r border-border flex-col sticky top-0 h-svh">
       {/* Brand */}
-      <div className="px-5 py-5 border-b border-border">
+      <div className="px-4 py-5 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" aria-hidden>
@@ -58,6 +62,13 @@ export function Sidebar() {
           </div>
           <span className="text-sm font-semibold text-foreground">OnServe</span>
         </div>
+        <button
+          onClick={onCollapse}
+          className="w-7 h-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-card transition-colors"
+          aria-label="Collapse sidebar"
+        >
+          <PanelLeftClose className="w-4 h-4" />
+        </button>
       </div>
 
       {/* Navigation */}

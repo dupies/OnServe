@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ArrowRight, Navigation, Loader2 } from 'lucide-react';
+import { Search, ArrowRight, Navigation, Loader2, Sparkles, Scissors, Wrench, Zap, Leaf, Camera, UtensilsCrossed, BookOpen, Settings2 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { useAuthStore } from '@/features/auth/store/authStore';
@@ -18,9 +19,15 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
   tutoring:    { bg: 'bg-primary/10',     text: 'text-primary' },
 };
 
-const CATEGORY_EMOJIS: Record<string, string> = {
-  cleaning: '🧹', beauty: '✂️', plumbing: '🔧', electrical: '⚡',
-  gardening: '🌿', photography: '📷', catering: '🍽️', tutoring: '📚',
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
+  cleaning:    Sparkles,
+  beauty:      Scissors,
+  plumbing:    Wrench,
+  electrical:  Zap,
+  gardening:   Leaf,
+  photography: Camera,
+  catering:    UtensilsCrossed,
+  tutoring:    BookOpen,
 };
 
 function useLocationLabel() {
@@ -109,15 +116,15 @@ export function HomePage() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {categories.map((cat) => {
                 const colors = CATEGORY_COLORS[cat.slug] ?? { bg: 'bg-card', text: 'text-foreground' };
-                const emoji = CATEGORY_EMOJIS[cat.slug] ?? '⚙️';
+                const Icon = CATEGORY_ICONS[cat.slug] ?? Settings2;
                 return (
                   <button
                     key={cat.id}
                     onClick={() => navigate(`/search?categoryId=${cat.id}&category=${cat.slug}`)}
                     className="bg-card border border-border rounded-xl p-5 text-left hover:border-primary/40 transition-all hover:shadow-sm group"
                   >
-                    <div className={`w-10 h-10 rounded-xl ${colors.bg} flex items-center justify-center mb-3 text-xl`}>
-                      {emoji}
+                    <div className={`w-10 h-10 rounded-xl ${colors.bg} flex items-center justify-center mb-3`}>
+                      <Icon className={`w-5 h-5 ${colors.text}`} />
                     </div>
                     <p className={`text-sm font-medium ${colors.text}`}>{cat.name}</p>
                     <p className="text-xs text-muted-foreground mt-0.5 group-hover:text-foreground transition-colors">

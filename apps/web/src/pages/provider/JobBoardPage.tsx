@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Briefcase, TrendingUp, Clock } from 'lucide-react';
+import { Briefcase, TrendingUp, Clock, Inbox } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -70,8 +70,8 @@ export function JobBoardPage() {
               </div>
             ) : pending.length === 0 ? (
               <div className="bg-card border border-border rounded-xl p-10 flex flex-col items-center justify-center text-center">
-                <div className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center mb-3 text-lg">
-                  📋
+                <div className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center mb-3">
+                  <Inbox className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <p className="text-sm font-medium text-foreground">No new job requests</p>
                 <p className="text-xs text-muted-foreground mt-1">New requests will appear here</p>

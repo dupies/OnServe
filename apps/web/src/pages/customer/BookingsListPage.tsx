@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { CalendarOff } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { useCustomerBookings } from '@/features/bookings/hooks/useBookings';
@@ -57,8 +58,8 @@ export function BookingsListPage() {
           </div>
         ) : bookings.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="w-12 h-12 rounded-full bg-card border border-border flex items-center justify-center mb-4 text-xl">
-              📋
+            <div className="w-12 h-12 rounded-full bg-card border border-border flex items-center justify-center mb-4">
+              <CalendarOff className="w-5 h-5 text-muted-foreground" />
             </div>
             <p className="text-foreground font-medium">No bookings yet</p>
             <p className="text-muted-foreground text-sm mt-1">
