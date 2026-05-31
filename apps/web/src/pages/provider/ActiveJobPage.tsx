@@ -61,7 +61,7 @@ export function ActiveJobPage() {
           </Badge>
         </div>
 
-        <div className="grid grid-cols-[1fr_280px] gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 items-start">
           {/* Left: map + job details */}
           <div className="flex flex-col gap-4">
             {/* Map placeholder */}

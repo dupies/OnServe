@@ -92,7 +92,7 @@ export function ProviderReputationPage() {
         </div>
 
         {/* Key metrics */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="bg-card border border-border rounded-xl p-4 text-center">
             <ScoreRing value={Math.round(profile.ratingAverage * 20)} label="Rating score" />
           </div>

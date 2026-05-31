@@ -40,7 +40,7 @@ export function JobBoardPage() {
         </div>
 
         {/* Stats row */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { label: 'Active jobs', value: active.length.toString(), icon: Briefcase, color: 'text-primary' },
             { label: "Today's earnings", value: `R ${todayEarnings.toFixed(0)}`, icon: TrendingUp, color: 'text-primary' },
@@ -58,7 +58,7 @@ export function JobBoardPage() {
           ))}
         </div>
 
-        <div className="grid grid-cols-[1fr_320px] gap-6 items-start">
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-6 items-start">
           {/* New requests */}
           <div className="flex flex-col gap-4">
             <h2 className="text-sm font-semibold text-foreground">New requests</h2>

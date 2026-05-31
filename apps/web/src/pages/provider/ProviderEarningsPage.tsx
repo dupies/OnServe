@@ -35,7 +35,7 @@ export function ProviderEarningsPage() {
         </div>
 
         {/* Summary stats */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <StatCard
             icon={<DollarSign className="w-4 h-4 text-primary" />}
             label="This month"
@@ -104,7 +104,7 @@ export function ProviderEarningsPage() {
         </div>
 
         {/* Payout CTA */}
-        <div className="bg-card border border-border rounded-xl p-5 flex items-center justify-between">
+        <div className="bg-card border border-border rounded-xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <p className="text-sm font-semibold text-foreground">Available for payout</p>
             <p className="text-2xl font-semibold text-primary mt-1">

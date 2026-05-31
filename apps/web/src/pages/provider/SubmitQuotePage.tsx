@@ -91,7 +91,7 @@ export function SubmitQuotePage() {
         {/* Duration */}
         <div className="flex flex-col gap-2">
           <Label>Estimated duration</Label>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {DURATION_OPTIONS.map((d) => (
               <button
                 key={d.mins}

@@ -71,7 +71,7 @@ export function JobDetailPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-[1fr_280px] gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 items-start">
           {/* Left: job info */}
           <div className="flex flex-col gap-4">
             <div className="bg-card border border-border rounded-xl p-6">

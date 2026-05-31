@@ -39,7 +39,7 @@ export function AdminDashboardPage() {
         </div>
 
         {/* Stats grid */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {STAT_CARDS.map((s) => {
             const Icon = s.icon;
             return (
@@ -57,7 +57,7 @@ export function AdminDashboardPage() {
           })}
         </div>
 
-        <div className="grid grid-cols-[1fr_380px] gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
           {/* Requires action */}
           <div className="bg-card border border-border rounded-xl p-5">
             <h2 className="text-sm font-semibold text-foreground mb-4">Requires action</h2>

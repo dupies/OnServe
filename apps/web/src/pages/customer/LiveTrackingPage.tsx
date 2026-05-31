@@ -52,7 +52,7 @@ export function LiveTrackingPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-[1fr_300px] gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6 items-start">
           {/* Map */}
           <div className="flex flex-col gap-4">
             <div className="relative bg-[#1A2A1A] border border-border rounded-xl overflow-hidden h-72 flex items-center justify-center">

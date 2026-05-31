@@ -62,9 +62,9 @@ export function HomePage() {
     <PageLayout>
       <div className="flex flex-col gap-8">
         {/* Header */}
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-3xl font-semibold text-foreground">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-foreground">
               {greeting}, {firstName}
             </h1>
             <p className="text-muted-foreground mt-1">What would you like to get done today?</p>
@@ -100,13 +100,13 @@ export function HomePage() {
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="bg-card border border-border rounded-xl h-28 animate-pulse" />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {categories.map((cat) => {
                 const colors = CATEGORY_COLORS[cat.slug] ?? { bg: 'bg-card', text: 'text-foreground' };
                 const emoji = CATEGORY_EMOJIS[cat.slug] ?? '⚙️';
@@ -133,7 +133,7 @@ export function HomePage() {
         {/* Quick actions */}
         <section>
           <h2 className="text-lg font-semibold text-foreground mb-4">Quick actions</h2>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
               { label: 'My bookings', description: 'View and manage your bookings', to: '/bookings', color: 'border-primary/20 bg-primary/5' },
               { label: 'Saved locations', description: 'Manage your service addresses', to: '/profile', color: 'border-purple/20 bg-purple/5' },

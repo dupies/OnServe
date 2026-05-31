@@ -184,7 +184,7 @@ export function SearchPage() {
         </div>
 
         {/* Location mode toggle + input */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="flex rounded-lg border border-border overflow-hidden flex-shrink-0">
             <button
               onClick={() => setMode('gps')}
@@ -232,7 +232,7 @@ export function SearchPage() {
           )}
         </div>
 
-        <div className="grid grid-cols-[220px_1fr] gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6">
           {/* Filters */}
           <aside className="flex flex-col gap-4">
             <div className="bg-card border border-border rounded-xl p-4">
@@ -276,7 +276,7 @@ export function SearchPage() {
                 </p>
               </div>
             ) : isLoading ? (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="bg-card border border-border rounded-xl p-5 animate-pulse h-36" />
                 ))}
@@ -306,7 +306,7 @@ export function SearchPage() {
                   {filtered.length} provider{filtered.length !== 1 ? 's' : ''} shown
                   {totalLoaded !== filtered.length && ` (filtered from ${totalLoaded} loaded)`}
                 </p>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {filtered.map((p) => (
                     <article
                       key={p.id}

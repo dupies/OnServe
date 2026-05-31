@@ -74,7 +74,7 @@ export function BookingPage() {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Left: service + location + notes */}
               <div className="flex flex-col gap-5">
                 <div className="bg-card border border-border rounded-xl p-5 flex flex-col gap-4">

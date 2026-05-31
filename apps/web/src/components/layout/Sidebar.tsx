@@ -46,7 +46,7 @@ export function Sidebar() {
   const avatarUrl = user?.user_metadata?.['avatar_url'] as string | undefined;
 
   return (
-    <aside className="w-56 flex-shrink-0 bg-surface border-r border-border flex flex-col sticky top-0 h-svh">
+    <aside className="hidden md:flex w-56 flex-shrink-0 bg-surface border-r border-border flex-col sticky top-0 h-svh">
       {/* Brand */}
       <div className="px-5 py-5 border-b border-border">
         <div className="flex items-center gap-2.5">

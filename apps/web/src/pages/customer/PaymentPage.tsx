@@ -35,7 +35,7 @@ export function PaymentPage() {
           <p className="text-muted-foreground text-sm mt-1">Review your booking before payment</p>
         </div>
 
-        <div className="grid grid-cols-[1fr_320px] gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
           {/* Booking summary */}
           <div className="flex flex-col gap-4">
             <div className="bg-card border border-border rounded-xl p-5">

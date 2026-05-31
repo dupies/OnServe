@@ -52,8 +52,8 @@ export function AdminUsersPage() {
         </div>
 
         {/* Filters */}
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1 max-w-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="relative w-full sm:max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             <input
               type="text"
@@ -81,7 +81,7 @@ export function AdminUsersPage() {
         </div>
 
         {/* Table */}
-        <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <div className="bg-card border border-border rounded-xl overflow-x-auto">
           {isLoading ? (
             <div className="p-8 flex items-center justify-center">
               <div className="w-5 h-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />

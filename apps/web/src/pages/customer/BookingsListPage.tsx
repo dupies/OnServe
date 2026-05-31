@@ -50,7 +50,7 @@ export function BookingsListPage() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="bg-card border border-border rounded-xl p-5 animate-pulse h-28" />
             ))}
@@ -70,7 +70,7 @@ export function BookingsListPage() {
             {active.length > 0 && (
               <section>
                 <h2 className="text-sm font-semibold text-foreground mb-3">Active</h2>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {active.map((b) => (
                     <BookingCard key={b.id} booking={b} onClick={() => navigate(`/bookings/${b.id}`)} />
                   ))}
@@ -80,7 +80,7 @@ export function BookingsListPage() {
             {past.length > 0 && (
               <section>
                 <h2 className="text-sm font-semibold text-muted-foreground mb-3">Past</h2>
-                <div className="grid grid-cols-2 gap-4 opacity-70">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 opacity-70">
                   {past.map((b) => (
                     <BookingCard key={b.id} booking={b} onClick={() => navigate(`/bookings/${b.id}`)} />
                   ))}

@@ -19,7 +19,7 @@ export function ProviderProfilePage() {
           <div className="h-4 bg-card rounded w-24" />
           <div className="h-20 w-20 rounded-full bg-card" />
           <div className="h-5 bg-card rounded w-48" />
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => <div key={i} className="h-20 bg-card rounded-xl" />)}
           </div>
         </div>
@@ -51,7 +51,7 @@ export function ProviderProfilePage() {
           <ArrowLeft className="w-4 h-4" /> Back to search
         </button>
 
-        <div className="grid grid-cols-[1fr_300px] gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
           {/* Left: provider info */}
           <div className="flex flex-col gap-6">
             {/* Identity */}
@@ -77,7 +77,7 @@ export function ProviderProfilePage() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
                 { label: 'Jobs completed', value: provider.totalJobsCompleted, icon: Briefcase },
                 { label: 'Completion rate', value: `${Math.round(provider.completionRate * 100)}%`, highlight: true },

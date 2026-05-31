@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, CalendarCheck, MessageSquare, User, Briefcase, DollarSign } from 'lucide-react';
+import { Home, CalendarCheck, MessageSquare, User, Briefcase, DollarSign, Search, LayoutDashboard, Users, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/features/auth/store/authStore';
 
@@ -11,26 +11,32 @@ interface NavItem {
 
 const customerNav: NavItem[] = [
   { to: '/', label: 'Home', icon: Home },
+  { to: '/search', label: 'Search', icon: Search },
   { to: '/bookings', label: 'Bookings', icon: CalendarCheck },
-  { to: '/chat', label: 'Chat', icon: MessageSquare },
   { to: '/profile', label: 'Profile', icon: User },
 ];
 
 const providerNav: NavItem[] = [
-  { to: '/provider', label: 'Overview', icon: Home },
   { to: '/provider/jobs', label: 'Jobs', icon: Briefcase },
+  { to: '/provider/quotes', label: 'Quotes', icon: MessageSquare },
   { to: '/provider/earnings', label: 'Earn', icon: DollarSign },
-  { to: '/provider/profile', label: 'Profile', icon: User },
+  { to: '/profile', label: 'Profile', icon: User },
+];
+
+const adminNav: NavItem[] = [
+  { to: '/admin', label: 'Overview', icon: LayoutDashboard },
+  { to: '/admin/users', label: 'Users', icon: Users },
+  { to: '/admin/disputes', label: 'Disputes', icon: ShieldAlert },
 ];
 
 export function BottomNav() {
   const { pathname } = useLocation();
   const { role } = useAuthStore();
 
-  const items = role === 'provider' ? providerNav : customerNav;
+  const items = role === 'admin' ? adminNav : role === 'provider' ? providerNav : customerNav;
 
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-sm border-t border-border bg-background z-50">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-border bg-background z-50">
       <div className="flex justify-around py-2">
         {items.map(({ to, label, icon: Icon }) => {
           const active = pathname === to;
