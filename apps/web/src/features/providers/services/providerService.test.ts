@@ -11,7 +11,7 @@ vi.mock('@/lib/supabase', () => ({
 
 const { searchProviders, getProviderProfile } = await import('./providerService');
 
-const PROVIDER_PROFILE = {
+const PROVIDER_PROFILE_RAW = {
   id: 'pp-1',
   user_id: 'user-1',
   bio: 'Experienced cleaner',
@@ -24,6 +24,21 @@ const PROVIDER_PROFILE = {
   dispute_rate: 0.005,
   reputation_score: 92,
   verified_at: '2026-01-15T00:00:00Z',
+};
+
+const PROVIDER_PROFILE = {
+  id: 'pp-1',
+  userId: 'user-1',
+  bio: 'Experienced cleaner',
+  idDocumentUrl: null,
+  verificationStatus: 'verified',
+  ratingAverage: 4.9,
+  totalJobsCompleted: 234,
+  completionRate: 0.98,
+  noShowRate: 0.01,
+  disputeRate: 0.005,
+  reputationScore: 92,
+  verifiedAt: '2026-01-15T00:00:00Z',
 };
 
 const SEARCH_RESULT = {
@@ -87,7 +102,7 @@ describe('searchProviders', () => {
 
 describe('getProviderProfile', () => {
   it('fetches the provider profile for the given userId', async () => {
-    mock._setTable('provider_profiles', PROVIDER_PROFILE);
+    mock._setTable('provider_profiles', PROVIDER_PROFILE_RAW);
 
     await getProviderProfile('user-1');
 
@@ -99,7 +114,7 @@ describe('getProviderProfile', () => {
   });
 
   it('returns the profile data', async () => {
-    mock._setTable('provider_profiles', PROVIDER_PROFILE);
+    mock._setTable('provider_profiles', PROVIDER_PROFILE_RAW);
 
     const result = await getProviderProfile('user-1');
     expect(result).toEqual(PROVIDER_PROFILE);
