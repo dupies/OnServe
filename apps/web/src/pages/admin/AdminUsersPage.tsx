@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Search, Shield, User, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { getAdminUsers, updateUserRole } from '@/features/admin/services/adminService';
 import { format } from 'date-fns';
-import type { User as UserType } from '@onserve/types';
+import type { AccountStatus, User as UserType } from '@onserve/types';
 
 const ROLE_META: Record<UserType['role'], { label: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
   customer: { label: 'Customer', icon: User, color: 'text-foreground border-border bg-card' },
@@ -13,10 +14,17 @@ const ROLE_META: Record<UserType['role'], { label: string; icon: React.Component
   admin: { label: 'Admin', icon: Shield, color: 'text-warning border-warning/30 bg-warning/10' },
 };
 
+const STATUS_META: Record<AccountStatus, { label: string; color: string }> = {
+  active: { label: 'Active', color: 'text-primary border-primary/30 bg-primary/10' },
+  suspended: { label: 'Suspended', color: 'text-warning border-warning/30 bg-warning/10' },
+  banned: { label: 'Banned', color: 'text-destructive border-destructive/30 bg-destructive/10' },
+};
+
 const ROLES: UserType['role'][] = ['customer', 'provider', 'admin'];
 
 export function AdminUsersPage() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<UserType['role'] | 'all'>('all');
 
@@ -102,10 +110,16 @@ export function AdminUsersPage() {
                     Role
                   </th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Joined
                   </th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Change role
+                  </th>
+                  <th className="text-right px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    {''}
                   </th>
                 </tr>
               </thead>
@@ -121,7 +135,8 @@ export function AdminUsersPage() {
                   return (
                     <tr
                       key={u.id}
-                      className={`border-b border-border last:border-0 hover:bg-surface transition-colors ${
+                      onClick={() => navigate(`/admin/users/${u.id}`)}
+                      className={`border-b border-border last:border-0 hover:bg-surface transition-colors cursor-pointer ${
                         i % 2 === 0 ? '' : 'bg-surface/30'
                       }`}
                     >
@@ -146,10 +161,18 @@ export function AdminUsersPage() {
                           {ROLE_META[u.role].label}
                         </Badge>
                       </td>
+                      <td className="px-5 py-3.5">
+                        <Badge
+                          variant="outline"
+                          className={`text-xs w-fit ${STATUS_META[u.accountStatus].color}`}
+                        >
+                          {STATUS_META[u.accountStatus].label}
+                        </Badge>
+                      </td>
                       <td className="px-5 py-3.5 text-muted-foreground text-xs">
                         {format(new Date(u.createdAt), 'dd MMM yyyy')}
                       </td>
-                      <td className="px-5 py-3.5">
+                      <td className="px-5 py-3.5" onClick={(e) => e.stopPropagation()}>
                         <select
                           value={u.role}
                           onChange={(e) =>
@@ -163,6 +186,11 @@ export function AdminUsersPage() {
                             </option>
                           ))}
                         </select>
+                      </td>
+                      <td className="px-5 py-3.5 text-right">
+                        <span className="text-xs text-primary hover:text-primary/80 font-medium">
+                          View →
+                        </span>
                       </td>
                     </tr>
                   );

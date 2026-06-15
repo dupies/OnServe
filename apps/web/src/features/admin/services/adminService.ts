@@ -1,5 +1,31 @@
 import { supabase } from '@/lib/supabase';
-import type { Dispute, DisputeStatus, User } from '@onserve/types';
+import type { AccountStatus, Dispute, DisputeStatus, User } from '@onserve/types';
+
+export interface AdminOverview {
+  totalUsers: number;
+  customers: number;
+  providers: number;
+  admins: number;
+  newSignups7d: number;
+  pendingVerifications: number;
+  openDisputes: number;
+}
+
+export interface PendingVerification {
+  id: string;
+  userId: string;
+  fullName: string;
+  idDocumentUrl: string | null;
+  bio: string | null;
+  createdAt: string;
+}
+
+export interface AdminUserDetail {
+  user: User;
+  bookings: Record<string, unknown>[];
+  disputes: Dispute[];
+  ratings: Record<string, unknown>[];
+}
 
 function mapDispute(r: Record<string, unknown>): Dispute {
   return {
@@ -89,4 +115,97 @@ export async function getAdminUsers(): Promise<User[]> {
 export async function updateUserRole(userId: string, role: User['role']): Promise<void> {
   const { error } = await supabase.from('users').update({ role }).eq('id', userId);
   if (error) throw new Error(error.message);
+}
+
+export async function updateUserStatus(
+  userId: string,
+  status: AccountStatus,
+  reason?: string,
+): Promise<void> {
+  const patch =
+    status === 'active'
+      ? { account_status: status, suspension_reason: null, suspended_at: null }
+      : {
+          account_status: status,
+          suspension_reason: reason ?? null,
+          suspended_at: new Date().toISOString(),
+        };
+  const { error } = await supabase.from('users').update(patch).eq('id', userId);
+  if (error) throw new Error(error.message);
+}
+
+export async function updateProviderVerification(
+  providerId: string,
+  status: 'verified' | 'rejected',
+): Promise<void> {
+  const patch =
+    status === 'verified'
+      ? { verification_status: status, verified_at: new Date().toISOString() }
+      : { verification_status: status };
+  const { error } = await supabase.from('provider_profiles').update(patch).eq('id', providerId);
+  if (error) throw new Error(error.message);
+}
+
+export async function getAdminOverview(): Promise<AdminOverview> {
+  const { data, error } = await supabase.rpc('admin_overview');
+  if (error) throw new Error(error.message);
+  const d = (data ?? {}) as Record<string, number>;
+  return {
+    totalUsers: d['total_users'] ?? 0,
+    customers: d['customers'] ?? 0,
+    providers: d['providers'] ?? 0,
+    admins: d['admins'] ?? 0,
+    newSignups7d: d['new_signups_7d'] ?? 0,
+    pendingVerifications: d['pending_verifications'] ?? 0,
+    openDisputes: d['open_disputes'] ?? 0,
+  };
+}
+
+export async function getAdminUserDetail(userId: string): Promise<AdminUserDetail> {
+  const [userRes, bookingsRes, disputesRes, ratingsRes] = await Promise.all([
+    supabase.from('users').select('*').eq('id', userId).single(),
+    supabase
+      .from('bookings')
+      .select('*')
+      .eq('customer_id', userId)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('disputes')
+      .select('*')
+      .eq('raised_by_user_id', userId)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('ratings')
+      .select('*')
+      .eq('rated_user_id', userId)
+      .order('created_at', { ascending: false }),
+  ]);
+  if (userRes.error) throw new Error(userRes.error.message);
+  return {
+    user: mapUser(userRes.data as Record<string, unknown>),
+    bookings: (bookingsRes.data ?? []) as Record<string, unknown>[],
+    disputes: ((disputesRes.data ?? []) as Record<string, unknown>[]).map(mapDispute),
+    ratings: (ratingsRes.data ?? []) as Record<string, unknown>[],
+  };
+}
+
+export async function getPendingVerifications(): Promise<PendingVerification[]> {
+  const { data, error } = await supabase
+    .from('provider_profiles')
+    .select(
+      'id, user_id, bio, id_document_url, verification_status, users:users!provider_profiles_user_id_fkey(full_name, created_at)',
+    )
+    .eq('verification_status', 'pending');
+  if (error) throw new Error(error.message);
+  return ((data ?? []) as Record<string, unknown>[]).map((r) => {
+    const u = (r['users'] as Record<string, unknown>) ?? {};
+    return {
+      id: r['id'] as string,
+      userId: r['user_id'] as string,
+      fullName: (u['full_name'] as string) ?? '—',
+      idDocumentUrl: (r['id_document_url'] as string | null) ?? null,
+      bio: (r['bio'] as string | null) ?? null,
+      createdAt: (u['created_at'] as string) ?? '',
+    };
+  });
 }

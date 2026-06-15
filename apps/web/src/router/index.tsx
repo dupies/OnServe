@@ -57,6 +57,8 @@ import { SettingsPage } from '@/pages/SettingsPage';
 import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage';
 import { AdminDisputeDetailPage } from '@/pages/admin/AdminDisputeDetailPage';
 import { AdminUsersPage } from '@/pages/admin/AdminUsersPage';
+import { AdminUserDetailPage } from '@/pages/admin/AdminUserDetailPage';
+import { AdminVerificationsPage } from '@/pages/admin/AdminVerificationsPage';
 
 // Provider
 import { ProviderReputationPage } from '@/pages/provider/ProviderReputationPage';
@@ -147,4 +149,6 @@ export const router = createBrowserRouter([
   { path: '/admin', element: admin(<AdminDashboardPage />) },
   { path: '/admin/disputes/:id', element: admin(<AdminDisputeDetailPage />) },
   { path: '/admin/users', element: admin(<AdminUsersPage />) },
+  { path: '/admin/users/:id', element: admin(<AdminUserDetailPage />) },
+  { path: '/admin/verifications', element: admin(<AdminVerificationsPage />) },
 ]);

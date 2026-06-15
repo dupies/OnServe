@@ -1,14 +1,10 @@
-import { AlertTriangle, Clock, Users, DollarSign } from 'lucide-react';
+import { AlertTriangle, UserPlus, Users, User, Wrench, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
 import { PageLayout } from '@/components/layout/PageLayout';
-
-const STAT_CARDS = [
-  { label: 'Active bookings', value: '47', icon: Clock, color: 'text-primary' },
-  { label: 'Today GMV', value: 'R 21,450', icon: DollarSign, color: 'text-primary', accent: true },
-  { label: 'Open disputes', value: '3', icon: AlertTriangle, color: 'text-destructive' },
-  { label: 'Pending IDs', value: '8', icon: Users, color: 'text-warning' },
-];
+import { LoadingState, ErrorState } from '@/components/common';
+import { getAdminOverview } from '@/features/admin/services/adminService';
 
 const ACTION_ITEMS = [
   { id: '#1092', type: 'dispute', label: 'Dispute #1092 escalated', severity: 'high' as const, to: '/admin/disputes' },
@@ -25,6 +21,11 @@ const RECENT_ACTIVITY = [
 ];
 
 export function AdminDashboardPage() {
+  const { data: overview, isLoading, error, refetch } = useQuery({
+    queryKey: ['admin-overview'],
+    queryFn: getAdminOverview,
+  });
+
   return (
     <PageLayout>
       <div className="max-w-5xl flex flex-col gap-6">
@@ -39,23 +40,31 @@ export function AdminDashboardPage() {
         </div>
 
         {/* Stats grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {STAT_CARDS.map((s) => {
-            const Icon = s.icon;
-            return (
-              <div
-                key={s.label}
-                className={`rounded-xl border p-5 ${s.accent ? 'bg-primary/5 border-primary/20' : 'bg-card border-border'}`}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <Icon className={`w-4 h-4 ${s.color}`} />
-                  <span className="text-xs text-muted-foreground">{s.label}</span>
-                </div>
-                <p className={`text-2xl font-semibold ${s.color}`}>{s.value}</p>
-              </div>
-            );
-          })}
-        </div>
+        {isLoading ? (
+          <LoadingState label="Loading metrics…" />
+        ) : error || !overview ? (
+          <ErrorState message="Could not load platform metrics." onRetry={() => refetch()} />
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            <StatCard label="Total users" value={overview.totalUsers} icon={Users} color="text-foreground" />
+            <StatCard label="Customers" value={overview.customers} icon={User} color="text-foreground" />
+            <StatCard label="Providers" value={overview.providers} icon={Wrench} color="text-primary" />
+            <StatCard label="New (7d)" value={overview.newSignups7d} icon={UserPlus} color="text-primary" accent />
+            <StatCard
+              label="Pending IDs"
+              value={overview.pendingVerifications}
+              icon={ShieldCheck}
+              color="text-warning"
+              to="/admin/verifications"
+            />
+            <StatCard
+              label="Open disputes"
+              value={overview.openDisputes}
+              icon={AlertTriangle}
+              color="text-destructive"
+            />
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
           {/* Requires action */}
@@ -113,5 +122,42 @@ export function AdminDashboardPage() {
         </div>
       </div>
     </PageLayout>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  icon: Icon,
+  color,
+  accent = false,
+  to,
+}: {
+  label: string;
+  value: number;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  accent?: boolean;
+  to?: string;
+}) {
+  const card = (
+    <div
+      className={`rounded-xl border p-5 h-full ${
+        accent ? 'bg-primary/5 border-primary/20' : 'bg-card border-border'
+      } ${to ? 'hover:border-primary/40 transition-colors' : ''}`}
+    >
+      <div className="flex items-center gap-2 mb-2">
+        <Icon className={`w-4 h-4 ${color}`} />
+        <span className="text-xs text-muted-foreground">{label}</span>
+      </div>
+      <p className={`text-2xl font-semibold ${color}`}>{value}</p>
+    </div>
+  );
+  return to ? (
+    <Link to={to} className="block">
+      {card}
+    </Link>
+  ) : (
+    card
   );
 }
