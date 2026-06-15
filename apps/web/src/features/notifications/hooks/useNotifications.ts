@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../../lib/supabase';
 import { getNotifications, markAsRead, markAllAsRead } from '../services/notificationService';
+import type { Notification } from '../services/notificationService';
+import { notify } from '@/lib/notify';
 
 export function useNotifications() {
   const qc = useQueryClient();
@@ -43,7 +45,20 @@ export function useMarkAsRead() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: markAsRead,
-    onSuccess: () => {
+    onMutate: async (id: string) => {
+      await qc.cancelQueries({ queryKey: ['notifications'] });
+      const previous = qc.getQueryData<Notification[]>(['notifications']);
+      qc.setQueryData<Notification[]>(['notifications'], (old) =>
+        (old ?? []).map((n) => (n.id === id ? { ...n, isRead: true } : n)),
+      );
+      return { previous };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) {
+        qc.setQueryData(['notifications'], context.previous);
+      }
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ['notifications'] });
     },
   });
@@ -53,7 +68,23 @@ export function useMarkAllAsRead() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: markAllAsRead,
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: ['notifications'] });
+      const previous = qc.getQueryData<Notification[]>(['notifications']);
+      qc.setQueryData<Notification[]>(['notifications'], (old) =>
+        (old ?? []).map((n) => ({ ...n, isRead: true })),
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        qc.setQueryData(['notifications'], context.previous);
+      }
+    },
     onSuccess: () => {
+      notify.success('All notifications marked as read');
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ['notifications'] });
     },
   });

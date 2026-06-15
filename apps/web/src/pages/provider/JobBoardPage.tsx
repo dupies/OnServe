@@ -5,12 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { useProviderBookings, useAcceptBooking } from '@/features/bookings/hooks/useBookings';
+import { LoadingState, EmptyState, ErrorState } from '@/components/common';
+import { notify } from '@/lib/notify';
 import { format } from 'date-fns';
-import { toast } from 'sonner';
 
 export function JobBoardPage() {
   const navigate = useNavigate();
-  const { data: bookings = [], isLoading } = useProviderBookings();
+  const { data: bookings = [], isLoading, isError, refetch } = useProviderBookings();
   const acceptBooking = useAcceptBooking();
 
   const pending = bookings.filter((b) => b.status === 'pending');
@@ -20,9 +21,9 @@ export function JobBoardPage() {
   async function handleAccept(id: string) {
     try {
       await acceptBooking.mutateAsync(id);
-      toast.success('Job accepted');
+      notify.success('Job accepted');
     } catch {
-      toast.error('Failed to accept job');
+      // Global mutation error handler surfaces the toast.
     }
   }
 
@@ -63,18 +64,16 @@ export function JobBoardPage() {
           <div className="flex flex-col gap-4">
             <h2 className="text-sm font-semibold text-foreground">New requests</h2>
             {isLoading ? (
-              <div className="flex flex-col gap-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="bg-card border border-border rounded-xl p-5 animate-pulse h-28" />
-                ))}
-              </div>
+              <LoadingState label="Loading job requests…" />
+            ) : isError ? (
+              <ErrorState message="We couldn't load job requests." onRetry={() => refetch()} />
             ) : pending.length === 0 ? (
-              <div className="bg-card border border-border rounded-xl p-10 flex flex-col items-center justify-center text-center">
-                <div className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center mb-3">
-                  <Inbox className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <p className="text-sm font-medium text-foreground">No new job requests</p>
-                <p className="text-xs text-muted-foreground mt-1">New requests will appear here</p>
+              <div className="bg-card border border-border rounded-xl">
+                <EmptyState
+                  icon={Inbox}
+                  title="No new job requests"
+                  description="New requests will appear here."
+                />
               </div>
             ) : (
               <div className="flex flex-col gap-3">

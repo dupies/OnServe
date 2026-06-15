@@ -6,32 +6,37 @@ import { PageLayout } from '@/components/layout/PageLayout';
 import { useQuoteRequest, useAcceptQuote } from '@/features/quotes/hooks/useQuotes';
 import type { QuoteWithProvider } from '@/features/quotes/hooks/useQuotes';
 import { formatDistanceToNow } from 'date-fns';
-import { toast } from 'sonner';
+import { LoadingState, EmptyState, ErrorState } from '@/components/common';
+import { notify } from '@/lib/notify';
 
 export function QuoteReviewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data, isLoading } = useQuoteRequest(id);
+  const { data, isLoading, isError, refetch } = useQuoteRequest(id);
   const acceptQuote = useAcceptQuote();
 
   async function handleAccept(quoteId: string) {
     try {
       await acceptQuote.mutateAsync(quoteId);
-      toast.success('Quote accepted — booking created');
+      notify.success('Quote accepted — booking created');
       navigate('/bookings');
     } catch {
-      toast.error('Failed to accept quote');
+      // Global mutation error handler surfaces the toast.
     }
   }
 
-  if (isLoading || !data) {
+  if (isLoading) {
     return (
       <PageLayout>
-        <div className="max-w-2xl animate-pulse flex flex-col gap-4">
-          <div className="h-24 bg-card rounded-xl" />
-          <div className="h-32 bg-card rounded-xl" />
-          <div className="h-32 bg-card rounded-xl" />
-        </div>
+        <LoadingState label="Loading quotes…" />
+      </PageLayout>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <PageLayout>
+        <ErrorState message="We couldn't load this quote request." onRetry={() => refetch()} />
       </PageLayout>
     );
   }
@@ -86,15 +91,11 @@ export function QuoteReviewPage() {
         </div>
 
         {quotes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-12 h-12 rounded-full bg-card border border-border flex items-center justify-center mb-4 text-xl">
-              ⏳
-            </div>
-            <p className="text-foreground font-medium">Waiting for quotes</p>
-            <p className="text-muted-foreground text-sm mt-1">
-              Providers will bid on your job before the deadline
-            </p>
-          </div>
+          <EmptyState
+            icon={Clock}
+            title="Waiting for quotes"
+            description="Providers will bid on your job before the deadline."
+          />
         ) : (
           <div className="flex flex-col gap-4">
             {quotes.map((q, i) => (

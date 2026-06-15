@@ -3,6 +3,7 @@ import { Plus, Clock, MessageSquare, UserCheck, Globe, Inbox } from 'lucide-reac
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PageLayout } from '@/components/layout/PageLayout';
+import { LoadingState, EmptyState, ErrorState } from '@/components/common';
 import { useCustomerQuoteRequests } from '@/features/quotes/hooks/useQuotes';
 import type { QuoteRequestSummary } from '@/features/quotes/hooks/useQuotes';
 import { formatDistanceToNow, format } from 'date-fns';
@@ -26,7 +27,7 @@ const STATUS_LABELS: Record<QRStatus, string> = {
 
 export function QuoteRequestsListPage() {
   const navigate = useNavigate();
-  const { data: requests = [], isLoading } = useCustomerQuoteRequests();
+  const { data: requests = [], isLoading, isError, refetch } = useCustomerQuoteRequests();
 
   const active = requests.filter((r) => r.status === 'open' || r.status === 'in_review');
   const past   = requests.filter((r) => r.status === 'accepted' || r.status === 'expired');
@@ -48,25 +49,21 @@ export function QuoteRequestsListPage() {
         </div>
 
         {isLoading ? (
-          <div className="flex flex-col gap-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-card border border-border rounded-xl p-5 animate-pulse h-24" />
-            ))}
-          </div>
+          <LoadingState label="Loading quote requests…" />
+        ) : isError ? (
+          <ErrorState message="We couldn't load your quote requests." onRetry={() => refetch()} />
         ) : requests.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="w-12 h-12 rounded-full bg-card border border-border flex items-center justify-center mb-4">
-              <Inbox className="w-5 h-5 text-muted-foreground" />
-            </div>
-            <p className="text-foreground font-medium">No quote requests yet</p>
-            <p className="text-muted-foreground text-sm mt-1">
-              Request quotes to compare prices from multiple providers
-            </p>
-            <Button size="sm" className="mt-5" onClick={() => navigate('/quote-request')}>
-              <Plus className="w-4 h-4 mr-1.5" />
-              New request
-            </Button>
-          </div>
+          <EmptyState
+            icon={Inbox}
+            title="No quote requests yet"
+            description="Request quotes to compare prices from multiple providers."
+            action={
+              <Button size="sm" onClick={() => navigate('/quote-request')}>
+                <Plus className="w-4 h-4 mr-1.5" />
+                New request
+              </Button>
+            }
+          />
         ) : (
           <div className="flex flex-col gap-8">
             {active.length > 0 && (

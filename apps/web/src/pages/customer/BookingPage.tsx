@@ -4,7 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format, addDays } from 'date-fns';
 import { ArrowLeft, CalendarDays, Clock } from 'lucide-react';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,6 +13,7 @@ import { PageLayout } from '@/components/layout/PageLayout';
 import { useServiceCategories } from '@/features/services/hooks/useServices';
 import { useSavedLocations } from '@/features/location/hooks/useLocations';
 import { useCreateBooking } from '@/features/bookings/hooks/useBookings';
+import { notify } from '@/lib/notify';
 import { cn } from '@/lib/utils';
 
 const bookingFormSchema = z.object({
@@ -52,9 +52,10 @@ export function BookingPage() {
         scheduledAt,
         customerNotes: values.customerNotes,
       });
+      notify.success('Booking created — review and confirm');
       navigate('/payment', { state: { bookingId: booking.id } });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to create booking');
+    } catch {
+      // Global mutation error handler surfaces the toast.
     }
   }
 

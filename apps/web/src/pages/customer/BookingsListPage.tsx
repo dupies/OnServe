@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { CalendarOff } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { useCustomerBookings } from '@/features/bookings/hooks/useBookings';
+import { LoadingState, EmptyState, ErrorState } from '@/components/common';
 import { format } from 'date-fns';
 import type { BookingStatus } from '@onserve/types';
 
@@ -26,7 +28,7 @@ const STATUS_LABELS: Record<BookingStatus, string> = {
 
 export function BookingsListPage() {
   const navigate = useNavigate();
-  const { data: bookings = [], isLoading } = useCustomerBookings();
+  const { data: bookings = [], isLoading, isError, refetch } = useCustomerBookings();
 
   const active = bookings.filter((b) => ['pending', 'confirmed', 'in_progress'].includes(b.status));
   const past = bookings.filter((b) => ['completed', 'cancelled', 'disputed'].includes(b.status));
@@ -51,21 +53,20 @@ export function BookingsListPage() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-card border border-border rounded-xl p-5 animate-pulse h-28" />
-            ))}
-          </div>
+          <LoadingState label="Loading your bookings…" />
+        ) : isError ? (
+          <ErrorState message="We couldn't load your bookings." onRetry={() => refetch()} />
         ) : bookings.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="w-12 h-12 rounded-full bg-card border border-border flex items-center justify-center mb-4">
-              <CalendarOff className="w-5 h-5 text-muted-foreground" />
-            </div>
-            <p className="text-foreground font-medium">No bookings yet</p>
-            <p className="text-muted-foreground text-sm mt-1">
-              Book a service to get started
-            </p>
-          </div>
+          <EmptyState
+            icon={CalendarOff}
+            title="No bookings yet"
+            description="Book a service to get started."
+            action={
+              <Button size="sm" onClick={() => navigate('/search')}>
+                Find a service
+              </Button>
+            }
+          />
         ) : (
           <div className="flex flex-col gap-8">
             {active.length > 0 && (

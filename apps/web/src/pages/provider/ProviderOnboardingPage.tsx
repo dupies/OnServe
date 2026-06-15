@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { toast } from 'sonner';
-import { Upload, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Upload, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,6 +12,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { AppShell } from '@/components/layout/AppShell';
 import { supabase } from '@/lib/supabase';
 import { useAllServiceTypes } from '@/features/services/hooks/useServices';
+import { LoadingState } from '@/components/common';
+import { notify } from '@/lib/notify';
 
 const TOTAL_STEPS = 4;
 
@@ -194,11 +195,7 @@ function Step3Services({ onNext }: { onNext: (services: string[]) => void }) {
 
       <div className="flex flex-col gap-2">
         {serviceTypes.length === 0 ? (
-          <div className="grid grid-cols-2 gap-2">
-            {[1,2,3,4].map(i => (
-              <div key={i} className="h-16 bg-card border border-border rounded-xl animate-pulse" />
-            ))}
-          </div>
+          <LoadingState label="Loading services…" />
         ) : (
           <div className="grid grid-cols-2 gap-2">
             {serviceTypes.map((s) => {
@@ -353,17 +350,28 @@ export function ProviderOnboardingPage() {
         );
       }
 
-      toast.success('Profile set up! Welcome to OnServe.');
+      notify.success('Profile set up! Welcome to OnServe.');
       navigate('/provider/jobs');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Setup failed');
+      notify.error(err);
     } finally {
       setSubmitting(false);
     }
   }
 
+  function goBack() {
+    if (step > 1) setStep((s) => s - 1);
+    else navigate(-1);
+  }
+
   return (
     <AppShell className="px-6 pt-12 pb-8 gap-0 max-w-md mx-auto w-full">
+      <button
+        onClick={goBack}
+        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 self-start"
+      >
+        <ArrowLeft className="w-4 h-4" /> Back
+      </button>
       <StepBar step={step} />
 
       {step === 1 && (

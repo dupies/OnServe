@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { PageLayout } from '@/components/layout/PageLayout';
+import { LoadingState, EmptyState, ErrorState } from '@/components/common';
 import { useNotifications, useMarkAsRead, useMarkAllAsRead } from '@/features/notifications/hooks/useNotifications';
 import type { Notification } from '@/features/notifications/services/notificationService';
 import { cn } from '@/lib/utils';
@@ -75,7 +76,7 @@ function NotificationRow({ n, onRead }: { n: Notification; onRead: (id: string) 
 }
 
 export function NotificationsPage() {
-  const { data: notifications = [], isLoading } = useNotifications();
+  const { data: notifications = [], isLoading, isError, refetch } = useNotifications();
   const markAsRead = useMarkAsRead();
   const markAllAsRead = useMarkAllAsRead();
 
@@ -107,27 +108,15 @@ export function NotificationsPage() {
         </div>
 
         {isLoading ? (
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="px-5 py-4 flex items-start gap-4 animate-pulse">
-                <div className="w-9 h-9 rounded-lg bg-surface flex-shrink-0" />
-                <div className="flex-1 flex flex-col gap-2">
-                  <div className="h-3 bg-surface rounded w-48" />
-                  <div className="h-2.5 bg-surface rounded w-64" />
-                </div>
-              </div>
-            ))}
-          </div>
+          <LoadingState label="Loading notifications…" />
+        ) : isError ? (
+          <ErrorState message="We couldn't load your notifications." onRetry={() => refetch()} />
         ) : notifications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="w-14 h-14 rounded-full bg-card border border-border flex items-center justify-center mb-4">
-              <Bell className="w-6 h-6 text-muted-foreground" />
-            </div>
-            <p className="text-foreground font-medium">No notifications yet</p>
-            <p className="text-muted-foreground text-sm mt-1">
-              You'll be notified about bookings, payments, and updates here
-            </p>
-          </div>
+          <EmptyState
+            icon={Bell}
+            title="No notifications yet"
+            description="You'll be notified about bookings, payments, and updates here."
+          />
         ) : (
           <div className="flex flex-col gap-5">
             {unreadCount > 0 && (
