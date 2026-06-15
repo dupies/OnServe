@@ -1,5 +1,7 @@
 export type UserRole = 'customer' | 'provider' | 'admin';
 
+export type AccountStatus = 'active' | 'suspended' | 'banned';
+
 export interface User {
   id: string;
   email: string | null;
@@ -8,6 +10,9 @@ export interface User {
   avatarUrl: string | null;
   role: UserRole;
   isVerified: boolean;
+  accountStatus: AccountStatus;
+  suspensionReason: string | null;
+  suspendedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }

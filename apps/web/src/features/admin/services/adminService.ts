@@ -27,6 +27,9 @@ function mapUser(r: Record<string, unknown>): User {
     avatarUrl: r['avatar_url'] as string | null,
     role: r['role'] as User['role'],
     isVerified: r['is_verified'] as boolean,
+    accountStatus: (r['account_status'] as User['accountStatus']) ?? 'active',
+    suspensionReason: (r['suspension_reason'] as string | null) ?? null,
+    suspendedAt: (r['suspended_at'] as string | null) ?? null,
     createdAt: r['created_at'] as string,
     updatedAt: r['updated_at'] as string,
   };
