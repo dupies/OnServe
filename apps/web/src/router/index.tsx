@@ -55,6 +55,7 @@ import { SettingsPage } from '@/pages/SettingsPage';
 
 // Admin
 import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage';
+import { AdminDisputesPage } from '@/pages/admin/AdminDisputesPage';
 import { AdminDisputeDetailPage } from '@/pages/admin/AdminDisputeDetailPage';
 import { AdminUsersPage } from '@/pages/admin/AdminUsersPage';
 import { AdminUserDetailPage } from '@/pages/admin/AdminUserDetailPage';
@@ -147,6 +148,7 @@ export const router = createBrowserRouter([
 
   // Admin
   { path: '/admin', element: admin(<AdminDashboardPage />) },
+  { path: '/admin/disputes', element: admin(<AdminDisputesPage />) },
   { path: '/admin/disputes/:id', element: admin(<AdminDisputeDetailPage />) },
   { path: '/admin/users', element: admin(<AdminUsersPage />) },
   { path: '/admin/users/:id', element: admin(<AdminUserDetailPage />) },
