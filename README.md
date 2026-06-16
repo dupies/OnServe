@@ -3,7 +3,6 @@
 > **The operating system for informal services in South Africa.**
 
 OnServe is a location-secure, trust-first marketplace connecting South Africans to on-demand home and professional services — backed by identity verification, escrow payments, and dual-reputation accountability.
-
 ---
 
 ## Table of Contents
