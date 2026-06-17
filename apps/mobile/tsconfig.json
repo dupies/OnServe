@@ -9,7 +9,7 @@
     },
     "noEmit": true,
     "skipLibCheck": true,
-    "types": ["nativewind/types", "react-native-css/types"]
+    "types": ["nativewind/types", "react-native-css/types", "node"]
   },
   "include": ["src", "app", "app/**/*.tsx", "nativewind-env.d.ts", "types.d.ts"]
 }
