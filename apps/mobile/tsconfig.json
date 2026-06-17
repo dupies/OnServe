@@ -7,7 +7,9 @@
       "@onserve/shared": ["../../packages/shared/src"],
       "@/*": ["./src/*"]
     },
-    "noEmit": true
+    "noEmit": true,
+    "skipLibCheck": true,
+    "types": ["nativewind/types", "react-native-css/types"]
   },
-  "include": ["src", "app", "app/**/*.tsx"]
+  "include": ["src", "app", "app/**/*.tsx", "nativewind-env.d.ts", "types.d.ts"]
 }
