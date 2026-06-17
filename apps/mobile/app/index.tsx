@@ -1,32 +1,26 @@
-import { Redirect } from 'expo-router';
-import { useAuthStore } from '@/store/authStore';
-import { View, ActivityIndicator } from 'react-native';
-import { C } from '@/lib/colors';
+import { View, Text, StatusBar } from 'react-native';
+import { useEffect, useState } from 'react';
 
-export default function Index() {
-  const user = useAuthStore((s) => s.user);
-  const role = useAuthStore((s) => s.role);
-  const isLoading = useAuthStore((s) => s.isLoading);
+export default function HomeScreen() {
+  const [mounted, setMounted] = useState(false);
 
-  if (isLoading) {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: C.bg }}>
-        <ActivityIndicator color={C.accent} size="large" />
-      </View>
-    );
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
   }
 
-  if (!user) {
-    return <Redirect href="/(auth)/splash" />;
-  }
-
-  if (!role) {
-    return <Redirect href="/(auth)/role" />;
-  }
-
-  if (role === 'provider') {
-    return <Redirect href="/(provider)/(tabs)/jobs" />;
-  }
-
-  return <Redirect href="/(customer)/" />;
+  return (
+    <View style={{ flex: 1, backgroundColor: '#0A0A0F', justifyContent: 'center', alignItems: 'center' }}>
+      <StatusBar barStyle="light-content" />
+      <Text style={{ color: '#fff', fontSize: 24, fontWeight: 'bold' }}>
+        OnServe Mobile
+      </Text>
+      <Text style={{ color: '#999', fontSize: 14, marginTop: 8 }}>
+        SDK 56 • Phase 0b Foundation
+      </Text>
+    </View>
+  );
 }

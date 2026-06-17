@@ -1,0 +1,19 @@
+{
+  "name": "@onserve/api",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "lint": "tsc --noEmit",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@onserve/shared": "*",
+    "@onserve/types": "*",
+    "@supabase/supabase-js": "^2.105.0"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.2"
+  }
+}

@@ -14,7 +14,11 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "@onserve/ui-tokens": ["./packages/ui-tokens/src"],
+      "@onserve/ui-tokens/*": ["./packages/ui-tokens/src/*"]
+    }
   },
   "exclude": ["node_modules"]
 }

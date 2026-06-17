@@ -30,20 +30,20 @@ export async function verifyOzowNotificationHash(
   notification: Record<string, string>,
   privateKey: string,
 ): Promise<boolean> {
-  const fields = [
-    notification.SiteCode,
-    notification.TransactionId,
-    notification.TransactionReference,
-    notification.Amount,
-    notification.Status,
+  const fields: string[] = [
+    notification.SiteCode ?? '',
+    notification.TransactionId ?? '',
+    notification.TransactionReference ?? '',
+    notification.Amount ?? '',
+    notification.Status ?? '',
     notification.Optional1 ?? '',
     notification.Optional2 ?? '',
     notification.Optional3 ?? '',
     notification.Optional4 ?? '',
     notification.Optional5 ?? '',
-    notification.CurrencyCode,
-    notification.IsTest,
-    notification.StatusMessage,
+    notification.CurrencyCode ?? '',
+    notification.IsTest ?? '',
+    notification.StatusMessage ?? '',
   ];
 
   const expectedHash = await generateOzowRequestHash(fields, privateKey);

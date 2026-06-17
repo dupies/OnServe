@@ -16,6 +16,7 @@
     "@hookform/resolvers": "^5.2.2",
     "@onserve/shared": "*",
     "@onserve/types": "*",
+    "@onserve/ui-tokens": "*",
     "@supabase/supabase-js": "^2.105.0",
     "@tanstack/react-query": "^5.100.5",
     "class-variance-authority": "^0.7.1",
