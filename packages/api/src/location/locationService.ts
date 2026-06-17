@@ -90,3 +90,37 @@ export async function deleteLocation(supabase: SupabaseClient, id: string): Prom
   const { error } = await supabase.from('saved_locations').delete().eq('id', id);
   if (error) throw new Error(error.message);
 }
+
+/**
+ * Add a new location for the current user
+ * This is a convenience wrapper around saveLocation with minimal required fields.
+ * @param supabase Supabase client instance
+ * @param userId The user ID
+ * @param address Address details
+ * @returns The created SavedLocation
+ */
+export async function addLocation(
+  supabase: SupabaseClient,
+  userId: string,
+  address: {
+    name: string;
+    street: string;
+    city: string;
+    postalCode: string;
+    latitude: number;
+    longitude: number;
+    isDefault?: boolean;
+  }
+): Promise<SavedLocation> {
+  const formattedAddress = `${address.street}, ${address.city}, ${address.postalCode}`;
+
+  return saveLocation(supabase, {
+    userId,
+    label: 'Other', // Default label for new locations
+    customName: address.name,
+    formattedAddress,
+    latitude: address.latitude,
+    longitude: address.longitude,
+    isDefault: address.isDefault ?? false,
+  });
+}
