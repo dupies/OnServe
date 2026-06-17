@@ -64,6 +64,13 @@ import { AdminVerificationsPage } from '@/pages/admin/AdminVerificationsPage';
 // Provider
 import { ProviderReputationPage } from '@/pages/provider/ProviderReputationPage';
 
+// Payments
+import { PaymentCheckoutPage } from '@/features/payments/pages/PaymentCheckoutPage';
+import { PaymentSuccessPage } from '@/features/payments/pages/PaymentSuccessPage';
+import { PaymentCancelPage } from '@/features/payments/pages/PaymentCancelPage';
+import { PaymentErrorPage } from '@/features/payments/pages/PaymentErrorPage';
+import { BankDetailsPage } from '@/features/payments/pages/BankDetailsPage';
+
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, isLoading, role } = useAuthStore();
   if (isLoading) {
@@ -145,6 +152,13 @@ export const router = createBrowserRouter([
 
   // Provider — reputation
   { path: '/provider/reputation', element: auth(<ProviderReputationPage />) },
+
+  // Payments
+  { path: '/payment/checkout/:bookingId', element: auth(<PaymentCheckoutPage />) },
+  { path: '/payment/success', element: auth(<PaymentSuccessPage />) },
+  { path: '/payment/cancel', element: auth(<PaymentCancelPage />) },
+  { path: '/payment/error', element: auth(<PaymentErrorPage />) },
+  { path: '/provider/bank-details', element: auth(<BankDetailsPage />) },
 
   // Admin
   { path: '/admin', element: admin(<AdminDashboardPage />) },
