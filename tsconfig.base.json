@@ -17,7 +17,15 @@
     "forceConsistentCasingInFileNames": true,
     "paths": {
       "@onserve/ui-tokens": ["./packages/ui-tokens/src"],
-      "@onserve/ui-tokens/*": ["./packages/ui-tokens/src/*"]
+      "@onserve/ui-tokens/*": ["./packages/ui-tokens/src/*"],
+      "@onserve/core": ["./packages/core/src"],
+      "@onserve/core/*": ["./packages/core/src/*"],
+      "@onserve/api": ["./packages/api/src"],
+      "@onserve/api/*": ["./packages/api/src/*"],
+      "@onserve/types": ["./packages/types/src"],
+      "@onserve/types/*": ["./packages/types/src/*"],
+      "@onserve/shared": ["./packages/shared/src"],
+      "@onserve/shared/*": ["./packages/shared/src/*"]
     }
   },
   "exclude": ["node_modules"]
