@@ -18,12 +18,12 @@
   },
   "dependencies": {
     "@onserve/api": "*",
-    "@onserve/types": "*",
     "@onserve/shared": "*",
-    "zod": "^3.22.0",
-    "zustand": "^4.4.0",
+    "@onserve/types": "*",
     "@tanstack/react-query": "^5.0.0",
-    "expo-router": "^6.0.0"
+    "expo-router": "^6.0.24",
+    "zod": "^3.22.0",
+    "zustand": "^4.4.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

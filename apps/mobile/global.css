@@ -1,8 +1,1 @@
-@import "tailwindcss/base";
 @import "@onserve/ui-tokens/css";
-
-@layer base {
-  html {
-    @apply bg-surface-0 text-text-primary;
-  }
-}
