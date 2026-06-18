@@ -11,7 +11,7 @@ import type {
   CreateBookingInput,
   UpdateBookingInput,
   CancelBookingInput,
-} from '@onserve/shared/schemas/booking';
+} from '@onserve/shared';
 
 // Map database snake_case to TypeScript camelCase
 interface BookingRow {

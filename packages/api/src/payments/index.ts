@@ -10,7 +10,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { CreatePaymentInput, PaymentReturnInput } from '@onserve/shared/schemas/payment';
+import type { CreatePaymentInput, PaymentReturnInput } from '@onserve/shared';
 
 // Map database snake_case to TypeScript camelCase
 interface PaymentRow {

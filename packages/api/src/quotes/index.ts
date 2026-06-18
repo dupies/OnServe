@@ -7,7 +7,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { CreateQuoteInput, AcceptQuoteInput } from '@onserve/shared/schemas/quote';
+import type { CreateQuoteInput, AcceptQuoteInput } from '@onserve/shared';
 
 // Map database snake_case to TypeScript camelCase
 interface QuoteRow {
