@@ -2,17 +2,42 @@ import { View, Text, ScrollView, StatusBar, Pressable, StyleSheet } from 'react-
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { Button } from '../../src/components';
+import { useAuthStore } from '../../src/store/authStore';
+import { setUserRole } from '@onserve/api';
+import { supabase } from '../../src/lib/supabase';
+import { showErrorToast } from '../../src/utils/toast';
 import { colors } from '@onserve/ui-tokens';
 
 export default function RoleSelectionScreen() {
   const router = useRouter();
+  const { setRole, user } = useAuthStore();
   const [selectedRole, setSelectedRole] = useState<'customer' | 'provider' | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleContinue = () => {
-    if (selectedRole === 'customer') {
-      router.push('/(customer)');
-    } else if (selectedRole === 'provider') {
-      router.push('/(provider)');
+  const handleContinue = async () => {
+    if (!selectedRole) return;
+
+    setLoading(true);
+    try {
+      // Update user role in database
+      if (user?.id) {
+        await setUserRole(supabase, user.id, selectedRole);
+      }
+
+      // Update local store
+      setRole(selectedRole);
+
+      // Navigate to appropriate home
+      if (selectedRole === 'customer') {
+        router.replace('/(customer)');
+      } else {
+        router.replace('/(provider)');
+      }
+    } catch (error: any) {
+      console.error('Role setup error:', error);
+      showErrorToast('Failed to set role. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -103,11 +128,11 @@ export default function RoleSelectionScreen() {
 
         <View style={{ marginBottom: 32 }} />
         <Button
-          label="Continue"
+          label={loading ? 'Setting up...' : 'Continue'}
           onPress={handleContinue}
           variant="primary"
           size="lg"
-          disabled={!selectedRole}
+          disabled={loading || !selectedRole}
         />
       </View>
     </ScrollView>

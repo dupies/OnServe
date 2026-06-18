@@ -3,8 +3,10 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@onserve/api": ["../../packages/api/src"],
       "@onserve/types": ["../../packages/types/src"],
       "@onserve/shared": ["../../packages/shared/src"],
+      "@onserve/ui-tokens": ["../../packages/ui-tokens/src"],
       "@/*": ["./src/*"]
     },
     "noEmit": true,

@@ -1,4 +1,4 @@
-import { View, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
 import { ReactNode } from 'react';
 import { colors } from '@onserve/ui-tokens';
 
@@ -6,9 +6,10 @@ export interface CardProps {
   children: ReactNode;
   variant?: 'default' | 'elevated';
   style?: any;
+  onPress?: () => void;
 }
 
-export function Card({ children, variant = 'default', style }: CardProps) {
+export function Card({ children, variant = 'default', style, onPress }: CardProps) {
   const styles = StyleSheet.create({
     card: {
       backgroundColor: colors.surface[1],
@@ -22,5 +23,11 @@ export function Card({ children, variant = 'default', style }: CardProps) {
     },
   });
 
-  return <View style={[styles.card, style]}>{children}</View>;
+  const content = <View style={[styles.card, style]}>{children}</View>;
+
+  if (onPress) {
+    return <Pressable onPress={onPress}>{content}</Pressable>;
+  }
+
+  return content;
 }

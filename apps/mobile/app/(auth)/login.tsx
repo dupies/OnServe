@@ -2,15 +2,30 @@ import { View, Text, ScrollView, StatusBar, StyleSheet } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { Button, TextField, Card } from '../../src/components';
+import { useAuth } from '../../src/hooks/useAuth';
+import { showErrorToast } from '../../src/utils/toast';
 import { colors } from '@onserve/ui-tokens';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const { sendOtp, loading } = useAuth();
+  const [phone, setPhone] = useState('');
 
-  const handleContinue = () => {
-    if (email.trim()) {
-      router.push('/(auth)/role');
+  const handleSendOtp = async () => {
+    // Basic validation
+    if (!phone || phone.replace(/\D/g, '').length < 9) {
+      showErrorToast('Enter a valid phone number');
+      return;
+    }
+
+    const success = await sendOtp(phone);
+    if (success) {
+      router.push({
+        pathname: '/(auth)/verify',
+        params: { phone },
+      });
+    } else {
+      showErrorToast('Failed to send OTP. Please try again.');
     }
   };
 
@@ -56,29 +71,30 @@ export default function LoginScreen() {
     <ScrollView style={styles.container}>
       <StatusBar barStyle="light-content" />
       <View style={styles.content}>
-        <Text style={styles.title}>Welcome</Text>
-        <Text style={styles.subtitle}>Sign in to your account</Text>
+        <Text style={styles.title}>Welcome back</Text>
+        <Text style={styles.subtitle}>Sign in to manage your bookings</Text>
 
         <Card style={styles.cardSpacing}>
-          <Text style={styles.labelText}>Email Address</Text>
+          <Text style={styles.labelText}>Phone Number</Text>
           <TextField
-            placeholder="you@example.com"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
+            placeholder="+27 123 456 789"
+            value={phone}
+            onChangeText={setPhone}
+            keyboardType="phone-pad"
+            editable={!loading}
           />
         </Card>
 
         <Button
-          label="Continue"
-          onPress={handleContinue}
+          label={loading ? 'Sending OTP...' : 'Send OTP'}
+          onPress={handleSendOtp}
           variant="primary"
           size="lg"
+          disabled={loading}
         />
 
         <Text style={styles.footerText}>
-          Don't have an account? Create one during signup.
+          We'll send a one-time code to verify your number
         </Text>
       </View>
     </ScrollView>

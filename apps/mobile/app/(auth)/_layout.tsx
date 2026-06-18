@@ -9,6 +9,7 @@ export default function AuthLayout() {
     >
       <Stack.Screen name="splash" />
       <Stack.Screen name="login" />
+      <Stack.Screen name="verify" />
       <Stack.Screen name="role" />
     </Stack>
   );
