@@ -1,0 +1,3600 @@
+openapi: 3.1.0
+info:
+  version: '1.0'
+  title: One API
+  summary: The One API to rule them all
+  description: Ozow OneAPI encompassing all REST API integrations possible with Ozow.
+  termsOfService: 'https://ozow.com/terms-and-conditions'
+  contact:
+    name: Ozow Support
+    url: 'https://ozow.com'
+    email: support@ozow.com
+servers:
+  - url: 'https://one.ozow.com/v1'
+paths:
+  /token:
+    post:
+      tags:
+        - authentication
+      summary: Generate Authentication Token
+      description: 'Retrieve an authentication token as per the [OpenAuth 2.0 Client Credential Flow](https://datatracker.ietf.org/doc/html/rfc6749#section-4.4).'
+      operationId: post-token
+      parameters:
+        - $ref: '#/components/parameters/X-Correlation-ID'
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+      responses:
+        '200':
+          description: 'Succesfull response as per [RFC 6749](https://datatracker.ietf.org/doc/html/rfc6749#section-5.1)'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security: []
+      servers:
+        - url: 'https://one.ozow.com/v1'
+  /paymentmethods:
+    get:
+      tags:
+        - payments
+      summary: Get Payment Methods
+      description: 'Retrieve the list of payment methods available.  If  `region` is not specified, IP geolocation will be used to determine an applicable region.'
+      operationId: get-paymentmethods
+      parameters:
+        - $ref: '#/components/parameters/X-Forwarded-For'
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - $ref: '#/components/parameters/siteCode-required'
+        - $ref: '#/components/parameters/region'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  links:
+                    $ref: '#/components/schemas/PaginationLinks'
+                    description: Links for pagination
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PaymentMethod'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+                    description: The pagination meta data available.
+                required:
+                  - links
+                  - results
+                  - meta
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - payment
+      servers:
+        - url: 'https://one.ozow.com/v1'
+  /bankaccount/verify:
+    post:
+      tags:
+        - bankaccount
+      summary: Bank Account Verification
+      operationId: post-bankaccount-verify
+      parameters:
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - $ref: '#/components/parameters/Idempotency-Key'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BankAccountVerificationRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BankAccountVerificationResponse'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BankAccountVerificationResponse'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - payment
+      servers:
+        - url: 'https://one.ozow.com/v1'
+  /regions:
+    get:
+      tags:
+        - payments
+      summary: Get Regions
+      description: Retreives a list of regions available for payment.
+      operationId: get-regions
+      parameters:
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  links:
+                    $ref: '#/components/schemas/PaginationLinks'
+                    description: Links for use in pagination.
+                  results:
+                    type: array
+                    description: The list of regions.
+                    items:
+                      $ref: '#/components/schemas/Region'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+                    description: The pagination meta data available.
+                required:
+                  - links
+                  - results
+                  - meta
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - payment
+      servers:
+        - url: 'https://one.ozow.com/v1'
+  /payments:
+    post:
+      tags:
+        - payments
+      summary: Request Payment
+      description: Create a payment request with the specified channel and transaction details.
+      operationId: post-payments
+      parameters:
+        - $ref: '#/components/parameters/Idempotency-Key'
+        - $ref: '#/components/parameters/X-Correlation-ID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+            Location:
+              schema:
+                type: string
+                format: uri
+              description: The unique URI for this resource.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - payment
+      servers:
+        - url: 'https://one.ozow.com/v1'
+    get:
+      tags:
+        - payments
+      summary: List Payments
+      description: List payments between specific dates.
+      operationId: get-payments
+      parameters:
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+        - $ref: '#/components/parameters/fromDate'
+        - $ref: '#/components/parameters/toDate'
+        - $ref: '#/components/parameters/siteCode'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  links:
+                    $ref: '#/components/schemas/PaginationLinks'
+                    description: The links used in pagination.
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PaymentResponse'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+                required:
+                  - links
+                  - results
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - payment
+      servers:
+        - url: 'https://one.ozow.com/v1'
+  '/payments/{id}':
+    get:
+      tags:
+        - payments
+      summary: Get Payment Status by Id
+      description: Retrieves the details of a payment request.
+      operationId: get-payments-id
+      parameters:
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - name: id
+          in: path
+          description: The unique identifier of the payment.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            examples:
+              - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - payment
+      servers:
+        - url: 'https://one.ozow.com/v1'
+  '/payments/{id}/cancel':
+    post:
+      tags:
+        - payments
+      summary: Cancel Payment Request
+      description: Cancels the payment request with the specified `id`.
+      operationId: post-payments-id-cancel
+      parameters:
+        - $ref: '#/components/parameters/Idempotency-Key'
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - name: id
+          in: path
+          description: The unique identifier of the payment.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            examples:
+              - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+      responses:
+        '200':
+          description: OK. The payment has been cancelled.
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+        '201':
+          description: Created. The payment has been cancelled
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - payment
+      servers:
+        - url: 'https://one.ozow.com/v1'
+  '/payments/{id}/transactions':
+    get:
+      tags:
+        - payments
+      summary: List Transactions for Payment
+      description: List the transactions associated with the payment request with the specified `id`.
+      operationId: get-payments-transactions
+      parameters:
+        - $ref: '#/components/parameters/Idempotency-Key'
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+        - $ref: '#/components/parameters/fromDate'
+        - $ref: '#/components/parameters/toDate'
+        - name: id
+          in: path
+          description: The unique identifier of the payment.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            examples:
+              - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+      responses:
+        '200':
+          description: OK.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  links:
+                    $ref: '#/components/schemas/PaginationLinks'
+                  transactions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transaction'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - payment
+      servers:
+        - url: 'https://one.ozow.com/v1'
+    post:
+      tags:
+        - payments
+      summary: Request Transaction for Payment
+      operationId: post-payments-id-transactions
+      parameters:
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - $ref: '#/components/parameters/Idempotency-Key'
+        - name: id
+          in: path
+          description: The unique identifier of the payment.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            examples:
+              - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentDetail'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transaction:
+                    $ref: '#/components/schemas/Transaction'
+                  requiredActionOptions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RequiredAction'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transaction:
+                    $ref: '#/components/schemas/Transaction'
+                  requiredActionOptions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RequiredAction'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - payment
+      servers:
+        - url: 'https://one.ozow.com/v1'
+  /refunds:
+    get:
+      tags:
+        - refunds
+      summary: List Refunds
+      description: Retrieve a list of refunds performed.
+      operationId: get-refunds
+      parameters:
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+        - $ref: '#/components/parameters/fromDate'
+        - $ref: '#/components/parameters/toDate'
+        - $ref: '#/components/parameters/siteCode'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundList'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - refund
+      servers:
+        - url: 'https://one.ozow.com/v1'
+    post:
+      tags:
+        - refunds
+      summary: Request Refunds
+      description: Request refunds for the specified transactions.
+      operationId: post-refunds
+      parameters:
+        - $ref: '#/components/parameters/Idempotency-Key'
+        - $ref: '#/components/parameters/X-Correlation-ID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/RefundRequest'
+      responses:
+        '200':
+          description: OK. The refund has been accepted.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Refund'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+        '201':
+          description: Created.  The refund has been accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Refund'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - refund
+      servers:
+        - url: 'https://one.ozow.com/v1'
+  '/refunds/{id}':
+    get:
+      tags:
+        - refunds
+      summary: Get Refund
+      description: Retrieve a refund by its unique identifier.
+      operationId: get-refunds-id
+      parameters:
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - name: id
+          in: path
+          description: The refund identifier.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            examples:
+              - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Refund'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - refund
+      servers:
+        - url: 'https://one.ozow.com/v1'
+  '/refunds/{id}/cancel':
+    post:
+      tags:
+        - refunds
+      summary: Cancel Refund
+      description: Cancels the refund with the specified identifier if possible.
+      operationId: post-refunds-id-cancel
+      parameters:
+        - $ref: '#/components/parameters/Idempotency-Key'
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - name: id
+          in: path
+          description: The refund identifier.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            examples:
+              - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  description: The reason for the refund cancellation.
+              required:
+                - reason
+      responses:
+        '200':
+          description: OK. The refund has been cancelled.
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+        '201':
+          description: Created.  The refund has been cancelled
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - refund
+      servers:
+        - url: 'https://one.ozow.com/v1'
+  '/refunds/{id}/notifications':
+    get:
+      tags:
+        - refunds
+        - webhooks
+      summary: Get Refund Notifications
+      description: Gets the refund notifications.
+      operationId: get-refunds-id-notifications
+      parameters:
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - name: id
+          in: path
+          description: The refund identifier.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WebhookMessageStatus'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - refund
+      servers:
+        - url: 'https://one.ozow.com/v1'
+  '/refunds/{id}/notifications/resend':
+    post:
+      tags:
+        - refunds
+        - webhooks
+      summary: Resend Refund Notifications
+      description: Resend the notifications for the refund.
+      operationId: post-refunds-id-notifications-resend
+      parameters:
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - name: id
+          in: path
+          description: The refund identifier.
+          required: true
+          schema:
+            type: string
+      responses:
+        '202':
+          description: Accepted.
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - refund
+      servers:
+        - url: 'https://one.ozow.com/v1'
+  /settlements:
+    get:
+      tags:
+        - settlements
+      summary: List Settlements
+      description: Retrieve a list of settlements.
+      operationId: get-settlements
+      parameters:
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+        - $ref: '#/components/parameters/fromDate'
+        - $ref: '#/components/parameters/toDate'
+        - $ref: '#/components/parameters/siteCode'
+        - name: reference
+          in: query
+          description: The settlement reference.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SettlementList'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - settlements
+      servers:
+        - url: 'https://one.ozow.com/v1'
+  '/settlements/{id}':
+    get:
+      tags:
+        - settlements
+      summary: Get Settlement
+      description: Retrieve a settlement by it's unique identifier.
+      operationId: get-settlements-id
+      parameters:
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - name: id
+          in: path
+          description: The settlement identifier.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Settlement'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - settlements
+      servers:
+        - url: 'https://one.ozow.com/v1'
+  '/settlements/{id}/lineitems':
+    get:
+      tags:
+        - settlements
+      summary: List Settlement Line Items
+      description: Retrieve the line items associated with a settlement by it's unique identifier.
+      operationId: get-settlement-line-items-id
+      parameters:
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+        - name: id
+          in: path
+          description: The settlement identifier.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SettlementLineItemList'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - settlements
+      servers:
+        - url: 'https://one.ozow.com/v1'
+  /transactions:
+    post:
+      tags:
+        - transactions
+      summary: Request Transaction
+      description: Create a transaction with the specified channel and transaction details for a specified type of payment.
+      operationId: post-transaction
+      parameters:
+        - $ref: '#/components/parameters/Idempotency-Key'
+        - $ref: '#/components/parameters/X-Correlation-ID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payment:
+                    $ref: '#/components/schemas/PaymentResponse'
+                  transaction:
+                    $ref: '#/components/schemas/Transaction'
+                    description: The transaction details.
+                  requiredActionOptions:
+                    type: array
+                    description: 'If a subsequent action is required, the details of what options are available.'
+                    items:
+                      $ref: '#/components/schemas/RequiredAction'
+                required:
+                  - payment
+                  - transaction
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transaction:
+                    $ref: '#/components/schemas/Transaction'
+                  requiredAction:
+                    $ref: '#/components/schemas/RequiredAction'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+            Location:
+              schema:
+                type: string
+                format: uri
+              description: The unique URI for this resource.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - payment
+      servers:
+        - url: 'https://one.ozow.com/v1'
+    get:
+      tags:
+        - transactions
+      summary: List Transactions
+      description: List transactions between specific dates.
+      operationId: get-transactions
+      parameters:
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+        - $ref: '#/components/parameters/fromDate'
+        - $ref: '#/components/parameters/toDate'
+        - $ref: '#/components/parameters/siteCode'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  links:
+                    $ref: '#/components/schemas/PaginationLinks'
+                    description: The links used in pagination.
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transaction'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+                required:
+                  - links
+                  - results
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - payment
+      servers:
+        - url: 'https://one.ozow.com/v1'
+  '/transactions/{id}':
+    get:
+      tags:
+        - transactions
+      summary: Get Transaction Status by Id
+      description: Retrieves the details of a transaction.
+      operationId: get-transactions-id
+      parameters:
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - name: id
+          in: path
+          description: The unique identifier of the transaction.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            examples:
+              - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - payment
+      servers:
+        - url: 'https://one.ozow.com/v1'
+    post:
+      tags:
+        - transactions
+      summary: Process Transaction Step
+      description: Allows for API processing of transactions for certain institutions.
+      operationId: post-transactions-id
+      parameters:
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - $ref: '#/components/parameters/Idempotency-Key'
+        - name: id
+          in: path
+          description: The unique identifier of the transaction.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            examples:
+              - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcessTransactionRequest'
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+            Location:
+              schema:
+                type: string
+              description: The unique URI for this resource.
+        '201':
+          description: Created
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+        '400':
+          description: Bad Request
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+        '401':
+          description: Unauthorized
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+        '403':
+          description: Forbidden
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+        '409':
+          description: Conflict
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+        '500':
+          description: Internal Server Error
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+      security:
+        - Authentication:
+            - payment
+      servers:
+        - url: 'https://one.ozow.com/v1'
+  '/transactions/{id}/refunds':
+    post:
+      tags:
+        - transactions
+      summary: Request Refund
+      description: Request a refund on the specified transaction.
+      operationId: post-transaction-id-refund
+      parameters:
+        - $ref: '#/components/parameters/Idempotency-Key'
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - name: id
+          in: path
+          description: The unique identifier of the transaction.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            examples:
+              - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRefundRequest'
+      responses:
+        '200':
+          description: OK.  The refund has been accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Refund'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+        '201':
+          description: Created.  The refund has been accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Refund'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+            Location:
+              schema:
+                type: string
+              description: The unique URI of the created resource.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - refund
+      servers:
+        - url: 'https://one.ozow.com/v1'
+    get:
+      tags:
+        - transactions
+      summary: Get Refunds
+      description: Get the refunds requested against this payment.
+      operationId: get-transaction-id-refunds
+      parameters:
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+        - name: id
+          in: path
+          description: The unique identifier of the transaction.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            examples:
+              - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundList'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - refund
+      servers:
+        - url: 'https://one.ozow.com/v1'
+  '/transactions/{id}/notifications':
+    get:
+      tags:
+        - transactions
+        - webhooks
+      summary: Get Transaction Notifications
+      description: Get the transaction notifications.
+      operationId: get-transactions-id-messages
+      parameters:
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - name: id
+          in: path
+          description: The unique identifier of the transaction.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            examples:
+              - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WebhookMessageStatus'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                format: uuid
+              description: The correlation id for the request that was processed.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - payment
+      servers:
+        - url: 'https://one.ozow.com/v1'
+  '/transactions/{id}/notifications/resend':
+    post:
+      tags:
+        - transactions
+        - webhooks
+      summary: Resend Transaction Notifications
+      description: Resend the notifications for the transaction.
+      operationId: post-transactions-id-notifications-resend
+      parameters:
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - name: id
+          in: path
+          description: The unique identifier of the transaction.
+          required: true
+          schema:
+            type: string
+      responses:
+        '202':
+          description: Accepted.
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - payment
+      servers:
+        - url: 'https://one.ozow.com/v1'
+  /webhooks:
+    get:
+      tags:
+        - webhooks
+      summary: List Webhook Subscriptions
+      description: Retrieve a list of active webhook subscriptions.
+      operationId: get-webhooks
+      parameters:
+        - $ref: '#/components/parameters/X-Forwarded-For'
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  links:
+                    $ref: '#/components/schemas/PaginationLinks'
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WebhookResponse'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - webhooks
+      servers:
+        - url: 'https://one.ozow.com/v1'
+    post:
+      tags:
+        - webhooks
+      summary: Create Webhook Subscription
+      description: Create a webhook subscription.
+      operationId: post-webhooks
+      parameters:
+        - $ref: '#/components/parameters/Idempotency-Key'
+        - $ref: '#/components/parameters/X-Correlation-ID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookRequest'
+      responses:
+        '200':
+          description: OK. The request has been accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookResponse'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+        '201':
+          description: Created. The request has been accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookResponse'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - webhooks
+      servers:
+        - url: 'https://one.ozow.com/v1'
+  '/webhooks/{id}':
+    get:
+      tags:
+        - webhooks
+      summary: Get Webhook Subscription
+      description: Retrieves the details of a webhook subscription.
+      operationId: get-webhooks-id
+      parameters:
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - name: id
+          in: path
+          description: The unique identifier of the webhook subscription.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookResponse'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - webhooks
+      servers:
+        - url: 'https://one.ozow.com/v1'
+    put:
+      tags:
+        - webhooks
+      summary: Update Webhook Subscription
+      description: Update the details of a webhook subscription.
+      operationId: put-webhooks-id
+      parameters:
+        - $ref: '#/components/parameters/Idempotency-Key'
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - name: id
+          in: path
+          description: The unique identifier of the webhook subscription.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookRequest'
+      responses:
+        '200':
+          description: OK. The update request was accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookResponse'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+        '201':
+          description: Created. The update request was accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookResponse'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - webhooks
+      servers:
+        - url: 'https://one.ozow.com/v1'
+    delete:
+      tags:
+        - webhooks
+      summary: Delete Webhook Subscription
+      description: Delete a webhook subscription.
+      operationId: delete-webhooks-id
+      parameters:
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - name: id
+          in: path
+          description: The unique identifier of the webhook subscription.
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No Content
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - webhooks
+      servers:
+        - url: 'https://one.ozow.com/v1'
+  '/webhooks/{id}/replay':
+    post:
+      tags:
+        - webhooks
+      summary: Replay Failed Messages
+      description: Replay any failed messages that have been sent to a webhook subscription.
+      operationId: post-webhooks-id-messages
+      parameters:
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - $ref: '#/components/parameters/Idempotency-Key'
+        - name: id
+          in: path
+          description: The unique identifier of the webhook subscription.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fromDate:
+                  type: string
+                  description: 'The date from which to resend the failed messages, this cannot be more than 14 days ago.'
+                  format: date
+              required:
+                - fromDate
+      responses:
+        '202':
+          description: Accepted. The request has been accepted and is being processed.
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - webhooks
+      servers:
+        - url: 'https://one.ozow.com/v1'
+  '/webhooks/{id}/secret':
+    get:
+      tags:
+        - webhooks
+      summary: Get Webhook Secret
+      description: Retrieves the secret for the webhook.
+      operationId: get-webhooks-id-secret
+      parameters:
+        - $ref: '#/components/parameters/X-Correlation-ID'
+        - name: id
+          in: path
+          description: The unique identifier of the webhook subscription.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookSecretResponse'
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+              description: The correlation id for the request that was processed.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - Authentication:
+            - payment
+            - payout
+            - refund
+            - settlements
+            - webhooks
+      servers:
+        - url: 'https://one.ozow.com/v1'
+tags:
+  - name: authentication
+    description: Authentication related endpoints and models
+  - name: bankaccount
+    description: Bank account related endpoints and models
+  - name: bulk
+    description: Bulk request related endpoints and models
+  - name: Ozow OneAPI
+    description: Ozow OneAPI encompassing all REST API integrations possible with Ozow.
+  - name: payments
+    description: Payments related endpoints and models.
+  - name: payouts
+    description: Payouts related endpoints and models.
+  - name: refunds
+    description: Refunds related endpoints and models.
+  - name: settlements
+    description: Settlement related endpoints and models.
+  - name: transactions
+    description: Transactions related endpoints and models.
+  - name: webhooks
+    description: Webhooks related endpoints and models.
+  - name: common
+    description: Common related endpoints and models
+components:
+  parameters:
+    region:
+      name: region
+      in: query
+      description: 'The applicable region identifer in [ISO 3166-Alpha-2](https://www.iso.org/obp/ui/#search) format.'
+      required: false
+      schema:
+        type: string
+        minLength: 2
+        maxLength: 2
+    limit:
+      name: limit
+      in: query
+      description: The maximum number of items to return.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 50
+    offset:
+      name: offset
+      in: query
+      description: The number of items to discard in this paging operation.
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        default: 0
+    fromDate:
+      name: fromDate
+      in: query
+      description: The date from which to filter.
+      required: true
+      schema:
+        type: string
+        format: date-time
+    toDate:
+      name: toDate
+      in: query
+      description: The date to filter up to.
+      required: true
+      schema:
+        type: string
+        format: date-time
+    siteCode:
+      name: siteCode
+      in: query
+      description: The merchant site code.
+      required: false
+      schema:
+        type: string
+    siteCode-required:
+      name: siteCode
+      in: query
+      description: The merchant site code.
+      required: true
+      schema:
+        type: string
+    Idempotency-Key:
+      name: Idempotency-Key
+      in: header
+      description: 'The unique key idempotency key as per the following [IETF Draft](https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/)'
+      schema:
+        type: string
+    X-Forwarded-For:
+      name: X-Forwarded-For
+      in: header
+      description: The IP address of the end-consumer.
+      required: false
+      schema:
+        type: string
+        format: ipv4
+    X-Correlation-ID:
+      name: X-Correlation-ID
+      in: header
+      description: 'Optional correlation id for the request, if not supplied a new one will be generated and passed onto all underlying requests and returned as a header.'
+      required: false
+      schema:
+        type: string
+        format: uuid
+  securitySchemes:
+    Authentication:
+      type: oauth2
+      flows:
+        clientCredentials:
+          refreshUrl: ''
+          scopes:
+            payment: 'Allows for all payment and transaction functionality, such as retrieving data and making payment requests.'
+            payout: Allows for all payout specific functionality.
+            refund: Allows for initiating refunds and retrieving refund data.
+            settlements: Allows for retrieving settlement information.
+            webhooks: Allows for management of webhook endpoints.
+          tokenUrl: 'https://one.ozow.com/v1/token'
+    apiKey_1:
+      type: apiKey
+      name: apiKey
+      in: header
+  responses:
+    Unauthorised:
+      description: Unauthorised.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      headers:
+        X-Correlation-ID:
+          schema:
+            type: string
+            format: uuid
+          description: The correlation id for the request that was processed.
+    BadRequest:
+      description: Bad Request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      headers:
+        X-Correlation-ID:
+          schema:
+            type: string
+            format: uuid
+          description: The correlation id for the request that was processed.
+    NotFound:
+      description: 'Not found.  The item with the specified identifier could not be found, or this resource is not allowed for the resource identifier.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      headers:
+        X-Correlation-ID:
+          schema:
+            type: string
+            format: uuid
+          description: The correlation id for the request that was processed.
+    Forbidden:
+      description: Forbidden.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      headers:
+        X-Correlation-ID:
+          schema:
+            type: string
+            format: uuid
+          description: The correlation id for the request that was processed.
+    Conflict:
+      description: Conflict.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      headers:
+        X-Correlation-ID:
+          schema:
+            type: string
+            format: uuid
+          description: The correlation id for the request that was processed.
+    InternalServerError:
+      description: Internal Server Error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      headers:
+        X-Correlation-ID:
+          schema:
+            type: string
+          description: The correlation id for the request that was processed.
+  schemas:
+    TokenRequest:
+      type: object
+      title: TokenRequest
+      properties:
+        client_id:
+          type: string
+          description: The unique client id provided to the merchant during credential exchange.
+          examples:
+            - asdfjasdljfasdkjf
+        client_secret:
+          type: string
+          description: The secret provided to the merchant during credential exchange.
+        scope:
+          type: string
+          description: 'The scope of permissions required. Can be just one or a list of space-delimited, case-sensitive strings.'
+          examples:
+            - payments refunds settlements
+        grant_type:
+          type: string
+          description: Must be _client_credentials_.
+          examples:
+            - client_credentials
+      required:
+        - client_id
+        - client_secret
+        - scope
+        - grant_type
+      x-tags:
+        - authentication
+    TokenResponse:
+      type: object
+      title: TokenResponse
+      properties:
+        access_token:
+          type: string
+          description: The access token issued by the authorization server.
+          examples:
+            - mF_9.B5f-4.1JqM
+        token_type:
+          type: string
+          description: 'Must be `bearer` as in [RFC 6750](https://datatracker.ietf.org/doc/html/rfc6750).'
+          examples:
+            - bearer
+        expires_in:
+          type: string
+          description: 'The lifetime in seconds of the access token.  For example, the value "3600" denotes that the access token will expire in one hour from the time the response was generated. '
+          examples:
+            - '3600'
+        scope:
+          type: string
+          description: 'OPTIONAL, if identical to the scope requested by the client; otherwise, REQUIRED.'
+          examples:
+            - payment
+      required:
+        - access_token
+        - token_type
+        - expires_in
+      x-tags:
+        - authentication
+    PaginationLinks:
+      type: object
+      title: PaginationLinks
+      description: 'Standard [JSON API pagination links](https://jsonapi.org/format/#fetching-pagination)'
+      properties:
+        self:
+          type: string
+          description: The current page of data.
+          format: uri
+        first:
+          type: string
+          description: The first page of data.
+          format: uri
+        last:
+          type: string
+          description: The last page of data.
+          format: uri
+        prev:
+          type: string
+          description: The previous page of data.
+          format: uri
+        next:
+          type: string
+          description: The next page of data.
+          format: uri
+      x-tags:
+        - common
+    PaymentMethod:
+      type: object
+      title: PaymentMethod
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the payment method.
+          format: uuid
+        name:
+          type: string
+          description: The unique name of the payment method.
+          maxLength: 250
+          examples:
+            - FNB
+        friendlyName:
+          type: string
+          description: The display name of the payment method for consumers.
+          maxLength: 250
+          examples:
+            - First National Bank
+        logo:
+          type: string
+          description: A displayable logo or descriptive image of the payment method.
+          format: uri
+        available:
+          type: boolean
+          description: Whether the payment method is available to transact with.
+        offlineMessage:
+          type: string
+          description: 'If the payment method is not available to transact with, this user friendly offline message will be returned.'
+        institutions:
+          type: array
+          description: The institutions available for this payment method.
+          items:
+            $ref: '#/components/schemas/Institution'
+      required:
+        - id
+        - name
+        - friendlyName
+        - logo
+        - available
+      x-tags:
+        - payments
+    Institution:
+      type: object
+      title: Institution
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the institution.
+          format: uuid
+        name:
+          type: string
+          description: The unique name of the institution.
+          maxLength: 250
+          examples:
+            - FNB
+        friendlyName:
+          type: string
+          description: The display name of the institution for consumers.
+          maxLength: 250
+          examples:
+            - First National Bank
+        logo:
+          type: string
+          description: A displayable logo or descriptive image of the institution.
+          format: uri
+        available:
+          type: boolean
+          description: Whether the insitution is available to transact with.
+        offlineMessage:
+          type: string
+          description: 'If the institution is not available to transact with, this user friendly offline message will be returned.'
+        conditions:
+          type: array
+          description: Any conditions that govern whether or not the use of this institution is allowed. For example some institutions may have a minimum or maximum allowed value which would need to be considered when using the institution.
+          items:
+            $ref: '#/components/schemas/Condition'
+      required:
+        - id
+        - name
+        - friendlyName
+        - available
+      x-tags:
+        - payments
+    Condition:
+      type: object
+      title: Condition
+      description: Condition that will be enforced when using the underlying type of object this condition appears on.
+      properties:
+        name:
+          type: string
+          description: The name of the property to which the condition applies.
+        operator:
+          type: string
+          enum:
+            - <
+            - <=
+            - '=='
+            - '!='
+            - '>='
+            - '>'
+          description: The operator indicating how this condition is enforced.
+        value:
+          type: string
+          description: The value which the condition will enforce on the property.
+      required:
+        - name
+        - operator
+        - value
+      x-tags:
+        - payments
+    PaginationMeta:
+      type: object
+      title: PaginationMeta
+      properties:
+        totalPages:
+          type: integer
+          description: The total number of pages available.
+        totalItems:
+          type: integer
+          description: The total number of items available.
+      required:
+        - totalPages
+        - totalItems
+      x-tags:
+        - payments
+    BankAccountVerificationRequest:
+      type: object
+      title: BankAccountVerificationRequest
+      properties:
+        siteCode:
+          type: string
+          description: The site code of the merchant site for which this request is being performed.
+          maxLength: 50
+          examples:
+            - TSTSTE0001
+        reference:
+          type: string
+          description: A reference to uniquely identify this bank account verification request.
+          maxLength: 50
+        region:
+          type: string
+          description: 'The applicable region identifer in [ISO 3166-Alpha-2](https://www.iso.org/obp/ui/#search) format.'
+          minLength: 2
+          maxLength: 2
+          examples:
+            - ZA
+        accountNumber:
+          type: string
+          description: The bank account number to be verified.
+        branchCode:
+          type: string
+          description: The branch code of the bank account to be verified.
+          maxLength: 6
+        accountType:
+          type: string
+          enum:
+            - cheque
+            - savings
+            - transmission
+            - bond
+          description: The account type of the bank account.
+        identification:
+          $ref: '#/components/schemas/Identification'
+          description: The identification of the owner of the bank account.
+        surname:
+          type: string
+          description: The surname of the owner of the bank account.
+        initials:
+          type: string
+          description: Optional initials of the owner of the bank account.
+          maxLength: 5
+        mobile:
+          type: string
+          description: Optional mobile number of the owner of the bank account.
+          maxLength: 15
+          examples:
+            - '+27821234567'
+        email:
+          type: string
+          description: Optional email address of the owner of the bank account.
+          format: email
+          maxLength: 255
+      required:
+        - siteCode
+        - reference
+        - region
+        - accountNumber
+        - branchCode
+        - accountType
+        - identification
+        - surname
+      x-tags:
+        - bankaccount
+    Identification:
+      type: object
+      title: Identification
+      properties:
+        type:
+          type: string
+          enum:
+            - said
+            - passport
+            - registration
+          description: The type of identification for the person or business.
+        country:
+          type: string
+          description: The ISO-3166-alpha-2 identifier for the country of identification.
+          minLength: 2
+          maxLength: 2
+          examples:
+            - ZA
+        identifier:
+          type: string
+          description: The identifier for the consumer based on the identity type.
+          maxLength: 20
+          examples:
+            - '8008115523339'
+      required:
+        - type
+        - country
+        - identifier
+      x-tags:
+        - payments
+    BankAccountVerificationResponse:
+      type: object
+      title: BankAccountVerificationResponse
+      properties:
+        reference:
+          type: string
+          description: The reference of this bank account verification request.
+          maxLength: 50
+        accountFound:
+          type: boolean
+          description: Whether or not the account was found.
+        accountOpen:
+          type: boolean
+          description: Whether or not the account is currently open.
+        account3Months:
+          type: boolean
+          description: Whether or not the account has been open for more than 3 months.
+        acceptCredits:
+          type: boolean
+          description: Whether or not the account can accept credits.
+        acceptDebits:
+          type: boolean
+          description: Whether or not the account can accept debits.
+        accountTypeMatched:
+          type: boolean
+          description: Whether or not the account type matches the supplied account type.
+        identificationMatched:
+          type: boolean
+          description: Whether or not the identification supplied matches the account owner on record.
+        surnameMatched:
+          type: boolean
+          description: Whether or not the surname matches the account owner surname on record.
+        initialsMatched:
+          type: boolean
+          description: Whether or not the initial matches the account owner initials on record.
+        mobileMatched:
+          type: boolean
+          description: Whether or not the mobile matches the account owner mobile on record.
+        emailMatched:
+          type: boolean
+          description: Whether or not the email matches the account owner email on record.
+      required:
+        - reference
+        - accountFound
+        - accountOpen
+        - account3Months
+        - acceptCredits
+        - acceptDebits
+        - accountTypeMatched
+        - identificationMatched
+        - surnameMatched
+        - initialsMatched
+        - mobileMatched
+        - emailMatched
+      x-tags:
+        - bankaccount
+    Region:
+      type: object
+      title: Region
+      description: Describes a geographic location.
+      properties:
+        id:
+          type: string
+          description: The unique identifier for the region.
+          format: uuid
+        name:
+          type: string
+          description: The friendly name of the region.
+          maxLength: 250
+        countryCode:
+          type: string
+          description: The country codes in ISO 3166-Alpha-2 format.
+      required:
+        - id
+        - name
+        - countryCode
+      x-tags:
+        - payments
+    PaymentRequest:
+      type: object
+      title: PaymentRequest
+      properties:
+        siteCode:
+          type: string
+          description: The merchant site code in use for this payment. Site codes are available on the Ozow dashboard.
+          maxLength: 50
+          examples:
+            - SITE-001
+        region:
+          type: string
+          description: "ISO 3166-Alpha-2 code for the originating country of the payment.\r\n\r\nMust be \"ZA\" for South Africa.  \r\n\r\nIf region is not specified IP geolocation will be used to determine the applicable region."
+          minLength: 2
+          maxLength: 2
+          examples:
+            - ZA
+        amount:
+          $ref: '#/components/schemas/Amount'
+          description: The currency and amount of the payment request.
+        variableAmount:
+          $ref: '#/components/schemas/VariableAmount'
+          description: 'If the payment amount can be changed by the payer, the variable amounts need to be passed in.'
+        merchantReference:
+          type: string
+          description: The merchant's reference for the transaction.
+          maxLength: 50
+          examples:
+            - 12345-abcde
+        beneficiaryReference:
+          type: string
+          description: The reference for the beneficiary.
+          pattern: '^[A-Za-z0-9 -]+'
+          maxLength: 20
+          examples:
+            - ONLINESHOP002
+        payerReference:
+          type: string
+          pattern: '^[A-Za-z0-9 -]+'
+          maxLength: 20
+          examples:
+            - 12345-abcde
+        payer:
+          $ref: '#/components/schemas/Payer'
+          description: Information on the payer used for identification and fraud purposes.
+        returnUrl:
+          type: string
+          description: The URI that Ozow needs to redirect back to once the payment has reached a conclusion.
+          format: uri
+        notifyUrl:
+          type: string
+          description: Optional notify URL to send notifications of the status of the payment. The recommendation is to use webhooks instead of this method which are configurable via the webhooks endpoints of the API or via the Ozow Dashboard.
+          format: uri
+        expireAt:
+          type: string
+          description: The date and time the payment request should expire at and make the payment link unusable
+          format: date-time
+      required:
+        - siteCode
+        - amount
+        - merchantReference
+        - expireAt
+      x-tags:
+        - payments
+    Amount:
+      type: object
+      title: Amount
+      properties:
+        currency:
+          type: string
+          description: 'The ISO 4217 current code. '
+          minLength: 3
+          maxLength: 3
+          examples:
+            - ZAR
+        value:
+          type: number
+          description: The amount in the currency specified.
+          format: float
+          minimum: 0.01
+          examples:
+            - 50
+      required:
+        - currency
+        - value
+      x-tags:
+        - payments
+    VariableAmount:
+      type: object
+      title: VariableAmount
+      properties:
+        minimumValue:
+          type: number
+          description: The minimum amount.
+          format: float
+          minimum: 0.01
+          examples:
+            - 10
+        maximumValue:
+          type: number
+          description: The maximum amount.
+          format: float
+          minimum: 0.01
+          examples:
+            - 50
+      required:
+        - minimumValue
+        - maximumValue
+      x-tags:
+        - payments
+    Payer:
+      type: object
+      title: Payer
+      properties:
+        id:
+          type: string
+          description: The merchant identifier for the payer.
+          maxLength: 50
+        name:
+          type: string
+          maxLength: 200
+          examples:
+            - JT Le Roux
+        identity:
+          $ref: '#/components/schemas/Identification'
+          description: The identity of a payer.  In high risk cases this information is required.
+        cellphone:
+          type: string
+          description: The cellphone number for the payer.
+          maxLength: 15
+          examples:
+            - '+27648054867'
+        email:
+          type: string
+          description: The email address of the payer.
+          format: email
+          examples:
+            - a@example.com
+      required:
+        - id
+        - name
+      x-tags:
+        - payments
+    PaymentResponse:
+      type: object
+      title: PaymentResponse
+      description: |
+        The payment request response.
+      properties:
+        links:
+          $ref: '#/components/schemas/PaymentLinks'
+          description: The relevant links to the this payment.
+        id:
+          type: string
+          description: The identifier for the payment request.
+          format: uuid
+        status:
+          $ref: '#/components/schemas/PaymentStatus'
+          description: The status of the payment.
+        reason:
+          type: string
+          description: The payment status reason.
+        redirectUrl:
+          type: string
+          description: The url to redirect a consumer to.  A redirect url will be provided should a payment require further client interaction.
+          format: uri
+      required:
+        - links
+        - id
+        - status
+      x-tags:
+        - payments
+    PaymentLinks:
+      type: object
+      title: PaymentLinks
+      properties:
+        self:
+          type: string
+          description: The unique URI for this resource.
+          format: uri
+          examples:
+            - 'https://one.ozow.com/v1/payments/497f6eca-6276-4993-bfeb-53cbbbba6f08'
+        cancel:
+          type: string
+          description: The cancel URI for this payment.  This is a `POST` operation.
+          format: uri
+          examples:
+            - 'https://one.ozow.com/v1/payments/497f6eca-6276-4993-bfeb-53cbbbba6f08/cancel'
+        transactions:
+          type: string
+          description: The transactions associated with this payment request.
+          format: uri
+          examples:
+            - 'https://one.ozow.com/v1/payments/497f6eca-6276-4993-bfeb-53cbbbba6f08/transactions'
+      x-tags:
+        - payments
+    PaymentStatus:
+      type: string
+      enum:
+        - created
+        - expired
+      title: PaymentStatus
+      description: Payment Status Enumerator
+      x-tags:
+        - payments
+    Transaction:
+      type: object
+      title: Transaction
+      properties:
+        links:
+          $ref: '#/components/schemas/TransactionLinks'
+        id:
+          type: string
+          description: The transaction id of the payment.
+          format: uuid
+        amount:
+          $ref: '#/components/schemas/Amount'
+          description: The amount that was requested.
+        merchantReference:
+          type: string
+          description: The merchant's reference for the transaction.
+          maxLength: 50
+          examples:
+            - 12345-abcde
+        siteCode:
+          type: string
+          description: The merchant site code in use for this payment.
+          maxLength: 50
+          examples:
+            - SITE-001
+        institution:
+          type: string
+          description: The institution for the transaction.
+        status:
+          $ref: '#/components/schemas/TransactionStatus'
+          description: The status of the transaction.
+        reason:
+          type: string
+          description: Payment status reason.
+        createdDate:
+          type: string
+          description: The date the transaction was created.
+          format: date-time
+        completedDate:
+          type: string
+          description: The date the transaction was completed.
+          format: date-time
+      required:
+        - id
+        - merchantReference
+        - siteCode
+        - institution
+        - status
+        - createdDate
+      x-tags:
+        - transactions
+    TransactionLinks:
+      type: object
+      title: TransactionLinks
+      properties:
+        self:
+          type: string
+          description: The unique URI for this resource.
+          format: uri
+          examples:
+            - 'https://one.ozow.com/v1/transactions/497f6eca-6276-4993-bfeb-53cbbbba6f08'
+        refund:
+          type: string
+          description: The refund operation for this transaction.  This is a `POST` operation.
+          format: uri
+          examples:
+            - 'https://one.ozow.com/v1/transactions/497f6eca-6276-4993-bfeb-53cbbbba6f08/refunds'
+      required:
+        - self
+      x-tags:
+        - transactions
+    TransactionStatus:
+      type: string
+      enum:
+        - incomplete
+        - successful
+        - error
+        - pending
+        - refunded
+      title: TransactionStatus
+      description: Transaction status enumerator
+      x-tags:
+        - transactions
+    Error:
+      type: object
+      title: Error
+      description: 'A standard [JSON API error](https://jsonapi.org/format/#errors)'
+      properties:
+        id:
+          type: string
+          description: a unique identifier for this particular occurrence of the problem.
+        links:
+          type: object
+          properties:
+            about:
+              type: string
+              description: 'A link that leads to further details about this particular occurrence of the problem. When derefenced, this URI SHOULD return a human-readable description of the error.'
+              format: uri
+            type:
+              type: string
+              description: A link that identifies the type of error that this particular error is an instance of. This URI SHOULD be dereferencable to a human-readable explanation of the general error.
+              format: uri
+        code:
+          type: string
+          description: 'An application-specific error code, expressed as a string value.'
+        title:
+          type: string
+          description: ' A short, human-readable summary of the problem that SHOULD NOT change from occurrence to occurrence of the problem, except for purposes of localization.'
+          examples:
+            - Access denied.
+        detail:
+          type: string
+          description: 'A human-readable explanation specific to this occurrence of the problem. Like title, this field’s value can be localized.'
+          examples:
+            - Access is denied to resource.  Ensure that the authentication token has the appropriate scopes attached.
+        source:
+          type: object
+          anyOf:
+            - type: object
+              properties:
+                parameter:
+                  type: string
+                  description: A string indicating which URI query parameter caused the error.
+                  examples:
+                    - id
+            - type: object
+              properties:
+                pointer:
+                  type: string
+                  description: 'a JSON Pointer [RFC6901](https://tools.ietf.org/html/rfc6901) to the value in the request document that caused the error [e.g. "/data" for a primary data object, or "/data/attributes/title" for a specific attribute]. This MUST point to a value in the request document that exists; if it doesn’t, the client SHOULD simply ignore the pointer.'
+                  format: json-pointer
+                  examples:
+                    - /data/attributes/title
+            - type: object
+              properties:
+                header:
+                  type: string
+                  description: ' A string indicating the name of a single request header which caused the error.'
+                  examples:
+                    - headerName
+        meta:
+          type: object
+          description: 'A [meta object](https://jsonapi.org/format/#document-meta) containing non-standard meta-information about the error.'
+      required:
+        - id
+        - code
+        - title
+        - detail
+      x-tags:
+        - common
+    PaymentDetail:
+      type: object
+      title: PaymentDetail
+      properties:
+        paymentType:
+          type: string
+          enum:
+            - ozowredirect
+            - absapay
+            - bankdeposit
+            - card
+            - nedbankdirecteft
+            - ozowwallet
+            - payshap
+            - voucher
+          description: |-
+            The payment type being made. To redirect to Ozow with a specific institution pre-selected please use the `ozowredirect` type. 
+
+            Except for the `ozowredirect` payment type, all the other listed options require implementation of a callback url to handle responses and requests for more information to complete processing.
+
+            Payment types such as `absapay`, `card` and `payshap` have pre-requisites that must be met and may not be available for particular payments and amounts.
+        details:
+          oneOf:
+            - $ref: '#/components/schemas/OzowRedirect'
+            - $ref: '#/components/schemas/AbsaPay'
+            - $ref: '#/components/schemas/BankDeposit'
+            - $ref: '#/components/schemas/Card'
+            - $ref: '#/components/schemas/NedbankDirectEFT'
+            - $ref: '#/components/schemas/OzowWallet'
+            - $ref: '#/components/schemas/Payshap'
+            - $ref: '#/components/schemas/Voucher'
+      required:
+        - paymentType
+      x-tags:
+        - payments
+        - transactions
+    OzowRedirect:
+      type: object
+      title: OzowRedirect
+      properties:
+        institutionId:
+          type: string
+          description: The institution to use to for this payment.
+          format: uuid
+        beneficiary:
+          $ref: '#/components/schemas/BankAccount'
+          description: Optional beneficiary for Instant EFT payments for merchants that have dynamic banking details enabled.
+        verifiedBankAccount:
+          $ref: '#/components/schemas/BankAccount'
+          description: "Optional for Instant EFT payments. A verified bank account of the payer.  If this is provided Ozow will verify that the payment is made from the specified bank account.\r\n\r\nSome institutions like Capitec Pay could require verified account details should the payer identity not be specified."
+      required:
+        - institutionId
+      x-tags:
+        - transactions
+    BankAccount:
+      type: object
+      title: BankAccount
+      properties:
+        insitutionId:
+          type: string
+          description: The unique identifier of the institution.
+          format: uuid
+        institutionName:
+          type: string
+          description: The name of the institution.
+        accountNumber:
+          type: string
+          description: The bank account number.
+        branchCode:
+          type: string
+          description: The branch code of the account.
+          maxLength: 10
+          examples:
+            - '5040'
+      required:
+        - insitutionId
+        - accountNumber
+        - branchCode
+      x-tags:
+        - payments
+    AbsaPay:
+      type: object
+      title: AbsaPay
+      properties:
+        accessAccount:
+          type: string
+          description: The ABSA access account number for the payer.
+          maxLength: 16
+        callbackUrl:
+          type: string
+          description: |
+            The URI to callback once the step has been completed. The callback URI will receive a `POST` request with a `InputResponse` model indicating what step is required next.
+      required:
+        - accessAccount
+        - callbackUrl
+      x-tags:
+        - transactions
+    BankDeposit:
+      type: object
+      title: BankDeposit
+      properties:
+        mobileNumber:
+          type: string
+          description: The mobile number of the payer.
+          maxLength: 10
+          examples:
+            - '0821234567'
+        callbackUrl:
+          type: string
+          description: |
+            The URI to callback once the step has been completed. The callback URI will receive a `POST` request with a `InputResponse` model indicating what step is required next.
+      required:
+        - mobileNumber
+        - callbackUrl
+      x-tags:
+        - transactions
+    Card:
+      type: object
+      title: Card
+      properties:
+        cardNumber:
+          type: string
+          description: The card number.
+          maxLength: 16
+          examples:
+            - '1234567812345678'
+        fullName:
+          type: string
+          description: The name of the payer on the card.
+          maxLength: 50
+        expiryMonth:
+          type: string
+          description: The expiry month of the card.
+          minLength: 2
+          maxLength: 2
+          examples:
+            - '12'
+        expiryYear:
+          type: string
+          description: The expiry year of the card.
+          minLength: 2
+          maxLength: 2
+          examples:
+            - '30'
+        cvv:
+          type: string
+          description: The cvv number of the card.
+          minLength: 3
+          maxLength: 3
+          examples:
+            - '123'
+        userAgent:
+          type: string
+          description: The user agent of the payer.
+          examples:
+            - 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:136.0) Gecko/20100101 Firefox/136.0'
+        callbackUrl:
+          type: string
+          description: |
+            The URI to callback once the step has been completed. The callback URI will receive a `POST` request with a `InputResponse` model indicating what step is required next.
+      required:
+        - cardNumber
+        - fullName
+        - expiryMonth
+        - expiryYear
+        - cvv
+        - userAgent
+        - callbackUrl
+      x-tags:
+        - transactions
+    NedbankDirectEFT:
+      type: object
+      title: NedbankDirectEFT
+      properties:
+        emailAddress:
+          type: string
+          description: The email address of the payer.
+          maxLength: 250
+          examples:
+            - someone@example.com
+        callbackUrl:
+          type: string
+          description: |
+            The URI to callback once the step has been completed. The callback URI will receive a `POST` request with a `InputResponse` model indicating what step is required next.
+      required:
+        - emailAddress
+        - callbackUrl
+      x-tags:
+        - transactions
+    OzowWallet:
+      type: object
+      title: OzowWallet
+      properties:
+        mobileNumber:
+          type: string
+          description: The mobile number of the payer.
+          maxLength: 10
+          examples:
+            - '0821234567'
+        callbackUrl:
+          type: string
+          description: |
+            The URI to callback once the step has been completed. The callback URI will receive a `POST` request with a `InputResponse` model indicating what step is required next.
+      required:
+        - mobileNumber
+        - callbackUrl
+      x-tags:
+        - transactions
+    Payshap:
+      type: object
+      title: Payshap
+      properties:
+        payerIdentification:
+          type: string
+          description: The mobile number or account number of the payer.
+          maxLength: 15
+          examples:
+            - '0821234567'
+        bankId:
+          type: string
+          description: 'The bank id to be used. The bank id''s available can be found by calling the `v1/paymentmethods` endpoint and looking for the `Payshap Direct` payment method, and using any of the institution id''s available as the bank id parameter.'
+          format: uuid
+          examples:
+            - b1fa5055-19c5-41ab-86dd-15272d103455
+        callbackUrl:
+          type: string
+          description: |
+            The URI to callback once the step has been completed. The callback URI will receive a `POST` request with a `InputResponse` model indicating what step is required next.
+      required:
+        - payerIdentification
+        - bankId
+        - callbackUrl
+      x-tags:
+        - transactions
+    Voucher:
+      type: object
+      title: Voucher
+      properties:
+        mobileNumber:
+          type: string
+          description: The mobile number of the payer.
+          maxLength: 10
+          examples:
+            - '0821234567'
+        voucherPin:
+          type: string
+          description: The pin code for the voucher.
+          maxLength: 20
+        callbackUrl:
+          type: string
+          description: |
+            The URI to callback once the step has been completed. The callback URI will receive a `POST` request with a `InputResponse` model indicating what step is required next.
+      required:
+        - mobileNumber
+        - voucherPin
+        - callbackUrl
+      x-tags:
+        - transactions
+    RequiredAction:
+      type: object
+      title: RequiredAction
+      properties:
+        action:
+          type: string
+          enum:
+            - redirect
+            - api
+            - websocket
+          description: The action if any that is required next.
+        uri:
+          type: string
+          description: 'The URI to redirect, connect to the WebSocket or make the `POST` API call if required.'
+          format: uri
+          examples:
+            - 'https://pay.ozow.com/497f6eca-6276-4993-bfeb-53cbbbba6f08/secure'
+        inputRequired:
+          $ref: '#/components/schemas/InputResponse'
+      required:
+        - action
+      x-tags:
+        - transactions
+    InputResponse:
+      type: object
+      title: InputResponse
+      properties:
+        transactionId:
+          type: string
+          description: The transaction id of the payment being processed.
+          format: uuid
+        paymentStep:
+          type: string
+          description: The name of the payment step being performed.
+        pageTitle:
+          type: string
+          description: 'The title of the page, this will be a user friendly message and can be displayed to the end user.'
+        pageInstructions:
+          type: string
+          description: 'Instructions for the end user to perform, this will be a user friendly message and can be displayed to the end user.'
+        pageActionText:
+          type: string
+          description: 'The action type, this could typically be used as the text for a button or link. This will be a user friendly message and can be displayed to the end user.'
+        displayType:
+          type: string
+          enum:
+            - form
+            - prompt
+            - busy
+          description: 'The display type which indicates what sort of action should be taken. `form` will require asking the user for input, `prompt` will require instructing the user to perform an action (e.g. accept a push message) and `busy` will require asking the user to wait.'
+        inputFields:
+          type: array
+          description: If the object is of the `form` display type the input fields the user would need to complete will be returned in this array.
+          items:
+            $ref: '#/components/schemas/InputField'
+      required:
+        - transactionId
+        - paymentStep
+        - pageTitle
+        - pageInstructions
+        - pageActionText
+        - displayType
+      x-tags:
+        - payments
+    InputField:
+      type: object
+      title: InputField
+      properties:
+        name:
+          type: string
+          description: The name of the transaction input field.
+        label:
+          type: string
+          description: 'The display name of the transaction input field, this will be a user friendly message and can be displayed to the end user.'
+        fieldType:
+          type: string
+          enum:
+            - text
+            - select
+            - imagecapture
+            - iframe
+            - partialtext
+        properties:
+          anyOf:
+            - $ref: '#/components/schemas/InputFieldText'
+            - $ref: '#/components/schemas/InputFieldSelect'
+            - $ref: '#/components/schemas/InputFieldImageCapture'
+            - $ref: '#/components/schemas/InputFieldIFrame'
+            - $ref: '#/components/schemas/InputFieldPartialText'
+      required:
+        - name
+        - fieldType
+        - properties
+      x-tags:
+        - payments
+    InputFieldText:
+      type: object
+      title: InputFieldText
+      properties:
+        maxLength:
+          type: number
+          description: The maximum length of the text allowed.
+        isOptional:
+          type: boolean
+          description: Whether or not the field is optional.
+        isSensitive:
+          type: boolean
+          description: 'Whether or not the field is sensitive, if marked as senstive the input on the end user side should be masked.'
+      required:
+        - maxLength
+        - isOptional
+        - isSensitive
+      x-tags:
+        - payments
+    InputFieldSelect:
+      type: object
+      title: InputFieldSelect
+      properties:
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/InputFieldSelectOption'
+      x-tags:
+        - payments
+    InputFieldSelectOption:
+      type: object
+      title: InputFieldSelectOption
+      properties:
+        value:
+          type: string
+          description: The underlying value of the select option.
+        label:
+          type: string
+          description: 'The label of the option, this will be a user friendly message that can be displayed to the end user. '
+        additionalLabel:
+          type: string
+          description: 'If any additional information is available for the label, this will be a user friendly message that can be displayed to the end user.'
+      required:
+        - value
+        - label
+      x-tags:
+        - payments
+    InputFieldImageCapture:
+      type: object
+      title: InputFieldImageCapture
+      properties:
+        base64:
+          type: string
+          description: The base64 encoded string of the image.
+      required:
+        - base64
+      x-tags:
+        - payments
+    InputFieldIFrame:
+      type: object
+      title: InputFieldIFrame
+      properties:
+        sourceUrl:
+          type: string
+          description: The source URL of the iframe to be displayed.
+      required:
+        - sourceUrl
+      x-tags:
+        - payments
+    InputFieldPartialText:
+      type: object
+      title: InputFieldPartialText
+      properties:
+        fields:
+          type: array
+          description: The fields that make up the partial text input field.
+          items:
+            $ref: '#/components/schemas/InputFieldPartialTextItem'
+      required:
+        - fields
+    InputFieldPartialTextItem:
+      type: object
+      title: InputFieldPartialTextItem
+      properties:
+        label:
+          type: string
+          description: The label of the partial text item.
+        defaultValue:
+          type: string
+          description: The default value of the partial text item.
+        maxLength:
+          type: number
+          description: The max length of the partial text item.
+          default: 1
+        isDisabled:
+          type: boolean
+          description: Whether or not this partial text item should be disabled i.e. not allow input.
+    RefundList:
+      type: object
+      title: RefundList
+      properties:
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+          description: Links used for pagination.
+        results:
+          type: array
+          description: The list of refunds.
+          items:
+            $ref: '#/components/schemas/Refund'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+          description: The pagination meta data available.
+      x-tags:
+        - refunds
+    Refund:
+      type: object
+      title: Refund
+      properties:
+        links:
+          type: object
+          description: Links related to this resource.
+          properties:
+            self:
+              type: string
+              description: The unique URI to this resource.
+              format: uri
+              examples:
+                - 'https://one.ozow.com/refunds/497f6eca-6276-4993-bfeb-53cbbbba6f08'
+            cancel:
+              type: string
+              examples:
+                - 'https://one.ozow.com/refunds/497f6eca-6276-4993-bfeb-53cbbbba6f08/cancel'
+          required:
+            - self
+        id:
+          type: string
+          description: The unique identifier for this refund.
+          format: uuid
+        transactionId:
+          type: string
+          description: The transactions identifier of the payment that is being refunded.
+          format: uuid
+        amount:
+          $ref: '#/components/schemas/Amount'
+          description: The refund amount.
+        requested:
+          type: string
+          description: The date and time the refund was requested.
+          format: date-time
+        completed:
+          type: string
+          description: The date and time the refund was completed.
+          format: date-time
+        status:
+          type: string
+          enum:
+            - pending
+            - complete
+            - submitted
+            - failed
+            - cancelled
+            - returned
+          description: "The refund status.  Possible values are:\r\n\r\n\r\n* pending - The refund request has been submitted and accepted.\r\n* complete - The refund has been paid successfully.\r\n* submitted - The refund has been assigned to a batch and is being processed.\r\n* failed - The refund payment has failed.\r\n* cancelled - The refund has been cancelled before it was submitted.\r\n* returned - The refund payment has been returned because the account that was being refunded no longer exists.\r\n"
+        reason:
+          type: string
+          description: The reason for the status of the refund.
+        paidTo:
+          $ref: '#/components/schemas/BankAccount'
+          description: The bank details of where the refund was paid to.
+        realTimePayment:
+          type: boolean
+          description: 'Whether or not this payment should happen in real time. Please refer to the [Ozow Pricing](https://ozow.com/pricing) page for more information.'
+          default: false
+      required:
+        - links
+        - id
+        - transactionId
+        - amount
+        - requested
+        - status
+        - realTimePayment
+      x-tags:
+        - refunds
+    RefundRequest:
+      type: object
+      title: RefundRequest
+      properties:
+        transactionId:
+          type: string
+          format: uuid
+        amount:
+          $ref: '#/components/schemas/Amount'
+          description: The amount that needs to be refunded. This can be less than the original transaction amount but not more.  Note that only up to the transaction amount can be refunded.
+        reason:
+          type: string
+          description: The reason for the refund.
+        notifyUrl:
+          type: string
+          description: Optional notify URL to send notifications of the status of the refund. The recommendation is to use webhooks instead of this method which are configurable via the webhooks endpoints of the API.
+          format: uri
+        realTimePayment:
+          type: boolean
+          description: 'Whether or not this payment should happen in real time. Please refer to the [Ozow Pricing](https://ozow.com/pricing) page for more information.'
+          default: false
+      required:
+        - transactionId
+        - amount
+        - reason
+        - realTimePayment
+      x-tags:
+        - refunds
+    WebhookMessageStatus:
+      type: object
+      title: WebhookMessageStatus
+      properties:
+        id:
+          type: string
+          description: The unique id of this message attempt.
+          maxLength: 50
+          examples:
+            - atmpt_2hEgZphGleUObRPVST5U5c0dtnw
+        messageId:
+          type: string
+          description: The unique id of the message.
+          maxLength: 50
+          examples:
+            - msg_2hEgZpemgIY1t1RiTOuVGsfZPBs
+        url:
+          type: string
+          description: The URI of the webhook receiver.
+          format: uri
+        response:
+          type: string
+          description: Description of the response from the webhook receiver.
+        responseStatusCode:
+          type: number
+          description: The HTTP status code of the response from the webhook receiver.
+        timestamp:
+          type: string
+          description: The timestamp of the event.
+          format: date-time
+      required:
+        - id
+        - messageId
+        - url
+        - response
+        - responseStatusCode
+        - timestamp
+      x-tags:
+        - webhooks
+    SettlementList:
+      type: object
+      title: SettlementList
+      properties:
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Settlement'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+      required:
+        - links
+        - results
+        - meta
+      x-tags:
+        - settlements
+    Settlement:
+      type: object
+      title: Settlement
+      description: The settlement summary information.
+      properties:
+        links:
+          type: object
+          description: Links related to this resource.
+          properties:
+            self:
+              type: string
+              description: The unique URI to this resource.
+              format: uri
+              examples:
+                - 'https://one.ozow.com/v1/settlements/497f6eca-6276-4993-bfeb-53cbbbba6f08'
+            lineItems:
+              type: string
+              description: The URI to list the line items associated with this settlement.
+              format: uri
+              examples:
+                - 'https://one.ozow.com/v1/settlements/497f6eca-6276-4993-bfeb-53cbbbba6f08/lineitems'
+          required:
+            - self
+            - lineItems
+        id:
+          type: string
+          description: The unique id for this settlement.
+          format: uuid
+          examples:
+            - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+        totalSettlement:
+          $ref: '#/components/schemas/Amount'
+          description: The total amount being settled.
+        totalFees:
+          $ref: '#/components/schemas/Amount'
+          description: The total fees deducted from all corresponding transactions before calculating the settlement amount. The fees for each line item record may not add up to this fee because of rounding and this fee will be calculated off total amounts or counts.
+        lineItemCounts:
+          type: object
+          description: The line item counts for each type available.
+          properties:
+            total:
+              type: number
+              description: The total number of line items in the settlement.
+            transaction:
+              type: number
+              description: The number of transaction line items in the settlement.
+            refund:
+              type: number
+              description: The number of refund line items in the settlement.
+            adjustment:
+              type: number
+              description: The number of adjustment line items in the settlement.
+            payout:
+              type: number
+              description: The number of payout line items in the settlement.
+          required:
+            - total
+            - transaction
+            - refund
+            - adjustment
+            - payout
+        reference:
+          type: string
+          description: The unique settlement reference that will be present in the reference on your bank statement.
+          maxLength: 50
+        date:
+          type: string
+          description: 'The UTC date the settlement was created. '
+          format: date
+          examples:
+            - '2020-04-19'
+        bank:
+          $ref: '#/components/schemas/BankAccount'
+      required:
+        - links
+        - id
+        - totalSettlement
+        - totalFees
+        - lineItemCounts
+        - reference
+        - date
+      x-tags:
+        - settlements
+    SettlementLineItemList:
+      type: object
+      title: SettlementLineItemList
+      properties:
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+          description: Links related to this resource.
+        results:
+          type: array
+          description: The settlement line items.
+          items:
+            $ref: '#/components/schemas/SettlementLineItem'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+      required:
+        - links
+        - results
+        - meta
+      x-tags:
+        - settlements
+    SettlementLineItem:
+      type: object
+      title: SettlementLineItem
+      properties:
+        id:
+          type: string
+          description: The unique identifier for this record.
+          format: uuid
+        siteCode:
+          type: string
+          description: A unique code for the Ozow site this record relates to.
+          maxLength: 50
+        reference:
+          type: string
+          description: 'The merchant’s reference for the record (transaction, refund or payout). Ozow will generate a reference for adjusts where applicable.'
+          maxLength: 50
+        description:
+          type: string
+          description: 'The description of the line item, this will be populated primarily on adjustment line items.'
+        amount:
+          $ref: '#/components/schemas/Amount'
+          description: The original amount for the record.
+        fee:
+          $ref: '#/components/schemas/Amount'
+          description: The Ozow fee relating to the record. Fee for the record is rounded.
+        settlementAmount:
+          $ref: '#/components/schemas/Amount'
+          description: 'The nett settlement amount for this record. Amount – Fee, only rounded after calculating.'
+        date:
+          type: string
+          description: The UTC date the record applies to.
+          format: date
+          examples:
+            - '2020-04-18'
+        type:
+          type: string
+          enum:
+            - transaction
+            - refund
+            - payout
+            - adjustment
+            - returnedrefund
+            - returnedpayout
+            - fee
+            - chargebackwithheld
+            - reservewithheld
+            - chargebackreleased
+            - reservereleased
+          description: The line type for the record.
+      required:
+        - id
+        - siteCode
+        - reference
+        - amount
+        - fee
+        - settlementAmount
+        - date
+        - type
+      x-tags:
+        - settlements
+    TransactionRequest:
+      type: object
+      title: TransactionRequest
+      properties:
+        paymentRequest:
+          $ref: '#/components/schemas/PaymentRequest'
+          description: The payment request details.
+        paymentDetail:
+          $ref: '#/components/schemas/PaymentDetail'
+      required:
+        - paymentRequest
+      x-tags:
+        - transactions
+    ProcessTransactionRequest:
+      type: object
+      title: ProcessTransactionRequest
+      properties:
+        paymentStep:
+          type: string
+          description: The payment step being processed.
+        callbackUrl:
+          type: string
+          description: |
+            The URI to callback once the step has been completed. The callback URI will receive a `POST` request with a `InputResponse` model indicating what step is required next.
+          format: uri
+        inputFields:
+          type: array
+          description: The input fields.
+          items:
+            $ref: '#/components/schemas/InputField_2'
+      required:
+        - paymentStep
+        - callbackUrl
+        - inputFields
+      x-tags:
+        - transactions
+    InputField_2:
+      type: object
+      title: InputField
+      properties:
+        name:
+          type: string
+          description: The name of the field.
+        value:
+          type: string
+          description: The value of the input field.
+      required:
+        - name
+        - value
+      x-tags:
+        - transactions
+    TransactionRefundRequest:
+      type: object
+      title: TransactionRefundRequest
+      properties:
+        amount:
+          $ref: '#/components/schemas/Amount'
+          description: The amount that needs to be refunded. This can be less than the original transaction amount but not more.  Note that only up to the transaction amount can be refunded.
+        reason:
+          type: string
+          description: The reason for the refund.
+        notifyUrl:
+          type: string
+          description: Optional notify URL to send notifications of the status of the refund. The recommendation is to use webhooks instead of this method which are configurable via the webhooks endpoints of the API.
+          format: uri
+        realTimePayment:
+          type: boolean
+          description: 'Whether or not this payment should happen in real time. Please refer to the [Ozow Pricing](https://ozow.com/pricing) page for more information.'
+          default: false
+      required:
+        - amount
+        - reason
+        - realTimePayment
+      x-tags:
+        - refunds
+    WebhookResponse:
+      type: object
+      title: WebhookResponse
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the webhook.
+          format: uuid
+          examples:
+            - 3fa85f64-5717-4562-b3fc-2c963f66afa2
+        endpoint:
+          type: string
+          description: The uri of the webhook receiver.
+          format: uri
+        eventType:
+          type: string
+          enum:
+            - transaction.complete
+            - refund.complete
+          description: The type of event the webhook subscribes to.
+        messageType:
+          type: string
+          enum:
+            - thin
+            - full
+          description: Defaults to `thin`. Specify `full` to receive a larger payload with as much detail as possible.
+      required:
+        - id
+        - endpoint
+        - eventType
+        - messageType
+      x-tags:
+        - webhooks
+    WebhookRequest:
+      type: object
+      title: WebhookRequest
+      properties:
+        endpoint:
+          type: string
+          description: The uri of the webhook receiver.
+          format: uri
+        eventType:
+          type: string
+          enum:
+            - transaction.complete
+            - refund.complete
+          description: The type of event the webhook subscribes to.
+        messageType:
+          type: string
+          enum:
+            - thin
+            - full
+          description: Defaults to `thin`. Specify `full` to receive a larger payload with as much detail as possible.
+      required:
+        - endpoint
+        - eventType
+      x-tags:
+        - webhooks
+    WebhookSecretResponse:
+      type: object
+      title: WebhookSecretResponse
+      properties:
+        secret:
+          type: string
+          description: The secret key of the webhook to be used when validating the webhook signature.
+      required:
+        - secret
+      x-tags:
+        - webhooks
+security:
+  - Authentication:
+      - payment
+      - payout
+      - refund
+      - settlements
+      - webhooks
