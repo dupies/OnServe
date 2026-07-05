@@ -21,6 +21,7 @@ import { QuoteRequestPage } from '@/pages/customer/QuoteRequestPage';
 import { QuoteRequestsListPage } from '@/pages/customer/QuoteRequestsListPage';
 import { QuoteReviewPage } from '@/pages/customer/QuoteReviewPage';
 import { PaymentPage } from '@/pages/customer/PaymentPage';
+import { PaymentResultPage } from '@/pages/customer/PaymentResultPage';
 
 // Customer — Track & Resolve
 import { BookingsListPage } from '@/pages/customer/BookingsListPage';
@@ -113,6 +114,7 @@ export const router = createBrowserRouter([
   { path: '/quote-requests', element: auth(<QuoteRequestsListPage />) },
   { path: '/quote-requests/:id', element: auth(<QuoteReviewPage />) },
   { path: '/payment', element: auth(<PaymentPage />) },
+  { path: '/payment/result', element: auth(<PaymentResultPage />) },
 
   // Customer — Track & Resolve
   { path: '/bookings', element: auth(<BookingsListPage />) },
