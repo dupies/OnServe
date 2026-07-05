@@ -3,7 +3,8 @@ export type PaymentStatus =
   | 'escrowed'
   | 'released'
   | 'refunded'
-  | 'disputed';
+  | 'disputed'
+  | 'failed';
 
 export type DisputeStatus =
   | 'open'
@@ -20,7 +21,7 @@ export interface Payment {
   depositAmount: number;
   balanceAmount: number;
   status: PaymentStatus;
-  paymentGateway: 'yoco' | 'peach';
+  paymentGateway: 'yoco' | 'peach' | 'ozow';
   gatewayTransactionId: string | null;
   gatewayReference: string | null;
   escrowedAt: string | null;
