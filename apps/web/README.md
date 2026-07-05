@@ -71,3 +71,18 @@ export default defineConfig([
   },
 ])
 ```
+
+## Payments (Ozow)
+
+### Configuration
+
+Edge function secrets (set via `supabase secrets set`):
+- `OZOW_SITE_CODE`, `OZOW_PRIVATE_KEY`, `OZOW_API_KEY` — from dash.ozow.com → Merchant Details
+- `OZOW_IS_TEST` — `true` everywhere except production
+- `WEB_APP_URL` — the deployed SPA origin (used to build redirect URLs)
+
+### Go-live checklist
+
+1. Replace test credentials with live merchant credentials; set `OZOW_IS_TEST=false`.
+2. Confirm the site's SuccessUrl/NotifyUrl domains are registered with Ozow if required by the merchant profile.
+3. Run one real R 1.00 transaction and verify escrow + webhook logs.
