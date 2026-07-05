@@ -1,6 +1,0 @@
-.git/
-node_modules/
-app.old/
-../../packages/*/node_modules/
-dist/
-.turbo/
