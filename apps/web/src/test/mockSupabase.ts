@@ -60,6 +60,9 @@ export function makeSupabaseMock() {
       signOut: vi.fn().mockResolvedValue({ error: null }),
       updateUser: vi.fn().mockResolvedValue({ error: null }),
     },
+    functions: {
+      invoke: vi.fn().mockResolvedValue({ data: null, error: null }),
+    },
     _setTable: (table: string, data: unknown, error: { message: string } | null = null) => {
       tableHandlers.set(table, makeQueryMock(data, error));
     },
