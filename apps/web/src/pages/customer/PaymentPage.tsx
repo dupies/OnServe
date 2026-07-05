@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { useBooking } from '@/features/bookings/hooks/useBookings';
+import { useCreateOzowPayment } from '@/features/payments/hooks/usePayments';
 import { LoadingState } from '@/components/common';
 import { notify } from '@/lib/notify';
 
@@ -21,17 +22,25 @@ export function PaymentPage() {
 
   const { data: booking, isLoading } = useBooking(bookingId);
 
-  // The booking is created earlier in the wizard (BookingPage). Here we only
-  // confirm it and hand off to the real booking detail screen — no payment
-  // processor is integrated (payments are out of scope).
-  function handleConfirm() {
-    if (bookingId) {
-      notify.success('Booking confirmed');
-      navigate(`/bookings/${bookingId}`, { replace: true });
-    } else {
-      notify.success('Booking confirmed');
+  const createPayment = useCreateOzowPayment();
+
+  // The booking is created earlier in the wizard (BookingPage). Payment happens
+  // via Ozow redirect; the webhook settles the payments row and the result page
+  // (/payment/result) polls for it.
+  function handlePay() {
+    if (!bookingId) {
+      notify.error('No booking to pay for');
       navigate('/bookings', { replace: true });
+      return;
     }
+    createPayment.mutate(bookingId, {
+      onSuccess: ({ url }) => {
+        window.location.assign(url);
+      },
+      onError: (error) => {
+        notify.error(error.message || 'Could not start payment');
+      },
+    });
   }
 
   const total = booking?.totalAmount ?? 0;
@@ -127,12 +136,17 @@ export function PaymentPage() {
                 </div>
               </div>
 
-              <Button className="w-full" size="lg" onClick={handleConfirm}>
-                Confirm booking
+              <Button
+                className="w-full"
+                size="lg"
+                onClick={handlePay}
+                disabled={createPayment.isPending}
+              >
+                {createPayment.isPending ? 'Redirecting to Ozow…' : `Pay R ${total} with Ozow`}
               </Button>
 
               <p className="text-xs text-muted-foreground text-center">
-                Secured by Yoco · Payment held in escrow until job completion
+                Secured by Ozow instant EFT · Payment held in escrow until job completion
               </p>
             </div>
           </div>
