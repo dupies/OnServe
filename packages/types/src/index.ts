@@ -4,3 +4,4 @@ export * from './service';
 export * from './booking';
 export * from './payment';
 export * from './rating';
+export * from './identity';
