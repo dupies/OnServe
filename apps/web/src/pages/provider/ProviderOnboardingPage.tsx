@@ -14,8 +14,9 @@ import { supabase } from '@/lib/supabase';
 import { useAllServiceTypes } from '@/features/services/hooks/useServices';
 import { LoadingState } from '@/components/common';
 import { notify } from '@/lib/notify';
+import { IdentityDocumentStatus } from '@/features/auth/components/IdentityDocumentStatus';
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 
 // ── Step 1 schema ─────────────────────────────────────────────────────────────
 const profileSchema = z.object({
@@ -100,15 +101,50 @@ function Step1Profile({ onNext }: { onNext: (data: ProfileInput) => void }) {
   );
 }
 
-// ── Step 2: ID Verification ───────────────────────────────────────────────────
-function Step2ID({ onNext }: { onNext: () => void }) {
+// ── Step 2: Identity Verification ────────────────────────────────────────────
+function Step2IdentityVerification({
+  onNext,
+  onBack
+}: {
+  onNext: () => void;
+  onBack: () => void
+}) {
+  return (
+    <div className="flex flex-col gap-4">
+      <div>
+        <p className="text-xs text-[#7B6EF6] font-medium mb-1">Step 2 of {TOTAL_STEPS}</p>
+        <h1 className="text-xl font-semibold text-foreground">Verify your identity</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Upload government-issued ID or passport for verification
+        </p>
+      </div>
+
+      <IdentityDocumentStatus />
+
+      <div className="flex gap-2 mt-4">
+        <Button variant="outline" onClick={onBack} className="flex-1">
+          Back
+        </Button>
+        <Button
+          onClick={onNext}
+          className="flex-1 bg-[#7B6EF6] hover:bg-[#7B6EF6]/90"
+        >
+          Next: services
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// ── Step 3: ID Verification ───────────────────────────────────────────────────
+function Step3ID({ onNext }: { onNext: () => void }) {
   const [frontUploaded, setFrontUploaded] = useState(false);
   const [selfieUploaded, setSelfieUploaded] = useState(false);
 
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <p className="text-xs text-[#7B6EF6] font-medium mb-1">Step 2 of {TOTAL_STEPS}</p>
+        <p className="text-xs text-[#7B6EF6] font-medium mb-1">Step 3 of {TOTAL_STEPS}</p>
         <h1 className="text-xl font-semibold text-foreground">Verify your identity</h1>
         <p className="text-sm text-muted-foreground mt-1">Required to accept bookings on OnServe</p>
       </div>
@@ -176,8 +212,8 @@ function Step2ID({ onNext }: { onNext: () => void }) {
   );
 }
 
-// ── Step 3: Services ──────────────────────────────────────────────────────────
-function Step3Services({ onNext }: { onNext: (services: string[]) => void }) {
+// ── Step 4: Services ──────────────────────────────────────────────────────────
+function Step4Services({ onNext }: { onNext: (services: string[]) => void }) {
   const { data: serviceTypes = [] } = useAllServiceTypes();
   const [selected, setSelected] = useState<string[]>([]);
 
@@ -188,7 +224,7 @@ function Step3Services({ onNext }: { onNext: (services: string[]) => void }) {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <p className="text-xs text-[#7B6EF6] font-medium mb-1">Step 3 of {TOTAL_STEPS}</p>
+        <p className="text-xs text-[#7B6EF6] font-medium mb-1">Step 4 of {TOTAL_STEPS}</p>
         <h1 className="text-xl font-semibold text-foreground">What do you offer?</h1>
         <p className="text-sm text-muted-foreground mt-1">Select the services you provide</p>
       </div>
@@ -234,8 +270,8 @@ function Step3Services({ onNext }: { onNext: (services: string[]) => void }) {
   );
 }
 
-// ── Step 4: Availability & Radius ─────────────────────────────────────────────
-function Step4Availability({ onSubmit, loading }: { onSubmit: () => void; loading: boolean }) {
+// ── Step 5: Availability & Radius ─────────────────────────────────────────────
+function Step5Availability({ onSubmit, loading }: { onSubmit: () => void; loading: boolean }) {
   const [days, setDays] = useState({ mon: true, tue: true, wed: true, thu: true, fri: true, sat: true, sun: false });
   const [radius, setRadius] = useState(10);
 
@@ -244,7 +280,7 @@ function Step4Availability({ onSubmit, loading }: { onSubmit: () => void; loadin
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <p className="text-xs text-[#7B6EF6] font-medium mb-1">Step 4 of {TOTAL_STEPS}</p>
+        <p className="text-xs text-[#7B6EF6] font-medium mb-1">Step 5 of {TOTAL_STEPS}</p>
         <h1 className="text-xl font-semibold text-foreground">Availability &amp; area</h1>
         <p className="text-sm text-muted-foreground mt-1">Set when and how far you'll travel</p>
       </div>
@@ -384,20 +420,24 @@ export function ProviderOnboardingPage() {
       )}
 
       {step === 2 && (
-        <Step2ID onNext={() => setStep(3)} />
+        <Step2IdentityVerification onNext={() => setStep(3)} onBack={() => setStep(1)} />
       )}
 
       {step === 3 && (
-        <Step3Services
+        <Step3ID onNext={() => setStep(4)} />
+      )}
+
+      {step === 4 && (
+        <Step4Services
           onNext={(services) => {
             setSelectedServices(services);
-            setStep(4);
+            setStep(5);
           }}
         />
       )}
 
-      {step === 4 && (
-        <Step4Availability onSubmit={handleFinalSubmit} loading={submitting} />
+      {step === 5 && (
+        <Step5Availability onSubmit={handleFinalSubmit} loading={submitting} />
       )}
     </AppShell>
   );
