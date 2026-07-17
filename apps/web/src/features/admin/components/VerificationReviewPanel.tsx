@@ -14,7 +14,6 @@ import {
 import type { IdentityDocument } from '@onserve/types';
 import { DOCUMENT_TYPE_LABELS } from '@onserve/types';
 import { generateSignedUrl } from '@/features/auth/services/identityService';
-import { toast } from 'sonner';
 
 interface VerificationReviewPanelProps {
   document: IdentityDocument;
@@ -51,30 +50,23 @@ export function VerificationReviewPanel({
     try {
       setIsSubmitting(true);
       await onApprove(document.id);
-      toast.success('Document approved successfully');
-    } catch (error) {
-      console.error('Error approving document:', error);
-      toast.error('Failed to approve document');
+    } catch {
+      // Parent mutation handles error notification
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleReject = async () => {
-    if (!rejectionReason.trim()) {
-      toast.error('Please provide a reason for rejection');
-      return;
-    }
+    if (!rejectionReason.trim()) return;
 
     try {
       setIsSubmitting(true);
       await onReject(document.id, rejectionReason);
-      toast.success('Document rejected successfully');
       setRejectDialogOpen(false);
       setRejectionReason('');
-    } catch (error) {
-      console.error('Error rejecting document:', error);
-      toast.error('Failed to reject document');
+    } catch {
+      // Parent mutation handles error notification
     } finally {
       setIsSubmitting(false);
     }

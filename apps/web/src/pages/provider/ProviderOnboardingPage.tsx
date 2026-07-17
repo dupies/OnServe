@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ArrowLeft, Upload, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,7 +16,7 @@ import { LoadingState } from '@/components/common';
 import { notify } from '@/lib/notify';
 import { IdentityDocumentStatus } from '@/features/auth/components/IdentityDocumentStatus';
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 4;
 
 // ── Step 1 schema ─────────────────────────────────────────────────────────────
 const profileSchema = z.object({
@@ -136,83 +136,7 @@ function Step2IdentityVerification({
   );
 }
 
-// ── Step 3: ID Verification ───────────────────────────────────────────────────
-function Step3ID({ onNext }: { onNext: () => void }) {
-  const [frontUploaded, setFrontUploaded] = useState(false);
-  const [selfieUploaded, setSelfieUploaded] = useState(false);
-
-  return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <p className="text-xs text-[#7B6EF6] font-medium mb-1">Step 3 of {TOTAL_STEPS}</p>
-        <h1 className="text-xl font-semibold text-foreground">Verify your identity</h1>
-        <p className="text-sm text-muted-foreground mt-1">Required to accept bookings on OnServe</p>
-      </div>
-
-      <div className="bg-card border border-border rounded-xl p-4 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-foreground">SA ID document</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Front of your South African ID</p>
-          </div>
-          {frontUploaded
-            ? <CheckCircle className="w-5 h-5 text-primary" />
-            : <span className="text-[10px] text-warning border border-warning/30 bg-warning/10 rounded-full px-2 py-0.5">Required</span>
-          }
-        </div>
-        <button
-          onClick={() => setFrontUploaded(true)}
-          className={`w-full border border-dashed rounded-xl py-6 text-sm flex flex-col items-center gap-2 transition-colors ${
-            frontUploaded
-              ? 'border-primary/30 bg-primary/5 text-primary'
-              : 'border-border text-muted-foreground hover:border-[#7B6EF6]/30 hover:bg-[#7B6EF6]/5 hover:text-[#7B6EF6]'
-          }`}
-        >
-          <Upload className="w-4 h-4" />
-          {frontUploaded ? 'ID uploaded ✓' : 'Upload front of ID'}
-        </button>
-      </div>
-
-      <div className="bg-card border border-border rounded-xl p-4 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-foreground">Selfie with ID</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Hold your ID next to your face</p>
-          </div>
-          {selfieUploaded
-            ? <CheckCircle className="w-5 h-5 text-primary" />
-            : <span className="text-[10px] text-warning border border-warning/30 bg-warning/10 rounded-full px-2 py-0.5">Required</span>
-          }
-        </div>
-        <button
-          onClick={() => setSelfieUploaded(true)}
-          className={`w-full border border-dashed rounded-xl py-6 text-sm flex flex-col items-center gap-2 transition-colors ${
-            selfieUploaded
-              ? 'border-primary/30 bg-primary/5 text-primary'
-              : 'border-border text-muted-foreground hover:border-[#7B6EF6]/30 hover:bg-[#7B6EF6]/5 hover:text-[#7B6EF6]'
-          }`}
-        >
-          <Upload className="w-4 h-4" />
-          {selfieUploaded ? 'Selfie uploaded ✓' : 'Take selfie with ID'}
-        </button>
-      </div>
-
-      <div className="bg-[#7B6EF6]/5 border border-[#7B6EF6]/20 rounded-xl px-4 py-3">
-        <p className="text-xs text-[#7B6EF6]">Verification takes 2–24 hours. You can still browse the platform while we review.</p>
-      </div>
-
-      <Button
-        className="w-full bg-[#7B6EF6] hover:bg-[#7B6EF6]/90"
-        onClick={onNext}
-        disabled={!frontUploaded || !selfieUploaded}
-      >
-        Submit for verification
-      </Button>
-    </div>
-  );
-}
-
-// ── Step 4: Services ──────────────────────────────────────────────────────────
+// ── Step 3: Services ──────────────────────────────────────────────────────────
 function Step4Services({ onNext }: { onNext: (services: string[]) => void }) {
   const { data: serviceTypes = [] } = useAllServiceTypes();
   const [selected, setSelected] = useState<string[]>([]);
@@ -224,7 +148,7 @@ function Step4Services({ onNext }: { onNext: (services: string[]) => void }) {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <p className="text-xs text-[#7B6EF6] font-medium mb-1">Step 4 of {TOTAL_STEPS}</p>
+        <p className="text-xs text-[#7B6EF6] font-medium mb-1">Step 3 of {TOTAL_STEPS}</p>
         <h1 className="text-xl font-semibold text-foreground">What do you offer?</h1>
         <p className="text-sm text-muted-foreground mt-1">Select the services you provide</p>
       </div>
@@ -270,7 +194,7 @@ function Step4Services({ onNext }: { onNext: (services: string[]) => void }) {
   );
 }
 
-// ── Step 5: Availability & Radius ─────────────────────────────────────────────
+// ── Step 4: Availability & Radius ─────────────────────────────────────────────
 function Step5Availability({ onSubmit, loading }: { onSubmit: () => void; loading: boolean }) {
   const [days, setDays] = useState({ mon: true, tue: true, wed: true, thu: true, fri: true, sat: true, sun: false });
   const [radius, setRadius] = useState(10);
@@ -280,7 +204,7 @@ function Step5Availability({ onSubmit, loading }: { onSubmit: () => void; loadin
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <p className="text-xs text-[#7B6EF6] font-medium mb-1">Step 5 of {TOTAL_STEPS}</p>
+        <p className="text-xs text-[#7B6EF6] font-medium mb-1">Step 4 of {TOTAL_STEPS}</p>
         <h1 className="text-xl font-semibold text-foreground">Availability &amp; area</h1>
         <p className="text-sm text-muted-foreground mt-1">Set when and how far you'll travel</p>
       </div>
@@ -424,19 +348,15 @@ export function ProviderOnboardingPage() {
       )}
 
       {step === 3 && (
-        <Step3ID onNext={() => setStep(4)} />
-      )}
-
-      {step === 4 && (
         <Step4Services
           onNext={(services) => {
             setSelectedServices(services);
-            setStep(5);
+            setStep(4);
           }}
         />
       )}
 
-      {step === 5 && (
+      {step === 4 && (
         <Step5Availability onSubmit={handleFinalSubmit} loading={submitting} />
       )}
     </AppShell>
