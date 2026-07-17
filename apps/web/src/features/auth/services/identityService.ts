@@ -1,5 +1,6 @@
 import { supabase } from '../../../lib/supabase';
 import type { IdentityDocument, DocumentUploadRequest } from '@onserve/types';
+import { mapDocumentRow } from '../../identity/utils/mapDocumentRow';
 
 // Constants
 const BUCKET_NAME = 'identity-documents';
@@ -145,20 +146,3 @@ export async function generateSignedUrl(
   return data.signedUrl;
 }
 
-/**
- * Helper: Map database row to IdentityDocument object
- */
-function mapDocumentRow(row: any): IdentityDocument {
-  return {
-    id: row.id,
-    userId: row.user_id,
-    documentType: row.document_type,
-    documentUrl: row.document_url,
-    uploadedAt: row.uploaded_at,
-    verifiedAt: row.verified_at,
-    verifiedByAdminId: row.verified_by_admin_id,
-    rejectionReason: row.rejection_reason,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}

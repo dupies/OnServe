@@ -70,27 +70,19 @@ alter table public.identity_documents enable row level security;
 
 -- Users can see and insert their own documents
 create policy "Users can view own documents" on public.identity_documents
-  for select using (auth.uid() = user_id or exists (
-    select 1 from public.users where id = auth.uid() and role = 'admin'
-  ));
+  for select using (auth.uid() = user_id or public.is_admin());
 
 create policy "Users can insert own documents" on public.identity_documents
   for insert with check (auth.uid() = user_id);
 
 -- Admins can update verification status
 create policy "Admins can update verification status" on public.identity_documents
-  for update using (exists (
-    select 1 from public.users where id = auth.uid() and role = 'admin'
-  ))
-  with check (exists (
-    select 1 from public.users where id = auth.uid() and role = 'admin'
-  ));
+  for update using (public.is_admin())
+  with check (public.is_admin());
 
 -- Users cannot delete their own; only admins can
 create policy "Admins can delete documents" on public.identity_documents
-  for delete using (exists (
-    select 1 from public.users where id = auth.uid() and role = 'admin'
-  ));
+  for delete using (public.is_admin());
 
 -- Auto-update trigger for updated_at
 create trigger update_identity_documents_updated_at

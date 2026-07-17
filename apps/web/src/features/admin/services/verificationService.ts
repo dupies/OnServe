@@ -1,5 +1,6 @@
 import { supabase } from '../../../lib/supabase';
 import type { IdentityDocument } from '@onserve/types';
+import { mapDocumentRow } from '../../identity/utils/mapDocumentRow';
 
 /**
  * Get identity documents for verification
@@ -84,20 +85,3 @@ export async function rejectDocument(
   return mapDocumentRow(data);
 }
 
-/**
- * Helper: Map database row to IdentityDocument object
- */
-function mapDocumentRow(row: any): IdentityDocument {
-  return {
-    id: row.id,
-    userId: row.user_id,
-    documentType: row.document_type,
-    documentUrl: row.document_url,
-    uploadedAt: row.uploaded_at,
-    verifiedAt: row.verified_at,
-    verifiedByAdminId: row.verified_by_admin_id,
-    rejectionReason: row.rejection_reason,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
