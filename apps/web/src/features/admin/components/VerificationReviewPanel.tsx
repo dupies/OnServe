@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Check, X, AlertCircle } from 'lucide-react';
 import {
   Button,
@@ -11,7 +11,9 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui';
-import { IdentityDocument, DOCUMENT_TYPE_LABELS } from '@onserve/types';
+import type { IdentityDocument } from '@onserve/types';
+import { DOCUMENT_TYPE_LABELS } from '@onserve/types';
+import { generateSignedUrl } from '@/features/auth/services/identityService';
 import { toast } from 'sonner';
 
 interface VerificationReviewPanelProps {
@@ -30,6 +32,20 @@ export function VerificationReviewPanel({
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [signedImageUrl, setSignedImageUrl] = useState<string | null>(null);
+
+  // Generate a time-limited signed URL whenever the document changes.
+  // document.documentUrl stores the private storage path, never a public URL.
+  useEffect(() => {
+    let cancelled = false;
+    setSignedImageUrl(null);
+    generateSignedUrl(document.documentUrl).then((url) => {
+      if (!cancelled) setSignedImageUrl(url);
+    }).catch(() => {
+      // Leave signedImageUrl null — the fallback UI will show below
+    });
+    return () => { cancelled = true; };
+  }, [document.documentUrl]);
 
   const handleApprove = async () => {
     try {
@@ -80,13 +96,20 @@ export function VerificationReviewPanel({
           </h3>
         </div>
 
-        {/* Document Image */}
+        {/* Document Image — rendered via signed URL to keep the bucket private */}
         <div className="mb-6 flex justify-center">
-          <img
-            src={document.documentUrl}
-            alt={DOCUMENT_TYPE_LABELS[document.documentType]}
-            className="max-w-md max-h-96 rounded-md border object-contain"
-          />
+          {signedImageUrl ? (
+            <img
+              src={signedImageUrl}
+              alt={DOCUMENT_TYPE_LABELS[document.documentType]}
+              className="max-w-md max-h-96 rounded-md border object-contain"
+            />
+          ) : (
+            <div className="flex max-w-md max-h-96 w-full h-48 items-center justify-center rounded-md border bg-muted text-sm text-muted-foreground">
+              <AlertCircle className="mr-2 h-4 w-4" />
+              Loading document…
+            </div>
+          )}
         </div>
 
         {/* Upload Date Info */}

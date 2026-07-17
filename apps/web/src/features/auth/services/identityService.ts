@@ -43,20 +43,14 @@ export async function uploadDocument(
     throw new Error(`Failed to upload document: ${uploadError.message}`);
   }
 
-  // Generate public URL
-  const { data: urlData } = supabase.storage
-    .from(BUCKET_NAME)
-    .getPublicUrl(storagePath);
-
-  const documentUrl = urlData.publicUrl;
-
+  // Store the storage path, not a public URL — access is always via signed URLs
   // Insert record into database
   const { data: insertedData, error: dbError } = await supabase
     .from('identity_documents')
     .insert({
       user_id: userId,
       document_type: documentType,
-      document_url: documentUrl,
+      document_url: storagePath,
     })
     .select()
     .single();
@@ -108,8 +102,8 @@ export async function deleteDocument(documentId: string): Promise<void> {
     throw new Error('Document not found');
   }
 
-  // Extract storage path from URL
-  const storagePath = extractStoragePath(document.document_url);
+  // document_url now stores the storage path directly
+  const storagePath = document.document_url;
 
   // Delete file from storage
   const { error: storageError } = await supabase.storage
@@ -132,14 +126,14 @@ export async function deleteDocument(documentId: string): Promise<void> {
 }
 
 /**
- * Generate a signed URL for a document with expiration
+ * Generate a time-limited signed URL for a private document.
+ * @param storagePath - The value stored in identity_documents.document_url
+ * @param expiresIn   - Seconds until the URL expires (default 1 hour)
  */
 export async function generateSignedUrl(
-  documentUrl: string,
+  storagePath: string,
   expiresIn: number = 3600
 ): Promise<string> {
-  const storagePath = extractStoragePath(documentUrl);
-
   const { data, error } = await supabase.storage
     .from(BUCKET_NAME)
     .createSignedUrl(storagePath, expiresIn);
@@ -149,17 +143,6 @@ export async function generateSignedUrl(
   }
 
   return data.signedUrl;
-}
-
-/**
- * Helper: Extract storage path from public URL
- */
-function extractStoragePath(url: string): string {
-  const parts = url.split(`/${BUCKET_NAME}/`);
-  if (parts.length < 2) {
-    throw new Error('Invalid document URL format');
-  }
-  return parts[1];
 }
 
 /**

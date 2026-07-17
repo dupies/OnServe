@@ -1,6 +1,48 @@
 -- Enable UUID extension if not already enabled
 create extension if not exists "uuid-ossp";
 
+-- Create private storage bucket for identity documents
+-- public = false ensures no public URL access; all access requires signed URLs
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'identity-documents',
+  'identity-documents',
+  false,
+  5242880, -- 5 MB
+  array['image/jpeg', 'image/png']
+)
+on conflict (id) do nothing;
+
+-- Storage RLS: only the document owner may upload into their own folder
+create policy "Users can upload own identity documents"
+  on storage.objects for insert
+  with check (
+    bucket_id = 'identity-documents'
+    and auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+-- Storage RLS: owner can read; admins can read any
+create policy "Users can read own identity documents"
+  on storage.objects for select
+  using (
+    bucket_id = 'identity-documents'
+    and (
+      auth.uid()::text = (storage.foldername(name))[1]
+      or public.is_admin()
+    )
+  );
+
+-- Storage RLS: owner or admin may delete
+create policy "Users or admins can delete identity documents"
+  on storage.objects for delete
+  using (
+    bucket_id = 'identity-documents'
+    and (
+      auth.uid()::text = (storage.foldername(name))[1]
+      or public.is_admin()
+    )
+  );
+
 -- Create identity_documents table
 create table public.identity_documents (
   id uuid primary key default uuid_generate_v4(),
