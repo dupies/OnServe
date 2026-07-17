@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect } from 'react';
 import { Check, X, AlertCircle } from 'lucide-react';
 import {
@@ -72,6 +70,10 @@ export function VerificationReviewPanel({
     }
   };
 
+  // Document is already processed if either approved (verifiedAt set) or rejected (rejectionReason set).
+  // Only show action buttons for genuinely pending documents (both null).
+  const isAlreadyProcessed = document.verifiedAt !== null || document.rejectionReason !== null;
+
   const uploadedDate = new Date(document.uploadedAt).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -109,29 +111,36 @@ export function VerificationReviewPanel({
           <p>Uploaded: {uploadedDate}</p>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-4">
-          <Button
-            variant="default"
-            size="default"
-            onClick={handleApprove}
-            disabled={isProcessing || isSubmitting}
-            className="flex-1"
-          >
-            <Check className="mr-2 h-4 w-4" />
-            Approve
-          </Button>
-          <Button
-            variant="destructive"
-            size="default"
-            onClick={() => setRejectDialogOpen(true)}
-            disabled={isProcessing || isSubmitting}
-            className="flex-1"
-          >
-            <X className="mr-2 h-4 w-4" />
-            Reject
-          </Button>
-        </div>
+        {/* Action Buttons — only shown for genuinely pending documents */}
+        {isAlreadyProcessed ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <AlertCircle className="h-4 w-4" />
+            {document.verifiedAt ? 'Document already approved.' : 'Document already rejected — awaiting re-upload.'}
+          </div>
+        ) : (
+          <div className="flex gap-4">
+            <Button
+              variant="default"
+              size="default"
+              onClick={handleApprove}
+              disabled={isProcessing || isSubmitting}
+              className="flex-1"
+            >
+              <Check className="mr-2 h-4 w-4" />
+              Approve
+            </Button>
+            <Button
+              variant="destructive"
+              size="default"
+              onClick={() => setRejectDialogOpen(true)}
+              disabled={isProcessing || isSubmitting}
+              className="flex-1"
+            >
+              <X className="mr-2 h-4 w-4" />
+              Reject
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Rejection Dialog */}

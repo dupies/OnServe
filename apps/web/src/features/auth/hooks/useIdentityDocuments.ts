@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { getUserDocuments } from '@/features/auth/services/identityService';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import type { AuthState } from '@/features/auth/store/authStore';
 import type { IdentityDocument } from '@onserve/types';
 
 export function useIdentityDocuments() {
-  const user = useAuthStore((state: any) => state.user);
+  const user = useAuthStore((state: AuthState) => state.user);
 
   return useQuery<IdentityDocument[], Error>({
     queryKey: ['identity-documents', user?.id],

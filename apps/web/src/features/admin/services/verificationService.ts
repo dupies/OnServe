@@ -15,9 +15,11 @@ export async function getDocumentsForVerification(
     .select('*, users(id, email, phone, role)')
     .order('uploaded_at', { ascending: false });
 
-  // Filter by pending status if requested
+  // Filter by pending status if requested.
+  // Pending = not yet approved (verified_at IS NULL) AND not yet rejected (rejection_reason IS NULL).
+  // Rejected documents have verified_at=null but rejection_reason set — they should not appear in pending.
   if (status === 'pending') {
-    query = query.is('verified_at', null);
+    query = query.is('verified_at', null).is('rejection_reason', null);
   }
 
   // Apply pagination
@@ -58,20 +60,20 @@ export async function approveDocument(
 }
 
 /**
- * Reject an identity document
+ * Reject an identity document.
+ * verified_by_admin_id is preserved so there is an audit record of who rejected the document.
+ * verified_at is set to the rejection timestamp so the action is timestamped regardless of outcome.
  */
 export async function rejectDocument(
   documentId: string,
-  // adminId is part of the standard signature but not used in reject
-  // (rejection clears admin verification, unlike approval)
-  _adminId: string,
+  adminId: string,
   rejectionReason: string
 ): Promise<IdentityDocument> {
   const { data, error } = await supabase
     .from('identity_documents')
     .update({
-      verified_at: null,
-      verified_by_admin_id: null,
+      verified_at: new Date().toISOString(),
+      verified_by_admin_id: adminId,
       rejection_reason: rejectionReason,
     })
     .eq('id', documentId)

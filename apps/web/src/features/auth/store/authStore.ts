@@ -3,7 +3,7 @@ import type { User } from '@supabase/supabase-js';
 import type { UserRole } from '@onserve/types';
 import { supabase } from '@/lib/supabase';
 
-interface AuthState {
+export interface AuthState {
   user: User | null;
   role: UserRole | null;
   isLoading: boolean;

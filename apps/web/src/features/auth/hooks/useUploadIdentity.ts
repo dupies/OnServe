@@ -1,10 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { uploadDocument } from '@/features/auth/services/identityService';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import type { AuthState } from '@/features/auth/store/authStore';
 import type { DocumentUploadRequest, IdentityDocument } from '@onserve/types';
 
 export function useUploadIdentity() {
-  const user = useAuthStore((state: any) => state.user);
+  const user = useAuthStore((state: AuthState) => state.user);
   const queryClient = useQueryClient();
 
   return useMutation<IdentityDocument, Error, DocumentUploadRequest>({
