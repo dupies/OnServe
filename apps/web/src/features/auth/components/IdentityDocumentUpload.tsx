@@ -35,6 +35,15 @@ export function IdentityDocumentUpload({ documentType, onSuccess }: IdentityDocu
 
       <div
         onClick={() => fileInputRef.current?.click()}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            fileInputRef.current?.click();
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label={`Upload ${DOCUMENT_TYPE_LABELS[documentType]}`}
         className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
       >
         <input

@@ -1,9 +1,9 @@
 -- Add optional targeted provider to quote requests.
 -- When set, only that provider can see the request; when null, any provider can browse it.
 alter table public.quote_requests
-  add column targeted_provider_id uuid references public.provider_profiles(id);
+  add column if not exists targeted_provider_id uuid references public.provider_profiles(id);
 
-create index idx_quote_requests_targeted_provider
+create index if not exists idx_quote_requests_targeted_provider
   on public.quote_requests(targeted_provider_id)
   where targeted_provider_id is not null;
 

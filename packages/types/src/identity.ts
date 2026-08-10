@@ -4,8 +4,6 @@
 
 export type DocumentType = 'national_id' | 'passport' | 'driver_license' | 'proof_residence';
 
-export type VerificationStatus = 'pending' | 'approved' | 'rejected';
-
 export interface IdentityDocument {
   id: string;
   userId: string;
@@ -22,12 +20,6 @@ export interface IdentityDocument {
 export interface DocumentUploadRequest {
   documentType: DocumentType;
   file: File;
-}
-
-export interface VerificationRequest {
-  documentId: string;
-  status: 'approved' | 'rejected';
-  rejectionReason?: string;
 }
 
 export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {

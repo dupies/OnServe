@@ -26,6 +26,7 @@ export function AdminVerificationsPage() {
   const { data: allDocs = [], isLoading: allLoading } = useQuery({
     queryKey: ['verifications', 'all'],
     queryFn: () => getDocumentsForVerification('all'),
+    enabled: activeTab === 'all',
   });
 
   // Mutation for approving document

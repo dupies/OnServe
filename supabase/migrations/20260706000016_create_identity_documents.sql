@@ -1,6 +1,3 @@
--- Enable UUID extension if not already enabled
-create extension if not exists "uuid-ossp";
-
 -- Create private storage bucket for identity documents
 -- public = false ensures no public URL access; all access requires signed URLs
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
@@ -45,7 +42,7 @@ create policy "Users or admins can delete identity documents"
 
 -- Create identity_documents table
 create table public.identity_documents (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   document_type text not null check (document_type in ('national_id', 'passport', 'driver_license', 'proof_residence')),
   document_url text not null, -- Signed URL or storage path
@@ -54,16 +51,16 @@ create table public.identity_documents (
   verified_by_admin_id uuid references auth.users(id) on delete set null,
   rejection_reason text, -- Why document was rejected
   created_at timestamp with time zone not null default now(),
-  updated_at timestamp with time zone not null default now(),
-
-  -- Ensure one active document per type per user
-  constraint uk_identity_docs_type_pending unique (user_id, document_type) where verified_at is null
+  updated_at timestamp with time zone not null default now()
 );
 
 -- Indexes for performance
-create index idx_identity_documents_user_id on public.identity_documents(user_id);
-create index idx_identity_documents_verified_at on public.identity_documents(verified_at);
-create index idx_identity_documents_pending on public.identity_documents(user_id, document_type) where verified_at is null;
+create index if not exists idx_identity_documents_user_id on public.identity_documents(user_id);
+create index if not exists idx_identity_documents_verified_at on public.identity_documents(verified_at);
+
+-- Partial unique index: only one unverified document per type per user
+create unique index if not exists idx_identity_documents_pending on public.identity_documents(user_id, document_type)
+  where verified_at is null;
 
 -- Enable RLS
 alter table public.identity_documents enable row level security;
