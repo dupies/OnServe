@@ -1,10 +1,8 @@
 import { z } from 'zod';
 
 export const loginSchema = z.object({
-  phone: z
-    .string()
-    .min(9, 'Enter a valid SA mobile number')
-    .regex(/^[0-9\s]+$/, 'Numbers only'),
+  email: z.string().email('Enter a valid email'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 export const otpSchema = z.object({

@@ -99,8 +99,8 @@ Login → Role Select → Job Board (open bookings near me)
 | **Phase 0** | Architecture, C4 diagrams, ERD, project plan | ✅ Complete |
 | **Phase 1** | Monorepo, DB migrations, RLS, auth, shared types | ✅ Complete |
 | **Phase 2** | All screens, full Supabase integration, forms, tests | ✅ Complete |
-| **Phase 3** | Yoco payments, escrow Edge Functions, notifications | Upcoming |
-| **Phase 4** | React Native mobile app, push notifications, quote flow | Upcoming |
+| **Phase 3** | Yoco payments, escrow Edge Functions, notifications, KYC identity verification | Upcoming |
+| **Phase 4** | Admin dashboard enhancements, quote workflow, advanced analytics | Upcoming |
 
 ---
 
@@ -120,7 +120,6 @@ C4Context
 
   System_Ext(supabase, "Supabase", "Managed backend-as-a-service. Provides PostgreSQL, authentication, file storage, and real-time event streaming.")
   System_Ext(google_oauth, "Google OAuth 2.0", "Social sign-in for customers and providers. Managed via Supabase Auth.")
-  System_Ext(sms_gateway, "SMS Gateway", "Delivers one-time passwords for phone number verification. Managed via Supabase Auth.")
   System_Ext(yoco, "Yoco / Peach Payments", "South African payment gateway. Processes card payments and holds funds in escrow.")
   System_Ext(google_maps, "Google Maps Platform", "Geocoding, reverse geocoding, and proximity-based provider search.")
   System_Ext(claude_api, "Anthropic Claude API", "AI-powered hairstyle recommendations and smart service matching. Planned Phase 3+.")
@@ -130,7 +129,6 @@ C4Context
   Rel(admin, onserve, "Manages users, resolves disputes, approves provider KYC", "HTTPS")
   Rel(onserve, supabase, "Stores all data, authenticates users, streams real-time events", "Supabase JS SDK")
   Rel(onserve, google_oauth, "Authenticates users via Google social sign-in", "OAuth 2.0")
-  Rel(onserve, sms_gateway, "Sends OTP codes to mobile numbers", "HTTPS via Supabase")
   Rel(onserve, yoco, "Processes payments, holds escrow, releases funds on completion", "HTTPS + Webhooks")
   Rel(onserve, google_maps, "Geocodes addresses, calculates distances, powers location picker", "HTTPS")
   Rel(onserve, claude_api, "Generates AI style previews and service recommendations", "HTTPS")
@@ -161,12 +159,10 @@ C4Container
 
     Container(web_app, "Web App", "React 18 + TypeScript + Vite", "Single-page application. Serves both customer and provider dashboards. Mobile-first, runs in the browser.")
 
-    Container(mobile_app, "Mobile App", "React Native + Expo + NativeWind", "iOS and Android native app. Shares types and schemas with web via monorepo packages. Planned Phase 4.")
-
     Container(edge_functions, "Edge Functions", "Supabase Edge Functions / Deno", "Escrow release logic, payment webhooks, reputation score recalculation, provider matching algorithm.")
 
     System_Boundary(supabase_boundary, "Supabase (Managed BaaS)") {
-      Container(auth_service, "Auth Service", "Supabase Auth / GoTrue", "JWT session management. Phone OTP via SMS. Google OAuth 2.0. Role stored in user_metadata.")
+      Container(auth_service, "Auth Service", "Supabase Auth / GoTrue", "JWT session management. Email/password and Google OAuth 2.0. Role stored in user_metadata.")
       ContainerDb(postgres_db, "PostgreSQL 17", "Supabase Postgres + PostGIS", "15 tables. Row Level Security on every table. PostGIS for geo proximity queries. Triggers for reputation score updates.")
       Container(storage, "File Storage", "Supabase Storage", "Provider ID documents, profile photos, service images, dispute evidence.")
       Container(realtime, "Realtime", "Supabase Realtime / Phoenix Channels", "WebSocket subscriptions for live booking status updates and job board notifications.")
@@ -176,14 +172,11 @@ C4Container
   }
 
   System_Ext(google_oauth_ext, "Google OAuth 2.0")
-  System_Ext(sms_ext, "SMS Gateway")
   System_Ext(yoco_ext, "Yoco / Peach Payments")
   System_Ext(google_maps_ext, "Google Maps Platform")
 
   Rel(customer, web_app, "Uses via browser", "HTTPS")
-  Rel(customer, mobile_app, "Uses on iOS / Android", "HTTPS")
   Rel(provider, web_app, "Uses via browser", "HTTPS")
-  Rel(provider, mobile_app, "Uses on iOS / Android", "HTTPS")
   Rel(admin, web_app, "Manages platform via admin panel", "HTTPS")
 
   Rel(web_app, auth_service, "Sign in, sign out, session refresh", "Supabase JS SDK")
@@ -192,18 +185,12 @@ C4Container
   Rel(web_app, realtime, "Subscribes to booking and notification events", "WebSocket")
   Rel(web_app, google_maps_ext, "Geocodes user-entered addresses", "HTTPS")
 
-  Rel(mobile_app, auth_service, "Sign in, sign out, session refresh", "Supabase JS SDK")
-  Rel(mobile_app, postgres_db, "Reads and writes data", "Supabase JS SDK")
-  Rel(mobile_app, realtime, "Subscribes to live job events", "WebSocket")
-
   Rel(edge_functions, postgres_db, "Reads and writes via service role key", "PostgreSQL connection")
   Rel(edge_functions, yoco_ext, "Processes payment capture and escrow release", "HTTPS")
 
   Rel(auth_service, google_oauth_ext, "Delegates Google sign-in", "OAuth 2.0")
-  Rel(auth_service, sms_ext, "Delivers OTP codes", "HTTPS")
 
   Rel(web_app, shared_packages, "Imports types, schemas, and utilities")
-  Rel(mobile_app, shared_packages, "Imports types, schemas, and utilities")
   Rel(edge_functions, shared_packages, "Imports types")
 ```
 
@@ -212,7 +199,6 @@ C4Container
 | Container | Key decisions |
 |---|---|
 | **Web App** | Deployed as a static SPA. All Supabase queries go through RLS — the anon key is safe to include in frontend builds. Service role key is never used client-side. |
-| **Mobile App** | Shares `@onserve/types` and `@onserve/shared` via the monorepo. Same Supabase project and RLS policies — no separate mobile backend. |
 | **Edge Functions** | The only place the Supabase service role key is used. Handles business logic that cannot be expressed as an RLS policy: escrow state machine, reputation recalculation, payment webhooks. |
 | **PostgreSQL** | PostGIS powers the `search_providers_near(lat, lng, radius_km)` stored procedure. Distance queries run in the database — not the application layer. |
 | **Realtime** | Used for live job board updates and booking status changes. Chat is planned for Phase 3. |
@@ -234,7 +220,7 @@ C4Component
 
     Component(router, "React Router", "react-router-dom v6", "Client-side routing. RequireAuth guard redirects unauthenticated users to /splash and roleless users to /role.")
 
-    Component(auth_feature, "Auth Feature", "Zustand store + Supabase Auth", "Manages session state. Phone OTP flow, Google OAuth redirect, and role selection. Persists user and role via onAuthStateChange listener.")
+    Component(auth_feature, "Auth Feature", "Zustand store + Supabase Auth", "Manages session state. Email/password and Google OAuth. Role selection and persistence via onAuthStateChange listener.")
 
     Component(booking_feature, "Booking Feature", "React Query + bookingService.ts", "Create bookings with 5% platform fee. List customer and provider bookings. Update status with automatic check-in/out timestamps.")
 
@@ -549,21 +535,21 @@ onserve/
 │   │       │       ├── hooks/      # React Query wrappers (useQuery / useMutation)
 │   │       │       └── store/      # Zustand slices (client-only state)
 │   │       ├── pages/              # Route-level page components
-│   │       │   ├── auth/           # Splash, Login, OTP, RoleSelect
+│   │       │   ├── auth/           # Splash, Login, RoleSelect
 │   │       │   ├── customer/       # Home, Search, Booking, BookingsList, Profile
-│   │       │   └── provider/       # JobBoard, JobDetail, ActiveJob, CheckOut
+│   │       │   ├── provider/       # JobBoard, JobDetail, ActiveJob, CheckOut
+│   │       │   └── admin/          # Admin dashboard
 │   │       ├── components/
 │   │       │   ├── ui/             # shadcn/ui components (project-owned source)
 │   │       │   └── layout/         # AppShell, BottomNav
 │   │       ├── router/             # React Router config + RequireAuth guard
 │   │       └── lib/                # supabase.ts, queryClient.ts, utils.ts
-│   ├── mobile/                     # React Native / Expo (Phase 4)
 │   └── api/                        # Supabase Edge Functions (Phase 3)
 ├── packages/
 │   ├── types/                      # @onserve/types — TypeScript interfaces + enums
 │   ├── shared/                     # @onserve/shared — Zod schemas, utils, constants
 │   └── ui/                         # @onserve/ui — future shared primitives
-└── planning/                       # Architecture docs, ERD, ADRs, SQL migrations
+└── supabase/                       # Database migrations, RLS policies
 ```
 
 ### 6.2 Full Tech Stack
@@ -605,12 +591,11 @@ All colours are defined as CSS custom properties in `apps/web/src/index.css`. Ch
 ### 6.4 Authentication Flow
 
 ```
-Phone OTP path:
-  LoginPage → sendOtp(e164) → setPendingPhone()
-    → OTPPage → verifyOtp(phone, token)
-      → onAuthStateChange fires → user set in store
-        → navigate('/role') → setUserRole(role)
-          → navigate('/') → RequireAuth passes
+Email/Password path:
+  LoginPage → signInWithEmail(email, password)
+    → onAuthStateChange fires → user set in store
+      → navigate('/role') → setUserRole(role)
+        → navigate('/') → RequireAuth passes
 
 Google OAuth path:
   LoginPage → signInWithGoogle() → browser redirects to Google

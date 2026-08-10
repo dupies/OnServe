@@ -6,17 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { AppShell } from '@/components/layout/AppShell';
-import { sendOtp, signInWithGoogle } from '@/features/auth/services/authService';
-import { useAuthStore } from '@/features/auth/store/authStore';
+import { signInWithEmail, signInWithGoogle } from '@/features/auth/services/authService';
 import { loginSchema, type LoginInput } from '@onserve/shared';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { setPendingPhone } = useAuthStore();
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { phone: '' },
+    defaultValues: { email: '', password: '' },
   });
 
   async function handleGoogleSignIn() {
@@ -27,42 +25,55 @@ export function LoginPage() {
     }
   }
 
-  async function onSubmit({ phone }: LoginInput) {
-    const e164 = `+27${phone.replace(/\s/g, '').replace(/^0/, '')}`;
+  async function onSubmit({ email, password }: LoginInput) {
     try {
-      await sendOtp(e164);
-      setPendingPhone(e164);
-      navigate('/verify');
+      await signInWithEmail(email, password);
+      navigate('/role');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to send OTP');
+      toast.error(err instanceof Error ? err.message : 'Login failed');
     }
   }
 
   return (
     <AppShell className="px-6 pt-16 pb-8 gap-6">
       <div>
-        <p className="text-sm text-primary mb-1">Step 1 of 2</p>
-        <h1 className="text-2xl font-semibold text-foreground">Enter your number</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Login</h1>
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
           <FormField
             control={form.control}
-            name="phone"
+            name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>SA mobile number</FormLabel>
+                <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <div className="flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-1">
-                    <span className="text-sm text-muted-foreground border-r border-border pr-3">+27</span>
-                    <Input
-                      {...field}
-                      type="tel"
-                      placeholder="82 000 0000"
-                      className="border-0 bg-transparent px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                    />
-                  </div>
+                  <Input
+                    {...field}
+                    type="email"
+                    placeholder="you@example.com"
+                    className="rounded-xl"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    type="password"
+                    placeholder="••••••••"
+                    className="rounded-xl"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -87,7 +98,7 @@ export function LoginPage() {
 
           <div className="mt-auto pt-4">
             <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? 'Sending…' : 'Send OTP'}
+              {form.formState.isSubmitting ? 'Signing in…' : 'Sign in'}
             </Button>
           </div>
         </form>
