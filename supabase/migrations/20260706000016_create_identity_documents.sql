@@ -57,7 +57,7 @@ create table public.identity_documents (
   updated_at timestamp with time zone not null default now(),
 
   -- Ensure one active document per type per user
-  unique(user_id, document_type) where verified_at is null
+  constraint uk_identity_docs_type_pending unique (user_id, document_type) where verified_at is null
 );
 
 -- Indexes for performance
