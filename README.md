@@ -660,6 +660,18 @@ VITE_SUPABASE_ANON_KEY=<get from Supabase → Settings → API → anon public>
 
 Never use the service role key in the frontend — it bypasses all RLS policies.
 
+### Test Users
+
+Pre-configured test accounts are available for development:
+
+| Role | Email | Password |
+|------|-------|----------|
+| **Customer** | `customer+medupiramaboea@gmail.com` | `Test123!` |
+| **Provider** | `provider+medupiramaboea@gmail.com` | `Test123!` |
+| **Admin** | `admin+medupiramaboea@gmail.com` | `Test123!` |
+
+Log in with any email/password combo to test different user roles and flows.
+
 ### Commands
 
 ```bash
