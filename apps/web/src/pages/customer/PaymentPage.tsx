@@ -8,7 +8,11 @@ import { useBooking } from '@/features/bookings/hooks/useBookings';
 import { useCreateOzowPayment } from '@/features/payments/hooks/usePayments';
 import { LoadingState } from '@/components/common';
 import { notify } from '@/lib/notify';
-import { PLATFORM_FEE_PERCENT } from '@onserve/shared';
+import {
+  PLATFORM_FEE_PERCENT,
+  DEFAULT_CANCELLATION_CUTOFF_MINUTES,
+  formatCancellationCutoff,
+} from '@onserve/shared';
 
 interface PaymentLocationState {
   bookingId?: string;
@@ -114,7 +118,9 @@ export function PaymentPage() {
               <div className="flex items-center gap-3 bg-warning/10 border border-warning/30 rounded-xl px-5 py-4">
                 <Shield className="w-4 h-4 text-warning flex-shrink-0" />
                 <p className="text-sm text-warning">
-                  Funds are held in escrow and only released when you approve the completed job
+                  Funds are held in escrow and only released when you approve the completed job.
+                  Free cancellation until {formatCancellationCutoff(booking?.cancellationCutoffMinutes ?? DEFAULT_CANCELLATION_CUTOFF_MINUTES)} before
+                  the start time — you get a full refund.
                 </p>
               </div>
             </div>

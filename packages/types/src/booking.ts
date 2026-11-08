@@ -23,6 +23,8 @@ export interface Booking {
   /** OnServe's fee on top of servicePrice. */
   platformFee: number | null;
   depositAmount: number | null;
+  /** Customer can't cancel a confirmed booking within this many minutes of the start. */
+  cancellationCutoffMinutes: number;
   customerNotes: string | null;
   scheduledAt: string;
   providerCheckedInAt: string | null;

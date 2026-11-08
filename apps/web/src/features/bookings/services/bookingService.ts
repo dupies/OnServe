@@ -14,6 +14,7 @@ function mapRow(r: Record<string, unknown>): Booking {
     totalAmount: r['total_amount'] as number,
     servicePrice: (r['service_price'] as number | null) ?? null,
     platformFee: (r['platform_fee'] as number | null) ?? null,
+    cancellationCutoffMinutes: (r['cancellation_cutoff_minutes'] as number | undefined) ?? 60,
     depositAmount: r['deposit_amount'] as number | null,
     customerNotes: r['customer_notes'] as string | null,
     scheduledAt: r['scheduled_at'] as string,

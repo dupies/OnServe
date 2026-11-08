@@ -14,6 +14,11 @@ import { supabase } from '@/lib/supabase';
 import { useAllServiceTypes } from '@/features/services/hooks/useServices';
 import { LoadingState } from '@/components/common';
 import { notify } from '@/lib/notify';
+import {
+  CANCELLATION_CUTOFF_OPTIONS_MINUTES,
+  DEFAULT_CANCELLATION_CUTOFF_MINUTES,
+  formatCancellationCutoff,
+} from '@onserve/shared';
 import { IdentityDocumentStatus } from '@/features/auth/components/IdentityDocumentStatus';
 
 const TOTAL_STEPS = 4;
@@ -195,9 +200,16 @@ function Step4Services({ onNext }: { onNext: (services: string[]) => void }) {
 }
 
 // ── Step 4: Availability & Radius ─────────────────────────────────────────────
-function Step5Availability({ onSubmit, loading }: { onSubmit: () => void; loading: boolean }) {
+function Step5Availability({
+  onSubmit,
+  loading,
+}: {
+  onSubmit: (cancellationCutoffMinutes: number) => void;
+  loading: boolean;
+}) {
   const [days, setDays] = useState({ mon: true, tue: true, wed: true, thu: true, fri: true, sat: true, sun: false });
   const [radius, setRadius] = useState(10);
+  const [cutoff, setCutoff] = useState<number>(DEFAULT_CANCELLATION_CUTOFF_MINUTES);
 
   const dayLabels: (keyof typeof days)[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
@@ -262,9 +274,32 @@ function Step5Availability({ onSubmit, loading }: { onSubmit: () => void; loadin
         </div>
       </div>
 
+      {/* Cancellation policy */}
+      <div className="bg-card border border-border rounded-xl p-4">
+        <h2 className="text-sm font-semibold text-foreground mb-1">Cancellation policy</h2>
+        <p className="text-xs text-muted-foreground mb-3">
+          Customers can’t cancel a booking you’ve accepted within this time before it starts.
+        </p>
+        <div className="flex gap-2 flex-wrap">
+          {CANCELLATION_CUTOFF_OPTIONS_MINUTES.map((mins) => (
+            <button
+              key={mins}
+              onClick={() => setCutoff(mins)}
+              className={`px-3 py-1.5 rounded-lg border text-sm transition-colors ${
+                cutoff === mins
+                  ? 'border-primary/30 bg-primary/10 text-primary font-medium'
+                  : 'border-border text-muted-foreground hover:border-primary/20'
+              }`}
+            >
+              {formatCancellationCutoff(mins)}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <Button
         className="w-full bg-[#7B6EF6] hover:bg-[#7B6EF6]/90 mt-2"
-        onClick={onSubmit}
+        onClick={() => onSubmit(cutoff)}
         disabled={loading}
       >
         {loading ? 'Setting up…' : 'Complete setup'}
@@ -281,7 +316,7 @@ export function ProviderOnboardingPage() {
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
-  async function handleFinalSubmit() {
+  async function handleFinalSubmit(cancellationCutoffMinutes: number) {
     setSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -302,12 +337,14 @@ export function ProviderOnboardingPage() {
         .single();
 
       if (selectedServices.length > 0 && profile?.id) {
-        await supabase.from('provider_services').insert(
+        const { error: servicesError } = await supabase.from('provider_services').insert(
           selectedServices.map((serviceTypeId) => ({
             provider_id: profile.id,
             service_type_id: serviceTypeId,
+            cancellation_cutoff_minutes: cancellationCutoffMinutes,
           }))
         );
+        if (servicesError) throw new Error(servicesError.message);
       }
 
       notify.success('Profile set up! Welcome to OnServe.');

@@ -48,39 +48,16 @@ Deno.serve(async (req) => {
       return new Response('Verification mismatch', { status: 409 });
     }
 
-    const { error } = await admin
-      .from('payments')
-      .update({
-        status: 'escrowed',
-        escrowed_at: new Date().toISOString(),
-        gateway_transaction_id: fields['TransactionId'],
-      })
-      .eq('id', payment.id);
-    if (error) return new Response(error.message, { status: 500 });
-
-    await admin.from('notifications').insert({
-      user_id: payment.customer_id,
-      title: 'Payment received',
-      body: `Your payment of R ${Number(payment.amount).toFixed(2)} is held in escrow until the job is complete.`,
-      type: 'payment',
-      metadata: { paymentId: payment.id },
+    // Atomic in the database: locks the booking, escrows the payment if the
+    // booking is still pending, otherwise (cancelled while paying) queues a
+    // refund. Also sends the customer/provider notifications.
+    const { data: outcome, error } = await admin.rpc('settle_ozow_payment', {
+      p_payment_id: payment.id,
+      p_transaction_id: fields['TransactionId'],
     });
-
-    // Tell the provider they have a paid job to accept.
-    const { data: booking } = await admin
-      .from('bookings')
-      .select('id, provider:provider_profiles(user_id)')
-      .eq('id', payment.booking_id)
-      .single();
-    const providerUserId = (booking?.provider as { user_id?: string } | null)?.user_id;
-    if (providerUserId) {
-      await admin.from('notifications').insert({
-        user_id: providerUserId,
-        title: 'New paid booking',
-        body: 'A customer has booked and paid. Accept the job from your job board.',
-        type: 'booking',
-        metadata: { bookingId: payment.booking_id },
-      });
+    if (error) return new Response(error.message, { status: 500 });
+    if (outcome === 'refund_pending') {
+      console.warn('ozow-webhook: paid after booking cancelled, refund queued', { txRef });
     }
   } else if (FINAL_FAILURE_STATUSES.includes(status)) {
     const { error } = await admin
@@ -89,7 +66,8 @@ Deno.serve(async (req) => {
         status: 'failed',
         gateway_transaction_id: fields['TransactionId'],
       })
-      .eq('id', payment.id);
+      .eq('id', payment.id)
+      .eq('status', 'pending'); // never overwrite a settled payment
     if (error) return new Response(error.message, { status: 500 });
   }
   // 'Pending' / 'PendingInvestigation': leave as pending; Ozow notifies again.

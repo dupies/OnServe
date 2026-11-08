@@ -6,7 +6,8 @@ import { Separator } from '@/components/ui/separator';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { useBooking, useCancelBooking, useStartService } from '@/features/bookings/hooks/useBookings';
 import { usePaymentForBooking } from '@/features/payments/hooks/usePayments';
-import { format, startOfDay } from 'date-fns';
+import { format, startOfDay, subMinutes } from 'date-fns';
+import { formatCancellationCutoff } from '@onserve/shared';
 import { toast } from 'sonner';
 import type { BookingStatus } from '@onserve/types';
 
@@ -81,11 +82,23 @@ export function BookingDetailPage() {
   const needsPayment = booking.status === 'pending' && !isPaid;
   const isBookingDay = new Date() >= startOfDay(new Date(booking.scheduledAt));
   const canStart = booking.status === 'confirmed';
-  const canCancel = ['pending', 'confirmed'].includes(booking.status);
+  // Customers can't cancel a confirmed booking inside the provider's window
+  // before the start (database-enforced); after the start time, problems go
+  // through a dispute instead.
+  const startsAt = new Date(booking.scheduledAt);
+  const bookingTimePassed = new Date() >= startsAt;
+  const cancelDeadline = subMinutes(startsAt, booking.cancellationCutoffMinutes);
+  const insideCancelWindow = new Date() >= cancelDeadline;
+  const cutoffLabel = formatCancellationCutoff(booking.cancellationCutoffMinutes);
+  const canCancel =
+    booking.status === 'pending' || (booking.status === 'confirmed' && !insideCancelWindow);
   const canTrack = booking.status === 'in_progress';
   const canRate = booking.status === 'completed' && payment?.status === 'escrowed';
   const canDispute =
-    (booking.status === 'in_progress' || booking.status === 'completed') && payment?.status === 'escrowed';
+    payment?.status === 'escrowed' &&
+    (booking.status === 'in_progress' ||
+      booking.status === 'completed' ||
+      (booking.status === 'confirmed' && bookingTimePassed));
 
   return (
     <PageLayout>
@@ -176,12 +189,12 @@ export function BookingDetailPage() {
           <Shield className="w-4 h-4 text-warning flex-shrink-0" />
           <p className="text-sm text-warning">
             {needsPayment
-              ? 'Not sent to the provider yet — bookings are only confirmed once fully paid. Your payment is refundable if you cancel before the service starts.'
+              ? `Not sent to the provider yet — bookings are only confirmed once fully paid. Free cancellation until ${cutoffLabel} before the start.`
               : payment?.status === 'released'
                 ? 'Payment released to your provider'
                 : payment?.status === 'refund_pending' || payment?.status === 'refunded'
                   ? 'Your payment is being refunded in full'
-                  : 'Funds held in escrow · fully refundable until the service starts · released on your approval'}
+                  : `Funds held in escrow · free cancellation until ${cutoffLabel} before the start · released on your approval`}
           </p>
         </div>
 
@@ -223,14 +236,26 @@ export function BookingDetailPage() {
             </button>
           )}
           {canCancel && (
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={handleCancel}
-              disabled={cancel.isPending}
-            >
-              {cancel.isPending ? 'Cancelling…' : 'Cancel booking'}
-            </Button>
+            <div className="flex flex-col gap-1">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handleCancel}
+                disabled={cancel.isPending}
+              >
+                {cancel.isPending ? 'Cancelling…' : 'Cancel booking'}
+              </Button>
+              {booking.status === 'confirmed' && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Free cancellation until {format(cancelDeadline, 'EEE d MMM · HH:mm')}
+                </p>
+              )}
+            </div>
+          )}
+          {booking.status === 'confirmed' && insideCancelWindow && !bookingTimePassed && (
+            <p className="text-xs text-muted-foreground text-center">
+              This booking can no longer be cancelled — cancellations close {cutoffLabel} before the start time.
+            </p>
           )}
           {booking.status === 'cancelled' && (
             <div className="flex items-center gap-2 bg-muted/10 border border-border rounded-xl px-5 py-4">

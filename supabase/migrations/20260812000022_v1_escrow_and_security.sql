@@ -233,6 +233,18 @@ alter table public.bookings
   add column if not exists service_price numeric(10,2),
   add column if not exists platform_fee numeric(10,2);
 
+-- Cancellation window (decision 2026-11-08): a customer can't cancel a
+-- confirmed booking within this many minutes of the start time. Default and
+-- minimum 1 hour; providers set it per service when they register it. Copied
+-- onto each booking at creation so later changes don't affect existing ones.
+alter table public.provider_services
+  add column if not exists cancellation_cutoff_minutes integer not null default 60
+    check (cancellation_cutoff_minutes between 60 and 2880);
+
+alter table public.bookings
+  add column if not exists cancellation_cutoff_minutes integer not null default 60
+    check (cancellation_cutoff_minutes between 60 and 2880);
+
 -- Backfill existing rows (old rows were price + 5%).
 update public.bookings
 set service_price = round(total_amount / (1 + public.platform_fee_rate()), 2),
@@ -243,6 +255,7 @@ create or replace function public.price_booking_insert()
 returns trigger language plpgsql set search_path = public as $$
 declare
   v_price numeric;
+  v_cutoff integer;
 begin
   if not public.is_privileged() then
     if new.customer_id is distinct from auth.uid() then
@@ -266,12 +279,13 @@ begin
       ) then
         raise exception 'This provider is not available for booking' using errcode = 'P0001';
       end if;
-      select ps.custom_price into v_price
+      select ps.custom_price, ps.cancellation_cutoff_minutes into v_price, v_cutoff
       from public.provider_services ps
       where ps.provider_id = new.provider_id
         and ps.service_type_id = new.service_type_id
         and ps.is_available;
     end if;
+    new.cancellation_cutoff_minutes := coalesce(v_cutoff, 60);
 
     if v_price is null then
       select st.base_price into v_price from public.service_types st where st.id = new.service_type_id;
@@ -348,6 +362,7 @@ begin
      or new.platform_fee is distinct from old.platform_fee
      or new.deposit_amount is distinct from old.deposit_amount
      or new.scheduled_at is distinct from old.scheduled_at
+     or new.cancellation_cutoff_minutes is distinct from old.cancellation_cutoff_minutes
      or new.created_at is distinct from old.created_at then
     raise exception 'Booking details can only be changed by OnServe' using errcode = '42501';
   end if;
@@ -380,6 +395,24 @@ begin
     select 1 from public.payments where booking_id = old.id and status = 'escrowed'
   ) then
     raise exception 'This booking must be paid before it can be confirmed' using errcode = 'P0001';
+  end if;
+
+  -- Inside the provider's cancellation window (default 1h before the start),
+  -- a customer can't cancel a confirmed booking: the provider is committed
+  -- and may already be on the way. Once the booking time has passed, problems
+  -- (no-show, poor work) go through a dispute and an admin decides.
+  if v_actor = 'customer' and old.status = 'confirmed' and new.status = 'cancelled'
+     and now() >= old.scheduled_at - make_interval(mins => old.cancellation_cutoff_minutes) then
+    if now() >= old.scheduled_at then
+      raise exception 'The booking time has passed, so it can no longer be cancelled. Raise a dispute if the provider did not arrive or something went wrong.'
+        using errcode = 'P0001';
+    end if;
+    raise exception 'Bookings can''t be cancelled within % of the start time.',
+      case when old.cancellation_cutoff_minutes % 60 = 0
+           then (old.cancellation_cutoff_minutes / 60)::text
+                || case when old.cancellation_cutoff_minutes = 60 then ' hour' else ' hours' end
+           else old.cancellation_cutoff_minutes::text || ' minutes' end
+      using errcode = 'P0001';
   end if;
 
   if new.status = 'in_progress'
@@ -488,6 +521,63 @@ create trigger on_booking_status_notify
   after update of status on public.bookings
   for each row when (new.status is distinct from old.status)
   execute function public.on_booking_status_notify();
+
+-- Settle a verified Ozow 'Complete' notification. Called only by the
+-- ozow-webhook edge function (service role). Locks the booking first (same
+-- order as the cancel path: booking -> payment) so a customer cancelling
+-- while on the Ozow page can't leave money escrowed on a cancelled booking.
+create or replace function public.settle_ozow_payment(p_payment_id uuid, p_transaction_id text)
+returns text language plpgsql security definer set search_path = public as $$
+declare
+  v_booking_id uuid;
+  v_booking public.bookings%rowtype;
+  v_payment public.payments%rowtype;
+  v_provider_user uuid;
+begin
+  select booking_id into v_booking_id from public.payments where id = p_payment_id;
+  if v_booking_id is null then
+    raise exception 'Payment not found' using errcode = 'P0002';
+  end if;
+
+  select * into v_booking from public.bookings where id = v_booking_id for update;
+  select * into v_payment from public.payments where id = p_payment_id for update;
+
+  if v_payment.status <> 'pending' then
+    return 'noop'; -- duplicate notification: idempotent
+  end if;
+
+  if v_booking.status = 'pending' then
+    update public.payments
+    set status = 'escrowed', escrowed_at = now(), gateway_transaction_id = p_transaction_id
+    where id = p_payment_id;
+
+    perform public._notify(v_payment.customer_id, 'Payment received',
+      format('Your payment of R %s is held safely until the job is done. It is fully refundable if the booking is cancelled before the service starts.',
+             to_char(v_payment.amount, 'FM999999990.00')),
+      jsonb_build_object('paymentId', p_payment_id, 'bookingId', v_booking.id));
+
+    select user_id into v_provider_user from public.provider_profiles where id = v_booking.provider_id;
+    perform public._notify(v_provider_user, 'New paid booking',
+      'A customer has booked and paid. Accept the job from your job board.',
+      jsonb_build_object('bookingId', v_booking.id), 'booking');
+    return 'escrowed';
+  end if;
+
+  -- Booking was cancelled (or otherwise moved on) while the customer was
+  -- paying: never escrow it, queue a refund instead.
+  update public.payments
+  set status = 'refund_pending', gateway_transaction_id = p_transaction_id,
+      refund_reason = format('Payment completed after booking was %s', v_booking.status)
+  where id = p_payment_id;
+
+  perform public._notify(v_payment.customer_id, 'Refund on its way',
+    'Your booking was cancelled before your payment completed. You will be refunded in full within 3-5 business days.',
+    jsonb_build_object('paymentId', p_payment_id, 'bookingId', v_booking.id));
+  return 'refund_pending';
+end;
+$$;
+revoke all on function public.settle_ozow_payment(uuid, text) from public, anon, authenticated;
+grant execute on function public.settle_ozow_payment(uuid, text) to service_role;
 
 -- Core release. Internal only.
 create or replace function public._release_payment(p_payment_id uuid, p_by text)
