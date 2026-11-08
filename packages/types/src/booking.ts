@@ -16,7 +16,12 @@ export interface Booking {
   locationId: string;
   bookingType: BookingType;
   status: BookingStatus;
+  /** What the customer pays: servicePrice + platformFee. Set by the database. */
   totalAmount: number;
+  /** Provider's price for the job (what the provider is paid). */
+  servicePrice: number | null;
+  /** OnServe's fee on top of servicePrice. */
+  platformFee: number | null;
   depositAmount: number | null;
   customerNotes: string | null;
   scheduledAt: string;

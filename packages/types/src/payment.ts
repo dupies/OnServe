@@ -2,6 +2,7 @@ export type PaymentStatus =
   | 'pending'
   | 'escrowed'
   | 'released'
+  | 'refund_pending'
   | 'refunded'
   | 'disputed'
   | 'failed';
@@ -26,6 +27,10 @@ export interface Payment {
   gatewayReference: string | null;
   escrowedAt: string | null;
   releasedAt: string | null;
+  platformFee: number;
+  providerPayout: number;
+  releasedBy: 'customer' | 'auto' | 'admin' | null;
+  paidOutAt: string | null;
   createdAt: string;
 }
 

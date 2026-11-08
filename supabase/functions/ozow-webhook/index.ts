@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
   const txRef = fields['TransactionReference'];
   const { data: payment } = await admin
     .from('payments')
-    .select('id, customer_id, amount, status')
+    .select('id, booking_id, customer_id, amount, status')
     .eq('gateway_reference', txRef)
     .maybeSingle();
   if (!payment) {
@@ -65,6 +65,23 @@ Deno.serve(async (req) => {
       type: 'payment',
       metadata: { paymentId: payment.id },
     });
+
+    // Tell the provider they have a paid job to accept.
+    const { data: booking } = await admin
+      .from('bookings')
+      .select('id, provider:provider_profiles(user_id)')
+      .eq('id', payment.booking_id)
+      .single();
+    const providerUserId = (booking?.provider as { user_id?: string } | null)?.user_id;
+    if (providerUserId) {
+      await admin.from('notifications').insert({
+        user_id: providerUserId,
+        title: 'New paid booking',
+        body: 'A customer has booked and paid. Accept the job from your job board.',
+        type: 'booking',
+        metadata: { bookingId: payment.booking_id },
+      });
+    }
   } else if (FINAL_FAILURE_STATUSES.includes(status)) {
     const { error } = await admin
       .from('payments')

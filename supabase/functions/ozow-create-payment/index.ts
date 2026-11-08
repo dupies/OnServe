@@ -26,12 +26,16 @@ Deno.serve(async (req) => {
 
   const { data: booking, error: bookingError } = await admin
     .from('bookings')
-    .select('id, customer_id, status, total_amount')
+    .select('id, customer_id, provider_id, status, total_amount, service_price, platform_fee')
     .eq('id', bookingId)
     .single();
   if (bookingError || !booking) return json(404, { error: 'Booking not found' });
   if (booking.customer_id !== user.id) return json(403, { error: 'Not your booking' });
-  if (booking.status === 'cancelled') return json(409, { error: 'Booking is cancelled' });
+  if (booking.status !== 'pending') return json(409, { error: `Booking is ${booking.status}` });
+  if (!booking.provider_id) return json(409, { error: 'Booking has no provider assigned' });
+  if (booking.service_price == null || booking.platform_fee == null) {
+    return json(409, { error: 'Booking has not been priced' });
+  }
 
   const { data: existing } = await admin
     .from('payments')
@@ -50,6 +54,9 @@ Deno.serve(async (req) => {
     booking_id: bookingId,
     customer_id: user.id,
     amount: booking.total_amount,
+    // Provider is paid the service price; OnServe keeps the fee (minus Ozow's cut).
+    platform_fee: booking.platform_fee,
+    provider_payout: booking.service_price,
     status: 'pending',
     payment_gateway: 'ozow',
     gateway_reference: transactionReference,

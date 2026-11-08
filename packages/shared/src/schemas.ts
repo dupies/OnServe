@@ -13,6 +13,7 @@ export const otpSchema = z.object({
 });
 
 export const bookingSchema = z.object({
+  providerId: z.string().uuid().optional(),
   serviceTypeId: z.string().uuid('Select a service'),
   locationId: z.string().uuid('Select a location'),
   scheduledAt: z.string().min(1, 'Select a date and time'),
