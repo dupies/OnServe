@@ -23,32 +23,20 @@ export async function createDispute(bookingId: string, input: DisputeInput): Pro
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
-  const { data: payment, error: pErr } = await supabase
-    .from('payments')
-    .select('id')
-    .eq('booking_id', bookingId)
-    .single();
-  if (pErr) throw new Error(pErr.message);
-
+  // The database links the escrowed payment, freezes it and marks the booking
+  // disputed (prepare_dispute / on_dispute_raised triggers). It rejects
+  // disputes on bookings with no money held in escrow.
   const { data, error } = await supabase
     .from('disputes')
     .insert({
       booking_id: bookingId,
-      payment_id: payment.id,
       raised_by_user_id: user.id,
       reason: input.reason,
       description: input.description,
-      status: 'open',
     })
     .select()
     .single();
   if (error) throw new Error(error.message);
-
-  const { error: updateErr } = await supabase
-    .from('bookings')
-    .update({ status: 'disputed' })
-    .eq('id', bookingId);
-  if (updateErr) throw new Error(updateErr.message);
 
   return mapRow(data);
 }

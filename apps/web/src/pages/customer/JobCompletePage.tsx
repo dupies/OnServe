@@ -5,6 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { useBooking } from '@/features/bookings/hooks/useBookings';
 import { format, formatDistanceStrict } from 'date-fns';
+import { ESCROW_AUTO_RELEASE_HOURS } from '@onserve/shared';
 
 export function JobCompletePage() {
   const { id } = useParams<{ id: string }>();
@@ -71,7 +72,9 @@ export function JobCompletePage() {
         <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl px-5 py-4">
           <Shield className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
           <p className="text-sm text-primary">
-            Approving the job will release R {booking.totalAmount} to the provider. If there is an issue, raise a dispute instead.
+            Approving releases R {Number(booking.servicePrice ?? booking.totalAmount).toFixed(2)} to the provider.
+            Not happy? Raise a dispute within {ESCROW_AUTO_RELEASE_HOURS} hours of the job being marked done —
+            after that the payment is released automatically.
           </p>
         </div>
 

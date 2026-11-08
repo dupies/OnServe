@@ -5,25 +5,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { useBooking, useCheckIn } from '@/features/bookings/hooks/useBookings';
+import { useBooking } from '@/features/bookings/hooks/useBookings';
 import { format, formatDistanceStrict } from 'date-fns';
 
 export function ActiveJobPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data: booking, isLoading } = useBooking(id);
-  const checkIn = useCheckIn();
-
-  async function handleCheckIn() {
-    if (!id) return;
-    try {
-      await checkIn.mutateAsync(id);
-      toast.success('Checked in — job started');
-      navigate(`/provider/jobs/${id}/checkout`);
-    } catch {
-      toast.error('Failed to check in');
-    }
-  }
+  // Poll while waiting for the customer to tap "Start service".
+  const { data: booking, isLoading } = useBooking(id, { pollWhileConfirmed: true });
 
   if (isLoading || !booking) {
     return (
@@ -108,15 +97,20 @@ export function ActiveJobPage() {
           {/* Right: escrow + actions */}
           <div className="flex flex-col gap-4">
             <div className="bg-warning/10 border border-warning/30 rounded-xl p-5">
-              <p className="text-xs font-semibold text-warning mb-1">Escrow held</p>
-              <p className="text-2xl font-semibold text-warning">R {booking.totalAmount}</p>
-              <p className="text-xs text-warning/80 mt-1">Released on customer approval</p>
+              <p className="text-xs font-semibold text-warning mb-1">Your payout · held in escrow</p>
+              <p className="text-2xl font-semibold text-warning">
+                R {Number(booking.servicePrice ?? booking.totalAmount).toFixed(2)}
+              </p>
+              <p className="text-xs text-warning/80 mt-1">Released when the customer approves, or automatically 48h after you complete</p>
             </div>
 
             {booking.status === 'confirmed' ? (
-              <Button className="w-full" size="lg" onClick={handleCheckIn} disabled={checkIn.isPending}>
-                {checkIn.isPending ? 'Checking in…' : 'Check in & start'}
-              </Button>
+              <div className="bg-card border border-border rounded-xl p-4 text-center">
+                <p className="text-sm font-medium text-foreground">Waiting for the customer to start</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  When you arrive, ask the customer to tap “Start service” in their booking.
+                </p>
+              </div>
             ) : (
               <Button className="w-full" size="lg" onClick={() => navigate(`/provider/jobs/${id}/checkout`)}>
                 Complete job

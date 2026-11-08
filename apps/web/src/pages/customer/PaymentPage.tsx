@@ -8,12 +8,12 @@ import { useBooking } from '@/features/bookings/hooks/useBookings';
 import { useCreateOzowPayment } from '@/features/payments/hooks/usePayments';
 import { LoadingState } from '@/components/common';
 import { notify } from '@/lib/notify';
+import { PLATFORM_FEE_PERCENT } from '@onserve/shared';
 
 interface PaymentLocationState {
   bookingId?: string;
 }
 
-const PLATFORM_FEE_RATE = 0.05;
 
 export function PaymentPage() {
   const navigate = useNavigate();
@@ -43,9 +43,11 @@ export function PaymentPage() {
     });
   }
 
-  const total = booking?.totalAmount ?? 0;
-  const platformFee = Math.round(total * PLATFORM_FEE_RATE * 100) / 100;
-  const serviceFee = Math.round((total - platformFee) * 100) / 100;
+  // All three amounts are computed by the database when the booking is created.
+  const total = Number(booking?.totalAmount ?? 0).toFixed(2);
+  const platformFee = Number(booking?.platformFee ?? 0).toFixed(2);
+  const serviceFee = Number(booking?.servicePrice ?? 0).toFixed(2);
+  const feePercent = Math.round(PLATFORM_FEE_PERCENT * 100);
 
   const serviceName =
     ((booking as unknown as Record<string, unknown> | undefined)?.['serviceType'] as
@@ -126,7 +128,7 @@ export function PaymentPage() {
                   <span className="text-foreground">R {serviceFee}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Platform fee (5%)</span>
+                  <span className="text-muted-foreground">OnServe fee ({feePercent}%)</span>
                   <span className="text-foreground">R {platformFee}</span>
                 </div>
                 <Separator />

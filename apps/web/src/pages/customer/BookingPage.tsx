@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -31,6 +31,7 @@ const TIMES = ['08:00', '09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '1
 
 export function BookingPage() {
   const navigate = useNavigate();
+  const { providerId } = useParams<{ providerId: string }>();
   const { data: categories = [] } = useServiceCategories();
   const { data: locations = [] } = useSavedLocations();
   const createBooking = useCreateBooking();
@@ -47,6 +48,7 @@ export function BookingPage() {
     const scheduledAt = `${values.date}T${values.time}:00`;
     try {
       const booking = await createBooking.mutateAsync({
+        providerId,
         serviceTypeId: values.serviceTypeId,
         locationId: values.locationId,
         scheduledAt,

@@ -46,6 +46,11 @@ export async function signInWithGoogle(): Promise<void> {
 }
 
 export async function setUserRole(role: UserRole): Promise<void> {
+  // public.users.role is what RLS checks; the RPC only allows customer/provider.
+  const { error: rpcError } = await supabase.rpc('set_my_role', { p_role: role });
+  if (rpcError) throw new Error(rpcError.message);
+
+  // Mirror into user metadata, which the UI reads for routing.
   const { error } = await supabase.auth.updateUser({
     data: { role },
   });

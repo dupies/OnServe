@@ -3,8 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { useBooking, useCheckOut } from '@/features/bookings/hooks/useBookings';
+import { useBooking } from '@/features/bookings/hooks/useBookings';
 import { useCreateRating } from '@/features/ratings/hooks/useRatings';
+import { useReleasePayment } from '@/features/payments/hooks/usePayments';
 import { toast } from 'sonner';
 import { Shield } from 'lucide-react';
 
@@ -15,7 +16,7 @@ export function RateReviewPage() {
   const navigate = useNavigate();
   const { data: booking, isLoading } = useBooking(id);
   const createRating = useCreateRating();
-  const checkOut = useCheckOut();
+  const releasePayment = useReleasePayment();
 
   const [score, setScore] = useState(0);
   const [hovered, setHovered] = useState(0);
@@ -27,10 +28,18 @@ export function RateReviewPage() {
       toast.error('Please select a star rating');
       return;
     }
+    if (booking?.status !== 'completed') {
+      toast.error('You can approve once the provider has marked the job as done');
+      return;
+    }
     try {
-      if (booking?.status !== 'completed') {
-        await checkOut.mutateAsync(id);
-      }
+      // Approve first: releases the escrowed money (idempotent server-side).
+      await releasePayment.mutateAsync(id);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Could not release payment');
+      return;
+    }
+    try {
       await createRating.mutateAsync({
         bookingId: id,
         input: {
@@ -39,10 +48,11 @@ export function RateReviewPage() {
           tags: selectedTags,
         },
       });
-      toast.success('Rating submitted — funds released!');
+      toast.success('Thanks! Payment released to your provider');
       navigate('/bookings');
     } catch {
-      toast.error('Failed to submit rating');
+      // Money is already released at this point; only the rating failed.
+      toast.error('Payment released, but your rating could not be saved — please try again');
     }
   }
 
@@ -63,7 +73,7 @@ export function RateReviewPage() {
     ? String(provider['display_name'] ?? 'P').slice(0, 2).toUpperCase()
     : 'P';
 
-  const isPending = createRating.isPending || checkOut.isPending;
+  const isPending = createRating.isPending || releasePayment.isPending;
 
   return (
     <PageLayout>

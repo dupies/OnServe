@@ -4,8 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { useBooking, useCancelBooking } from '@/features/bookings/hooks/useBookings';
-import { format } from 'date-fns';
+import { useBooking, useCancelBooking, useStartService } from '@/features/bookings/hooks/useBookings';
+import { usePaymentForBooking } from '@/features/payments/hooks/usePayments';
+import { format, startOfDay } from 'date-fns';
 import { toast } from 'sonner';
 import type { BookingStatus } from '@onserve/types';
 
@@ -32,15 +33,31 @@ export function BookingDetailPage() {
   const navigate = useNavigate();
   const { data: booking, isLoading } = useBooking(id);
   const cancel = useCancelBooking();
+  const start = useStartService();
+  const { data: payment } = usePaymentForBooking(id);
 
   async function handleCancel() {
     if (!id) return;
     try {
       await cancel.mutateAsync(id);
-      toast.success('Booking cancelled');
+      toast.success(
+        payment?.status === 'escrowed'
+          ? 'Booking cancelled — your payment will be refunded in full'
+          : 'Booking cancelled',
+      );
       navigate('/bookings');
-    } catch {
-      toast.error('Failed to cancel booking');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to cancel booking');
+    }
+  }
+
+  async function handleStart() {
+    if (!id) return;
+    try {
+      await start.mutateAsync(id);
+      toast.success('Service started');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Could not start the service');
     }
   }
 
@@ -60,10 +77,15 @@ export function BookingDetailPage() {
   const location = (booking as unknown as Record<string, unknown>)['location'] as Record<string, unknown> | undefined;
   const provider = (booking as unknown as Record<string, unknown>)['provider'] as Record<string, unknown> | undefined;
 
+  const isPaid = !!payment && payment.status !== 'pending' && payment.status !== 'failed';
+  const needsPayment = booking.status === 'pending' && !isPaid;
+  const isBookingDay = new Date() >= startOfDay(new Date(booking.scheduledAt));
+  const canStart = booking.status === 'confirmed';
   const canCancel = ['pending', 'confirmed'].includes(booking.status);
   const canTrack = booking.status === 'in_progress';
-  const canRate = booking.status === 'completed';
-  const canDispute = booking.status === 'in_progress' || booking.status === 'completed';
+  const canRate = booking.status === 'completed' && payment?.status === 'escrowed';
+  const canDispute =
+    (booking.status === 'in_progress' || booking.status === 'completed') && payment?.status === 'escrowed';
 
   return (
     <PageLayout>
@@ -142,8 +164,9 @@ export function BookingDetailPage() {
           <h2 className="text-sm font-semibold text-foreground mb-4">Timeline</h2>
           <div className="flex flex-col gap-3">
             <TimelineItem done label="Booking created" time={format(new Date(booking.createdAt), 'EEE d MMM · HH:mm')} />
-            <TimelineItem done={booking.status !== 'pending'} label="Confirmed by provider" />
-            <TimelineItem done={!!booking.providerCheckedInAt} label="Provider checked in" time={booking.providerCheckedInAt ? format(new Date(booking.providerCheckedInAt), 'HH:mm') : undefined} />
+            <TimelineItem done={isPaid} label="Paid · held in escrow" />
+            <TimelineItem done={booking.status !== 'pending'} label="Accepted by provider" />
+            <TimelineItem done={!!booking.providerCheckedInAt} label="Service started" time={booking.providerCheckedInAt ? format(new Date(booking.providerCheckedInAt), 'HH:mm') : undefined} />
             <TimelineItem done={!!booking.completedAt} label="Job completed" />
           </div>
         </div>
@@ -151,11 +174,36 @@ export function BookingDetailPage() {
         {/* Escrow notice */}
         <div className="flex items-center gap-3 bg-warning/10 border border-warning/30 rounded-xl px-5 py-4">
           <Shield className="w-4 h-4 text-warning flex-shrink-0" />
-          <p className="text-sm text-warning">Funds held in escrow · released on your approval</p>
+          <p className="text-sm text-warning">
+            {needsPayment
+              ? 'Not sent to the provider yet — bookings are only confirmed once fully paid. Your payment is refundable if you cancel before the service starts.'
+              : payment?.status === 'released'
+                ? 'Payment released to your provider'
+                : payment?.status === 'refund_pending' || payment?.status === 'refunded'
+                  ? 'Your payment is being refunded in full'
+                  : 'Funds held in escrow · fully refundable until the service starts · released on your approval'}
+          </p>
         </div>
 
         {/* Actions */}
         <div className="flex flex-col gap-3">
+          {needsPayment && (
+            <Button className="w-full" onClick={() => navigate('/payment', { state: { bookingId: booking.id } })}>
+              Pay now to send this booking to the provider
+            </Button>
+          )}
+          {canStart && (
+            <div className="flex flex-col gap-1">
+              <Button className="w-full" onClick={handleStart} disabled={!isBookingDay || start.isPending}>
+                {start.isPending ? 'Starting…' : 'Start service'}
+              </Button>
+              <p className="text-xs text-muted-foreground text-center">
+                {isBookingDay
+                  ? 'Tap when your provider has arrived and is ready to begin.'
+                  : `You can start the service on ${format(new Date(booking.scheduledAt), 'EEE d MMM')}.`}
+              </p>
+            </div>
+          )}
           {canTrack && (
             <Button className="w-full" onClick={() => navigate(`/tracking/${booking.id}`)}>
               <Clock className="w-4 h-4 mr-2" /> Track live

@@ -1,5 +1,5 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { createOzowPayment, getPaymentByBookingId } from '../services/paymentService';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { createOzowPayment, getPaymentByBookingId, releasePayment } from '../services/paymentService';
 
 export function useCreateOzowPayment() {
   return useMutation({
@@ -19,5 +19,16 @@ export function usePaymentForBooking(
     refetchInterval: opts.poll
       ? (query) => (query.state.data?.status === 'pending' || !query.state.data ? 3000 : false)
       : false,
+  });
+}
+
+export function useReleasePayment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (bookingId: string) => releasePayment(bookingId),
+    onSuccess: (_data, bookingId) => {
+      queryClient.invalidateQueries({ queryKey: ['payment', bookingId] });
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+    },
   });
 }

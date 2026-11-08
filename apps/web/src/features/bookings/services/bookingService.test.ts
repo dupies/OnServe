@@ -16,7 +16,7 @@ const {
   createBooking,
   updateBookingStatus,
   acceptBooking,
-  checkIn,
+  startService,
   checkOut,
 } = await import('./bookingService');
 
@@ -107,9 +107,10 @@ describe('getProviderBookings', () => {
     expect(result).toEqual([]);
   });
 
-  it('filters by provider_id and active statuses', async () => {
+  it('filters by provider_id, active statuses and paid bookings only', async () => {
     // First call: provider_profiles, second call: bookings
     let callCount = 0;
+    let bookingsHandler: ReturnType<typeof makeQueryMock> | undefined;
     mock.from = vi.fn((table: string) => {
       callCount++;
       if (callCount === 1) {
@@ -117,13 +118,16 @@ describe('getProviderBookings', () => {
         return makeQueryMock({ id: 'pp-1' });
       }
       expect(table).toBe('bookings');
-      const handler = makeQueryMock([]);
-      return handler;
+      bookingsHandler = makeQueryMock([]);
+      return bookingsHandler;
     });
 
     await getProviderBookings();
 
     expect(callCount).toBe(2);
+    // Only fully paid bookings reach the provider.
+    expect(bookingsHandler!.eq).toHaveBeenCalledWith('payments.status', 'escrowed');
+    expect(bookingsHandler!.eq).toHaveBeenCalledWith('provider_id', 'pp-1');
   });
 
   it('throws on database error for bookings query', async () => {
@@ -163,39 +167,35 @@ describe('getBookingById', () => {
 });
 
 describe('createBooking', () => {
-  it('calculates total with 5% platform fee', async () => {
-    // First call: fetch service type base_price
-    let callCount = 0;
-    mock.from = vi.fn(() => {
-      callCount++;
-      if (callCount === 1) {
-        return makeQueryMock({ base_price: 450 }); // service_types
-      }
-      return makeQueryMock({ ...RAW_BOOKING, total_amount: 472.5 }); // bookings insert
-    });
+  // Pricing, status and booking_type are set by the price_booking_insert
+  // trigger in the database; the client only sends what the customer chose.
+  it('returns the server-priced booking (price + 5% fee)', async () => {
+    mock.from = vi.fn(() =>
+      makeQueryMock({ ...RAW_BOOKING, total_amount: 472.5, service_price: 450, platform_fee: 22.5 }),
+    );
 
     const result = await createBooking({
+      providerId: '00000000-0000-0000-0000-0000000000aa',
       serviceTypeId: 'st-1',
       locationId: 'loc-1',
       scheduledAt: '2026-05-02T10:00:00Z',
     });
 
-    // 450 + 5% = 472.50
     expect(result.totalAmount).toBe(472.5);
+    expect(result.servicePrice).toBe(450);
+    expect(result.platformFee).toBe(22.5);
   });
 
-  it('inserts with status pending and booking_type instant', async () => {
-    let callCount = 0;
-    let insertArgs: unknown;
+  it('sends the chosen provider and never a client-side status or price', async () => {
+    let insertArgs: Record<string, unknown> = {};
     mock.from = vi.fn(() => {
-      callCount++;
-      if (callCount === 1) return makeQueryMock({ base_price: 250 });
       const handler = makeQueryMock(RAW_BOOKING);
-      handler.insert = vi.fn((args: unknown) => { insertArgs = args; return handler; });
+      handler.insert = vi.fn((args: Record<string, unknown>) => { insertArgs = args; return handler; });
       return handler;
     });
 
     await createBooking({
+      providerId: '00000000-0000-0000-0000-0000000000aa',
       serviceTypeId: 'st-1',
       locationId: 'loc-1',
       scheduledAt: '2026-05-02T10:00:00Z',
@@ -203,17 +203,19 @@ describe('createBooking', () => {
     });
 
     expect(insertArgs).toMatchObject({
-      status: 'pending',
-      booking_type: 'instant',
+      provider_id: '00000000-0000-0000-0000-0000000000aa',
       customer_notes: 'Please bring cleaning supplies',
     });
+    expect(insertArgs).not.toHaveProperty('status');
+    expect(insertArgs).not.toHaveProperty('booking_type');
+    expect(mock.from).toHaveBeenCalledTimes(1); // no service_types price lookup
   });
 
-  it('throws when service type is not found', async () => {
-    mock.from = vi.fn(() => makeQueryMock(null, { message: 'Service type not found' }));
+  it('surfaces database errors (e.g. unverified provider)', async () => {
+    mock.from = vi.fn(() => makeQueryMock(null, { message: 'This provider is not available for booking' }));
     await expect(
-      createBooking({ serviceTypeId: 'bad-id', locationId: 'loc-1', scheduledAt: '2026-05-02T10:00:00Z' }),
-    ).rejects.toThrow('Service type not found');
+      createBooking({ serviceTypeId: 'st-1', locationId: 'loc-1', scheduledAt: '2026-05-02T10:00:00Z' }),
+    ).rejects.toThrow('This provider is not available for booking');
   });
 });
 
@@ -227,28 +229,12 @@ describe('updateBookingStatus', () => {
     expect(handler.eq).toHaveBeenCalledWith('id', 'b-1');
   });
 
-  it('sets provider_checked_in_at when transitioning to in_progress', async () => {
+  it('sends only the status; the database stamps check-in/out times', async () => {
     mock._setTable('bookings', null);
-
-    const before = new Date();
     await updateBookingStatus('b-1', 'in_progress');
-    const after = new Date();
 
     const handler = mock.from('bookings');
-    const updateCall = handler.update.mock.calls[0][0] as Record<string, unknown>;
-    const checkedInAt = new Date(updateCall['provider_checked_in_at'] as string);
-
-    expect(checkedInAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
-    expect(checkedInAt.getTime()).toBeLessThanOrEqual(after.getTime());
-  });
-
-  it('sets provider_checked_out_at when transitioning to completed', async () => {
-    mock._setTable('bookings', null);
-    await updateBookingStatus('b-1', 'completed');
-
-    const handler = mock.from('bookings');
-    const updateCall = handler.update.mock.calls[0][0] as Record<string, unknown>;
-    expect(updateCall['provider_checked_out_at']).toBeDefined();
+    expect(handler.update).toHaveBeenCalledWith({ status: 'in_progress' });
   });
 
   it('does not set timestamps for other status transitions', async () => {
@@ -277,10 +263,10 @@ describe('acceptBooking', () => {
   });
 });
 
-describe('checkIn', () => {
+describe('startService (customer)', () => {
   it('sets status to in_progress', async () => {
     mock._setTable('bookings', null);
-    await checkIn('b-1');
+    await startService('b-1');
 
     const handler = mock.from('bookings');
     expect(handler.update).toHaveBeenCalledWith(expect.objectContaining({ status: 'in_progress' }));

@@ -7,13 +7,25 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { useBooking, useAcceptBooking } from '@/features/bookings/hooks/useBookings';
+import { useBooking, useAcceptBooking, useCancelBooking } from '@/features/bookings/hooks/useBookings';
 
 export function JobDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: booking, isLoading } = useBooking(id);
   const acceptBooking = useAcceptBooking();
+  const declineBooking = useCancelBooking();
+
+  async function handleDecline() {
+    if (!id) return;
+    try {
+      await declineBooking.mutateAsync(id);
+      toast.success('Job declined — the customer will be refunded in full');
+      navigate('/provider/jobs');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to decline job');
+    }
+  }
 
   async function handleAccept() {
     if (!id) return;
@@ -125,9 +137,11 @@ export function JobDetailPage() {
             </div>
 
             <div className="bg-card border border-border rounded-xl p-5">
-              <p className="text-xs text-muted-foreground mb-3">Payment</p>
-              <p className="text-2xl font-semibold text-primary">R {booking.totalAmount}</p>
-              <p className="text-xs text-muted-foreground mt-1">Held in escrow</p>
+              <p className="text-xs text-muted-foreground mb-3">Your payout</p>
+              <p className="text-2xl font-semibold text-primary">
+                R {Number(booking.servicePrice ?? booking.totalAmount).toFixed(2)}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">Paid by the customer · held in escrow</p>
             </div>
 
             {booking.status === 'pending' && (
@@ -135,15 +149,20 @@ export function JobDetailPage() {
                 <Button className="w-full" onClick={handleAccept} disabled={acceptBooking.isPending}>
                   {acceptBooking.isPending ? 'Accepting…' : 'Accept job'}
                 </Button>
-                <Button className="w-full" variant="outline" onClick={() => navigate(-1)}>
-                  Decline
+                <Button
+                  className="w-full"
+                  variant="outline"
+                  onClick={handleDecline}
+                  disabled={declineBooking.isPending}
+                >
+                  {declineBooking.isPending ? 'Declining…' : 'Decline'}
                 </Button>
               </div>
             )}
 
-            {booking.status === 'confirmed' && (
+            {(booking.status === 'confirmed' || booking.status === 'in_progress') && (
               <Button className="w-full" onClick={() => navigate(`/provider/jobs/${id}/active`)}>
-                Start job
+                Open job
               </Button>
             )}
           </div>

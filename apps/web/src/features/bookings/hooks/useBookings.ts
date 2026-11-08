@@ -5,7 +5,7 @@ import {
   getBookingById,
   createBooking,
   acceptBooking,
-  checkIn,
+  startService,
   checkOut,
   updateBookingStatus,
 } from '../services/bookingService';
@@ -25,11 +25,16 @@ export function useProviderBookings() {
   });
 }
 
-export function useBooking(id: string | undefined) {
+// pollWhileConfirmed: the provider's screen refreshes every 10s until the
+// customer starts the service (stand-in for push notifications).
+export function useBooking(id: string | undefined, opts: { pollWhileConfirmed?: boolean } = {}) {
   return useQuery({
     queryKey: ['booking', id],
     queryFn: () => getBookingById(id!),
     enabled: !!id,
+    refetchInterval: opts.pollWhileConfirmed
+      ? (query) => (query.state.data?.status === 'confirmed' ? 10_000 : false)
+      : false,
   });
 }
 
@@ -45,15 +50,22 @@ export function useAcceptBooking() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => acceptBooking(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['bookings'] }),
+    onSuccess: (_data, id) => {
+      qc.invalidateQueries({ queryKey: ['bookings'] });
+      qc.invalidateQueries({ queryKey: ['booking', id] });
+    },
   });
 }
 
-export function useCheckIn() {
+/** Customer starts the service when the provider arrives. */
+export function useStartService() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => checkIn(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['bookings'] }),
+    mutationFn: (id: string) => startService(id),
+    onSuccess: (_data, id) => {
+      qc.invalidateQueries({ queryKey: ['bookings'] });
+      qc.invalidateQueries({ queryKey: ['booking', id] });
+    },
   });
 }
 
@@ -61,14 +73,22 @@ export function useCheckOut() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => checkOut(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['bookings'] }),
+    onSuccess: (_data, id) => {
+      qc.invalidateQueries({ queryKey: ['bookings'] });
+      qc.invalidateQueries({ queryKey: ['booking', id] });
+    },
   });
 }
 
+/** Either side, before the service starts. A paid booking is refunded in full. */
 export function useCancelBooking() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => updateBookingStatus(id, 'cancelled'),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['bookings'] }),
+    onSuccess: (_data, id) => {
+      qc.invalidateQueries({ queryKey: ['bookings'] });
+      qc.invalidateQueries({ queryKey: ['booking', id] });
+      qc.invalidateQueries({ queryKey: ['payment', id] });
+    },
   });
 }

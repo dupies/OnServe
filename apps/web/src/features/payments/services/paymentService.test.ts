@@ -9,9 +9,11 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-const { createOzowPayment, getPaymentByBookingId } = await import('./paymentService');
+const { createOzowPayment, getPaymentByBookingId, releasePayment } = await import('./paymentService');
 
 const RAW_PAYMENT = {
+  platform_fee: 22.5,
+  provider_payout: 450,
   id: 'pay-1',
   booking_id: 'b-1',
   customer_id: 'user-1',
@@ -70,6 +72,10 @@ describe('getPaymentByBookingId', () => {
       gatewayReference: 'ONS-b1-123',
       escrowedAt: '2026-07-06T10:00:00Z',
       releasedAt: null,
+      platformFee: 22.5,
+      providerPayout: 450,
+      releasedBy: null,
+      paidOutAt: null,
       createdAt: '2026-07-06T09:58:00Z',
     });
   });
@@ -77,5 +83,21 @@ describe('getPaymentByBookingId', () => {
   it('returns null when no payment exists', async () => {
     mock._setTable('payments', null);
     expect(await getPaymentByBookingId('b-none')).toBeNull();
+  });
+});
+
+describe('releasePayment', () => {
+  it('calls the release_payment RPC with the booking id', async () => {
+    mock.rpc = vi.fn().mockResolvedValue({ data: null, error: null });
+    await releasePayment('b-1');
+    expect(mock.rpc).toHaveBeenCalledWith('release_payment', { p_booking_id: 'b-1' });
+  });
+
+  it('surfaces the database reason when release is refused', async () => {
+    mock.rpc = vi.fn().mockResolvedValue({
+      data: null,
+      error: { message: 'The provider has not marked this job as done yet' },
+    });
+    await expect(releasePayment('b-1')).rejects.toThrow('has not marked this job as done');
   });
 });

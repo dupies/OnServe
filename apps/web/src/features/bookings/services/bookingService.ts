@@ -12,6 +12,8 @@ function mapRow(r: Record<string, unknown>): Booking {
     bookingType: r['booking_type'] as Booking['bookingType'],
     status: r['status'] as BookingStatus,
     totalAmount: r['total_amount'] as number,
+    servicePrice: (r['service_price'] as number | null) ?? null,
+    platformFee: (r['platform_fee'] as number | null) ?? null,
     depositAmount: r['deposit_amount'] as number | null,
     customerNotes: r['customer_notes'] as string | null,
     scheduledAt: r['scheduled_at'] as string,
@@ -38,16 +40,24 @@ export async function getCustomerBookings(): Promise<Booking[]> {
 }
 
 export async function getProviderBookings(): Promise<Booking[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  // Must filter by user_id: all verified profiles are readable, so an
+  // unfiltered .single() errors as soon as there is more than one provider.
   const { data: profile } = await supabase
     .from('provider_profiles')
     .select('id')
-    .single();
+    .eq('user_id', user.id)
+    .maybeSingle();
   if (!profile) return [];
 
+  // Only fully paid bookings reach the provider: unpaid drafts are invisible.
   const { data, error } = await supabase
     .from('bookings')
-    .select('*, service_types(*), saved_locations(*)')
+    .select('*, service_types(*), saved_locations(*), payments!inner(status)')
     .eq('provider_id', profile.id)
+    .eq('payments.status', 'escrowed')
     .in('status', ['pending', 'confirmed', 'in_progress'])
     .order('scheduled_at');
   if (error) throw new Error(error.message);
@@ -68,25 +78,17 @@ export async function createBooking(input: BookingInput): Promise<Booking> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
-  const { data: serviceType, error: stError } = await supabase
-    .from('service_types')
-    .select('base_price')
-    .eq('id', input.serviceTypeId)
-    .single();
-  if (stError) throw new Error(stError.message);
-
-  const basePrice = (serviceType?.base_price as number) ?? 0;
-  const platformFee = basePrice * 0.05;
-
+  // Price, fee, status and type are set by the database (price_booking_insert
+  // trigger) from the provider's listed price. total_amount is required by the
+  // column but overwritten server-side.
   const { data, error } = await supabase
     .from('bookings')
     .insert({
       customer_id: user.id,
+      provider_id: input.providerId ?? null,
       service_type_id: input.serviceTypeId,
       location_id: input.locationId,
-      booking_type: 'instant',
-      status: 'pending',
-      total_amount: basePrice + platformFee,
+      total_amount: 0,
       scheduled_at: input.scheduledAt,
       customer_notes: input.customerNotes ?? null,
     })
@@ -96,12 +98,10 @@ export async function createBooking(input: BookingInput): Promise<Booking> {
   return mapRow(data);
 }
 
+// The database validates who may make each status change and stamps
+// check-in/check-out/cancel times itself (guard_bookings_update trigger).
 export async function updateBookingStatus(id: string, status: BookingStatus): Promise<void> {
-  const updates: Record<string, unknown> = { status };
-  if (status === 'in_progress') updates['provider_checked_in_at'] = new Date().toISOString();
-  if (status === 'completed') updates['provider_checked_out_at'] = new Date().toISOString();
-
-  const { error } = await supabase.from('bookings').update(updates).eq('id', id);
+  const { error } = await supabase.from('bookings').update({ status }).eq('id', id);
   if (error) throw new Error(error.message);
 }
 
@@ -109,10 +109,16 @@ export async function acceptBooking(id: string): Promise<void> {
   return updateBookingStatus(id, 'confirmed');
 }
 
-export async function checkIn(id: string): Promise<void> {
+/**
+ * Customer starts the service once the provider has arrived (booking day only).
+ * Future: the provider sends a "ready to start" request that the customer
+ * accepts; this call stays the customer's action.
+ */
+export async function startService(id: string): Promise<void> {
   return updateBookingStatus(id, 'in_progress');
 }
 
+/** Provider marks the job done; starts the 48h hold before auto-release. */
 export async function checkOut(id: string): Promise<void> {
   return updateBookingStatus(id, 'completed');
 }

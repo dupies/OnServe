@@ -47,10 +47,10 @@ beforeEach(() => {
 });
 
 describe('createDispute', () => {
+  // The database links the escrowed payment and marks payment + booking as
+  // disputed (prepare_dispute / on_dispute_raised triggers).
   it('creates a dispute and returns the mapped result', async () => {
-    mock._setTable('payments', { id: 'pay-1' });
     mock._setTable('disputes', RAW_DISPUTE);
-    mock._setTable('bookings', null);
 
     const result = await createDispute('b-1', {
       reason: 'work_not_completed',
@@ -60,77 +60,44 @@ describe('createDispute', () => {
     expect(result).toMatchObject(MAPPED_DISPUTE);
   });
 
-  it('inserts dispute with status open and correct booking_id', async () => {
-    let insertArgs: unknown;
-    let callCount = 0;
+  it('inserts only booking, author and reason — no payment_id or status', async () => {
+    let insertArgs: Record<string, unknown> = {};
     mock.from = vi.fn((_table: string) => {
-      callCount++;
-      if (callCount === 1) return makeQueryMock({ id: 'pay-1' }); // payments
-      if (callCount === 2) {
-        const handler = makeQueryMock(RAW_DISPUTE);
-        handler.insert = vi.fn((args: unknown) => {
-          insertArgs = args;
-          return handler;
-        });
-        return handler;
-      }
-      return makeQueryMock(null); // bookings update
-    });
-
-    await createDispute('b-1', { reason: 'work_not_completed', description: 'Items broken' });
-
-    expect(insertArgs).toMatchObject({ status: 'open', booking_id: 'b-1' });
-  });
-
-  it('updates booking status to disputed', async () => {
-    let updateArgs: unknown;
-    let callCount = 0;
-    mock.from = vi.fn((_table: string) => {
-      callCount++;
-      if (callCount === 1) return makeQueryMock({ id: 'pay-1' });
-      if (callCount === 2) return makeQueryMock(RAW_DISPUTE);
-      const handler = makeQueryMock(null);
-      handler.update = vi.fn((args: unknown) => {
-        updateArgs = args;
+      const handler = makeQueryMock(RAW_DISPUTE);
+      handler.insert = vi.fn((args: Record<string, unknown>) => {
+        insertArgs = args;
         return handler;
       });
       return handler;
     });
 
+    await createDispute('b-1', { reason: 'work_not_completed', description: 'Items broken' });
+
+    expect(insertArgs).toMatchObject({ booking_id: 'b-1', reason: 'work_not_completed' });
+    expect(insertArgs).not.toHaveProperty('payment_id');
+    expect(insertArgs).not.toHaveProperty('status');
+  });
+
+  it('does not touch bookings or payments from the client', async () => {
+    const tables: string[] = [];
+    mock.from = vi.fn((table: string) => {
+      tables.push(table);
+      return makeQueryMock(RAW_DISPUTE);
+    });
+
     await createDispute('b-1', { reason: 'work_not_completed', description: 'test' });
 
-    expect(updateArgs).toMatchObject({ status: 'disputed' });
+    expect(tables).toEqual(['disputes']);
   });
 
-  it('throws when payment is not found', async () => {
-    mock._setTable('payments', null, { message: 'No payment found' });
-
-    await expect(
-      createDispute('b-1', { reason: 'work_not_completed', description: 'test' }),
-    ).rejects.toThrow('No payment found');
-  });
-
-  it('throws when dispute insert fails', async () => {
-    let callCount = 0;
-    mock.from = vi.fn(() => {
-      callCount++;
-      if (callCount === 1) return makeQueryMock({ id: 'pay-1' });
-      return makeQueryMock(null, { message: 'Insert failed' });
+  it('surfaces the database error when nothing is held in escrow', async () => {
+    mock._setTable('disputes', null, {
+      message: 'Only bookings with money held in escrow can be disputed. Please contact support.',
     });
 
     await expect(
       createDispute('b-1', { reason: 'work_not_completed', description: 'test' }),
-    ).rejects.toThrow('Insert failed');
-  });
-
-  it('throws when booking status update fails', async () => {
-    mock._setTable('payments', { id: 'pay-1' });
-    mock._setTable('disputes', RAW_DISPUTE);
-    mock._setTable('bookings', null, { message: 'Booking update failed' });
-
-    await expect(
-      createDispute('b-1', { reason: 'work_not_completed', description: 'test' }),
-    ).rejects.toThrow('Booking update failed');
+    ).rejects.toThrow('Only bookings with money held in escrow');
   });
 });
 
